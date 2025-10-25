@@ -1,0 +1,1072 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env'), silent: true });
+console.log("token:", process.env.DISCORD_BOT_TOKEN ? "✅ find token" : "❌ where is token ?");
+// Suppress specific deprecation warning about 'ready' renamed to 'clientReady'
+process.on('warning', (warning) => {
+    if (
+        warning?.name === 'DeprecationWarning' &&
+        typeof warning?.message === 'string' &&
+        warning.message.includes('ready event has been renamed to clientReady')
+    ) {
+        return; // ignore this specific warning
+    }
+    console.warn(warning);
+});
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes, Partials } = require('discord.js');
+const { joinVoiceChannel } = require('@discordjs/voice');
+const { fetch } = require('undici');
+const config = require('./config');
+const commands = require('./command');
+const { TicketManager, ticketCommands } = require('./ticket');
+
+// Create a new client instance
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildInvites
+    ],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+    rest: {
+        timeout: 30000
+    }
+});
+
+
+
+
+
+
+
+// --- Console Logging to Discord ---
+const CONSOLE_LOG_CHANNEL_ID = process.env.CONSOLE_LOG_CHANNEL_ID || null;
+const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
+
+function formatConsoleLine(level, message) {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const icon = (
+        level === 'error' ? '❌' :
+        level === 'warn' ? '⚠️' :
+        level === 'info' ? 'ℹ️' :
+        level === 'debug' ? '🐞' :
+        '✅'
+    );
+    return `[${time}] ${icon} ${message}`;
+}
+
+async function sendConsoleLog(level, message) {
+    try {
+        if (!CONSOLE_LOG_CHANNEL_ID || !client?.user) return;
+        
+        const clean = String(message || '').replace(/\s+$/,'').slice(0, 1900);
+        if (!clean) return;
+
+        let ch = client.channels.cache.get(CONSOLE_LOG_CHANNEL_ID);
+        if (!ch) { 
+            try { ch = await client.channels.fetch(CONSOLE_LOG_CHANNEL_ID); } 
+            catch { return; } 
+        }
+        if (!ch || !ch.send) return;
+        
+        const line = formatConsoleLine(level, clean);
+        await ch.send({ content: `\`\`\`\n${line}\n\`\`\`` });
+    } catch (_) {}
+}
+
+// Override console methods to forward to Discord
+for (const [level, fn] of Object.entries(ORIGINAL_CONSOLE)) {
+    console[level] = function(...args) {
+        try { fn.apply(console, args); } catch(_) {}
+        const text = args.map(a => {
+            try { return typeof a === 'string' ? a : JSON.stringify(a, null, 2); } catch { return String(a); }
+        }).join(' ');
+        // send asynchronously to avoid blocking and recursion
+        setTimeout(() => { void sendConsoleLog(level, text); }, 0);
+    };
+}
+
+setTimeout(() => { console.info('Console logger initialized. Streaming logs to Discord.'); }, 0);
+
+// Create commands collection
+client.commands = new Collection();
+// In-memory reaction role mappings: messageId => { emojiKey: roleId }
+client.reactionRoles = new Map();
+// Auto reaction mappings
+client.autoReactions = new Map(); // channelId => Set(emojiKeys)
+client.autoReactSingle = new Map(); // messageId => Set(emojiKeys)
+// Warnings storage: userId => [ { reason, moderatorTag, timestamp } ]
+client.warns = new Map();
+// Deduplication guards
+client.handledGuildMemberAdds = new Set(); // memberId with TTL
+client.handledInteractions = new Set(); // interactionId, short TTL
+// Command usage tracking
+client.commandUsage = new Map(); // commandName => count
+client.dailyStats = {
+	commands: 0,
+	messages: 0,
+	joins: 0,
+	leaves: 0
+};
+// Throttle for console log of online member updates (once per hour)
+client.lastOnlineCountConsoleLog = 0;
+
+// --- Anti-Spam Manager ---
+class AntiSpamManager {
+    constructor(settings) {
+        this.settings = settings || { enabled: false };
+        this.userIdToWindow = new Map(); // userId => [ { t, content, meta } ]
+        this.userIdToScore = new Map(); // userId => { score, last }
+    }
+
+    isExempt(message) {
+        try {
+            if (!this.settings.enabled) return true;
+            if (!message?.member || !message?.guild) return true;
+            const roleIds = message.member.roles?.cache?.keys ? Array.from(message.member.roles.cache.keys()) : [];
+            if (this.settings.exemptRoleIds?.some(id => roleIds.includes(id))) return true;
+            if (this.settings.exemptChannelIds?.includes(message.channelId)) return true;
+            // بررسی کتگوری چنل برای معافیت تیکت‌ها
+            if (this.settings.exemptCategoryIds?.includes(message.channel?.parentId)) return true;
+            if (message.member?.permissions?.has?.('Administrator')) return true;
+            return false;
+        } catch (_) { return false; }
+    }
+
+    pushMessage(message) {
+        const now = Date.now();
+        const meta = this.extractMeta(message);
+        const entry = { t: now, content: (message.content || '').trim(), meta };
+        const arr = this.userIdToWindow.get(message.author.id) || [];
+        arr.push(entry);
+        // prune old
+        const cutoff = now - (this.settings.windowMs || 7000);
+        while (arr.length && arr[0].t < cutoff) arr.shift();
+        this.userIdToWindow.set(message.author.id, arr);
+        return arr;
+    }
+
+    extractMeta(message) {
+        const content = (message.content || '');
+        const mentions = (message.mentions?.users?.size || 0) + (message.mentions?.roles?.size || 0) + (message.mentions?.everyone ? 1 : 0);
+        const links = (content.match(/https?:\/\/\S+/gi) || []).length;
+        const emojis = (content.match(/[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu) || []).length;
+        const letters = (content.replace(/[^a-zA-Z\p{L}]/gu, '') || '');
+        const caps = (letters.match(/[A-Z\p{Lu}]/gu) || []).length;
+        const ratio = letters.length ? caps / letters.length : 0;
+        return { mentions, links, emojis, capsRatio: ratio };
+    }
+
+    similarity(a, b) {
+        if (!a || !b) return 0;
+        if (a === b) return 1;
+        const len = Math.max(a.length, b.length);
+        if (len === 0) return 1;
+        let same = 0;
+        for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] === b[i]) same++;
+        return same / len;
+    }
+
+    computeViolations(message, windowEntries) {
+        const s = this.settings;
+        let score = 0;
+
+        // Rate of messages
+        if (windowEntries.length > (s.maxMessages || 6)) score += 2;
+
+        // Duplicates / near-duplicates
+        const contents = windowEntries.map(e => e.content).filter(Boolean);
+        let dupCount = 0;
+        for (let i = 1; i < contents.length; i++) {
+            const sim = this.similarity(contents[i], contents[i - 1]);
+            if (sim >= 0.9) dupCount++;
+        }
+        if (dupCount >= (s.maxDuplicates || 3)) score += 2;
+
+        const last = windowEntries[windowEntries.length - 1];
+        if (last) {
+            if (last.meta.mentions > (s.maxMentionsPerMessage || 5)) score += 2;
+            if (last.meta.emojis > (s.maxEmojisPerMessage || 15)) score += 1;
+            if (last.meta.capsRatio > (s.maxCapsRatioPerMessage || 0.7) && (last.content || '').length >= 12) score += 1;
+        }
+
+        // Links in window
+        const linkSum = windowEntries.reduce((acc, e) => acc + e.meta.links, 0);
+        if (linkSum > (s.maxLinksPerWindow || 5)) score += 2;
+
+        // Account and server age checks
+        const accountAgeOk = Date.now() - (message.author?.createdTimestamp || 0) >= (s.minAccountAgeMs || 0);
+        const joinedAt = message.member?.joinedTimestamp || 0;
+        const serverAgeOk = Date.now() - joinedAt >= (s.minServerAgeMs || 0);
+        if (!accountAgeOk) score += 1;
+        if (!serverAgeOk) score += 1;
+
+        return score;
+    }
+
+    async applyPunishment(message, totalScore) {
+        try {
+            const s = this.settings;
+            const state = this.userIdToScore.get(message.author.id) || { score: 0, last: 0, step: 0 };
+            // decay
+            const decay = s.decayMs || 30 * 60 * 1000;
+            const now = Date.now();
+            const decayedScore = Math.max(0, state.score - Math.floor((now - state.last) / decay));
+            const newScore = decayedScore + totalScore;
+            state.score = newScore;
+            state.last = now;
+
+            // Choose step based on score thresholds
+            // threshold: 2 -> warn, 4 -> 10m timeout, 6 -> 1h timeout, 8 -> kick
+            const stepIndex = newScore >= 8 ? 3 : newScore >= 6 ? 2 : newScore >= 4 ? 1 : newScore >= 2 ? 0 : -1;
+            if (s.stripRolesOnViolation) {
+                await this.stripAllRoles(message).catch(() => {});
+            }
+
+            // If user is configured to only have roles stripped, skip further punishments
+            const onlyStrip = Array.isArray(s.stripOnlyUserIds) && s.stripOnlyUserIds.includes(message.author.id);
+            if (!onlyStrip && stepIndex > state.step) {
+                state.step = stepIndex;
+                this.userIdToScore.set(message.author.id, state);
+                const step = s.punishments[stepIndex];
+                await this.executeStep(message, step, newScore);
+            } else {
+                this.userIdToScore.set(message.author.id, state);
+            }
+        } catch (err) {
+            console.error('❌ AntiSpam punishment error:', err?.message || err);
+        }
+    }
+
+    async executeStep(message, step, score) {
+        if (!step) return;
+        const reason = `Anti-spam triggered (score=${score})`;
+        try {
+            switch (step.type) {
+                case 'warn':
+                    await message.reply({ content: '⚠️ لطفاً از ارسال پیام‌های پشت‌سرهم یا تکراری خودداری کنید.' }).catch(() => {});
+                    break;
+                case 'timeout': {
+                    const ms = step.durationMs || 10 * 60 * 1000;
+                    if (message.member?.moderatable) {
+                        await message.member.timeout(ms, reason).catch(() => {});
+                        await message.reply({ content: `⏳ شما برای ${(ms/60000)|0} دقیقه میوت شدید.` }).catch(() => {});
+                    }
+                    break;
+                }
+                case 'kick': {
+                    if (message.member?.kickable) {
+                        await message.member.kick(reason).catch(() => {});
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        } catch (e) {
+            console.error('❌ AntiSpam execute step error:', e?.message || e);
+        }
+    }
+
+    async stripAllRoles(message) {
+        try {
+            const member = message.member;
+            if (!member || !member.manageable) return;
+            const me = message.guild?.members?.me;
+            if (!me) return;
+            const removable = member.roles.cache.filter(r => r.id !== message.guild.id && me.roles.highest.comparePositionTo(r) > 0);
+            if (!removable.size) return;
+            await member.roles.remove(Array.from(removable.keys()), 'Anti-spam violation: strip roles');
+        } catch (e) {
+            // ignore
+        }
+    }
+}
+
+const antiSpam = new AntiSpamManager(config.antiSpam);
+
+// Add commands to collection
+const commandList = [
+    commands.avatarCommand,
+    commands.banCommand,
+    commands.kickCommand,
+    commands.clearCommand,
+    commands.warnCommand,
+    commands.warn2Command,
+    commands.warnlistCommand,
+    commands.clearwarnsCommand,
+    commands.deletemessageuserCommand,
+    commands.remindCommand,
+    commands.weatherCommand,
+    commands.timeCommand,
+    commands.sayCommand,
+    commands.serverinfoCommand,
+    commands.userinfoCommand,
+    commands.helpCommand,
+    commands.reactionroleCommand,
+    commands.autoreactionCommand,
+    commands.sendCommand,
+    ...ticketCommands
+];
+
+commandList.forEach(command => {
+    client.commands.set(command.data.name, command);
+});
+
+// ایجاد مدیر تیکت
+const ticketManager = new TicketManager(client);
+
+// Voice channel the bot should always sit in (by ID)
+const VOICE_CHANNEL_ID = '1414724634900824291';
+
+
+// Helper to update online member count channel name
+async function updateOnlineMemberCountChannel() {
+    try {
+        const ONLINE_MEMBER_CHANNEL_ID = '1430248540088700989';
+        let channel = client.channels.cache.get(ONLINE_MEMBER_CHANNEL_ID);
+        if (!channel) {
+            try { channel = await client.channels.fetch(ONLINE_MEMBER_CHANNEL_ID); } catch {}
+        }
+        if (channel && channel.guild) {
+            // Count online members (status: online, idle, dnd - not offline or invisible)
+            const guild = channel.guild;
+            let onlineCount = 0;
+            
+            // Fetch all members to ensure we have presence data (with limit for performance)
+            try {
+                await guild.members.fetch({ limit: 1000 });
+            } catch (e) {
+                // Silently ignore this warning as it's not critical
+            }
+            
+            guild.members.cache.forEach(member => {
+                if (!member.user.bot && member.presence && 
+                    ['online', 'idle', 'dnd'].includes(member.presence.status)) {
+                    onlineCount++;
+                }
+            });
+            
+            const desiredName = `「⚫」𝐎𝐧𝐥𝐢𝐧𝐞 :  ${onlineCount}`;
+            if (channel.name !== desiredName) {
+                await channel.setName(desiredName);
+            }
+            // Only log when there's an actual change, not when already up to date
+        } else {
+            // silent when channel not found/unavailable
+        }
+    } catch (error) {
+        // silent errors for online count updates
+    }
+}
+
+// --- START: New Function for Bot Activity (Watching Status) ---
+// Helper to update the bot's activity/status
+async function updateBotActivity() {
+    try {
+        if (!client.user || client.guilds.cache.size === 0) {
+            console.warn('⚠️ Cannot update activity: Client user not ready or no guilds cached.');
+            return;
+        }
+
+        // Get main guild ID from environment variables
+        const mainGuild = client.guilds.cache.get(process.env.GUILD_ID || config.discord.guildId);
+
+        let memberCount = mainGuild?.memberCount || client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+        
+        // اطمینان از اینکه memberCount یک عدد است
+        memberCount = typeof memberCount === 'number' ? memberCount : 0;
+        
+        const activityMessage = `CLUBS : ${memberCount} Member`;
+
+        // Type 3 = Watching
+        client.user.setActivity(activityMessage, { type: 3 }); 
+        console.log(`✅ Bot activity updated to: Watching ${activityMessage}`);
+
+    } catch (error) {
+        console.error('❌ Error updating bot activity:', error?.message || error);
+    }
+}
+// --- END: New Function for Bot Activity (Watching Status) ---
+
+
+// Maintain a persistent voice connection to the specified voice channel
+let voiceConnection = null;
+async function connectToVoiceChannel() {
+    try {
+        
+        
+        let channel = client.channels.cache.get(VOICE_CHANNEL_ID);
+        if (!channel) {
+            console.log(`🔍 Channel not in cache, fetching...`);
+            try { 
+                channel = await client.channels.fetch(VOICE_CHANNEL_ID); 
+                console.log(`✅ Channel fetched successfully: ${channel?.name || 'Unknown'}`);
+            } catch (fetchError) {
+                console.error(`❌ Failed to fetch channel ${VOICE_CHANNEL_ID}:`, fetchError?.message || fetchError);
+                return;
+            }
+        }
+
+        if (!channel) {
+            console.error(`❌ Voice channel ${VOICE_CHANNEL_ID} not found`);
+            return;
+        }
+
+        // ChannelType.GuildVoice = 2, GuildStageVoice = 13 (avoid importing ChannelType)
+        if (channel.type !== 2 && channel.type !== 13) {
+            console.error(`❌ Channel ${channel.name} (${channel.id}) is not a voice/stage channel. Type: ${channel.type}`);
+            return;
+        }
+
+
+        // Check bot permissions in the channel
+        const botMember = channel.guild.members.me;
+        if (!botMember) {
+            console.error(`❌ Bot member not found in guild`);
+            return;
+        }
+
+        const permissions = channel.permissionsFor(botMember);
+        if (!permissions) {
+            console.error(`❌ Cannot get permissions for bot in channel ${channel.name}`);
+            return;
+        }
+
+        if (!permissions.has('Connect')) {
+            console.error(`❌ Bot lacks 'Connect' permission in channel ${channel.name}`);
+            return;
+        }
+
+        if (!permissions.has('Speak')) {
+            console.warn(`⚠️ Bot lacks 'Speak' permission in channel ${channel.name}, but will still connect`);
+        }
+
+        // Log فقط در صورت عدم وجود Speak
+        if (permissions.has('Connect') && permissions.has('Speak')) {
+        }
+        
+
+        // Disconnect existing connection if any
+        if (voiceConnection) {
+            console.log(`🔄 Disconnecting existing voice connection...`);
+            voiceConnection.destroy();
+            voiceConnection = null;
+        }
+
+        const connection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guild.id,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+            selfDeaf: false,
+            selfMute: true
+        });
+
+        voiceConnection = connection;
+        console.log(`✅ Successfully started voice connection attempt to: ${channel.name}`);
+
+        // Enhanced error handling and state monitoring
+        connection.on('error', (err) => {
+            console.error('❌ Voice connection error:', err?.message || err);
+            console.error('❌ Error details:', err);
+        });
+
+        connection.on('stateChange', (oldState, newState) => {
+            // فقط لاگ برای تغییرات مهم یا وضعیت نهایی (connected)
+            if (newState.status !== 'connecting' || oldState.status === 'disconnected' || oldState.status === 'signalling') {
+                            }
+            
+            if (newState.status === 'disconnected') {
+                console.log('⚠️ Voice connection disconnected, attempting to reconnect in 5s...');
+                voiceConnection = null;
+                setTimeout(() => { 
+                    console.log('🔄 Attempting reconnection...');
+                    connectToVoiceChannel(); 
+                }, 5000);
+            } else if (newState.status === 'connected') {
+                console.log('✅ Voice connection established successfully');
+            }
+            // حذف لاگ مکرر "Voice connection in progress..." 
+            // else if (newState.status === 'connecting') {
+            //     console.log('🔄 Voice connection in progress...'); 
+            // }
+        });
+
+        // حذف لاگ های دیباگ زیاد
+        // connection.on('debug', (message) => {
+        //     console.log(`🔍 Voice debug: ${message}`);
+        // });
+
+    } catch (error) {
+        console.error('❌ Failed to connect to voice channel:', error?.message || error);
+        console.error('❌ Full error:', error);
+        voiceConnection = null;
+    }
+}
+
+// When the client is ready, run this code (only once)
+client.once('clientReady', async () => {
+	console.log(`✅ Bot started successfully. ${client.user.tag}`);
+	console.log(`http://localhost:3000`);
+    console.log(`🔗 Bot is in ${client.guilds.cache.size} server(s)`);
+    
+    // Initial update + schedule periodic refresh for online member count
+    console.log('🔄 Updating online member count...');
+    setTimeout(async () => {
+        try {
+            await updateOnlineMemberCountChannel();
+            console.log('✅ Online member count updated');
+        } catch (error) {
+            console.error('❌ Error in online member count update:', error);
+        }
+    }, 2000);
+    
+    setInterval(() => { 
+        updateOnlineMemberCountChannel().catch(() => {}); 
+    }, 5 * 60 * 1000); // ✅ تغییر ۱: به‌روزرسانی هر ۵ دقیقه (300,000 میلی‌ثانیه)
+    
+    // Reset daily stats at midnight (Tehran Time)
+    const TEHRAN_TIMEZONE = 'Asia/Tehran';
+    // 1. دریافت زمان فعلی تهران (به شکل یک شیء Date)
+    const nowTehran = new Date(new Date().toLocaleString('en-US', { timeZone: TEHRAN_TIMEZONE }));
+
+    // 2. محاسبه زمان نیمه‌شب فردا به وقت تهران
+    const midnightTomorrowTehran = new Date(nowTehran);
+    midnightTomorrowTehran.setDate(nowTehran.getDate() + 1);
+    midnightTomorrowTehran.setHours(0, 0, 0, 0); // تنظیم به 00:00 فردا
+
+    // 3. محاسبه اختلاف میلی‌ثانیه تا نیمه‌شب فردا
+    let msUntilMidnight = midnightTomorrowTehran.getTime() - nowTehran.getTime();
+    
+    // بررسی خطا (اگر اختلاف منفی بود، یعنی از نیمه‌شب گذشته و باید 24 ساعت اضافه کنیم)
+    if (msUntilMidnight < 0) {
+        msUntilMidnight += 24 * 60 * 60 * 1000;
+    }
+    
+    setTimeout(() => { // ✅ تغییر ۲: بازنشانی آمار به وقت تهران
+        client.dailyStats = { commands: 0, messages: 0, joins: 0, leaves: 0 };
+        console.log('📊 Daily statistics reset (Tehran Time)');
+        
+        // Schedule next reset for 24 hours later
+        setInterval(() => {
+            client.dailyStats = { commands: 0, messages: 0, joins: 0, leaves: 0 };
+            console.log('📊 Daily statistics reset (Tehran Time)');
+        }, 24 * 60 * 60 * 1000);
+    }, msUntilMidnight);
+    
+
+    setTimeout(() => { connectToVoiceChannel(); }, 3000);
+    
+    updateBotActivity();
+    // Update activity every 30 seconds to refresh the member count
+    setInterval(() => {
+        updateBotActivity().catch(() => {});
+    }, 900000);
+    // --- END: Setting Bot Activity (Watching Status) ---
+
+    // Reaction-role disabled per new requirement; using auto-role on member join instead
+
+    // Register slash commands
+    try {
+        
+        
+        
+        const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN || config.botToken);
+        
+        const commandsData = commandList.map(command => command.data.toJSON());
+        
+        
+        // Register commands globally
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commandsData }
+        );
+        
+		console.log(`✅ ${commandsData.length} commands are ready for use.`);
+    } catch (error) {
+        console.error('❌ Error registering slash commands:', error);
+    }
+    
+    console.log('🎉 Bot initialization completed successfully!');
+    
+    // (legacy join removed; using connectToVoiceChannel above)
+});
+
+// Backfill helper: assign role to users who already reacted on a message
+async function backfillReactionRole(guildId, channelId, messageId, emojiKey, roleId) {
+    try {
+        // Validate guild presence
+        const guild = client.guilds.cache.get(guildId) || await client.guilds.fetch(guildId).catch(() => null);
+        if (!guild) return;
+
+        // Ensure bot has required perms
+        const me = guild.members.me || await guild.members.fetch(client.user.id).catch(() => null);
+        if (!me || !me.permissions.has('ManageRoles')) return;
+
+        // Fetch target message
+        const channel = client.channels.cache.get(channelId) || await client.channels.fetch(channelId).catch(() => null);
+        if (!channel || !channel.messages) return;
+        const message = await channel.messages.fetch(messageId).catch(() => null);
+        if (!message) return;
+
+        // Find the reaction object for the emoji
+        const reaction = message.reactions.cache.find(r => (r.emoji.id ? r.emoji.id : r.emoji.name) === emojiKey);
+        if (!reaction) return;
+
+        // Fetch users who reacted
+        // Note: fetch() paginates under the hood
+        const users = await reaction.users.fetch({ limit: 100 });
+        for (const [, user] of users) {
+            if (user.bot) continue;
+            try {
+                const member = await guild.members.fetch(user.id);
+                if (!member.roles.cache.has(roleId)) {
+                    await member.roles.add(roleId, 'Startup reaction-role backfill for ✅');
+                }
+            } catch (_) {}
+        }
+    } catch (error) {
+        console.error('❌ Error during reaction-role backfill:', error);
+    }
+}
+
+// Handle slash commands and button interactions
+client.on('interactionCreate', async (interaction) => {
+    // مدیریت دکمه‌ها و منوهای تیکت
+    if (interaction.isButton()) {
+        const buttonIds = ['create_ticket', 'create_ticket_complaint', 'create_ticket_suggestion', 'create_ticket_collaboration', 'close_ticket', 'reopen_ticket', 'delete_ticket', 'delete_ticket_with_transcript', 'delete_ticket_without_transcript', 'cancel_delete_ticket'];
+        if (buttonIds.includes(interaction.customId)) {
+            await ticketManager.handleButtonInteraction(interaction);
+            return;
+        }
+    }
+
+    // Handle select (drop-down) interactions for ticket panel
+    if (interaction.isStringSelectMenu && interaction.isStringSelectMenu()) {
+        if (interaction.customId === 'ticket_select') {
+            await ticketManager.handleSelectInteraction(interaction);
+            return;
+        }
+    }
+
+    if (!interaction.isChatInputCommand()) return;
+
+    // Dedup: ignore if we already handled this interaction id
+    if (client.handledInteractions.has(interaction.id)) return;
+    client.handledInteractions.add(interaction.id);
+    setTimeout(() => client.handledInteractions.delete(interaction.id), 5 * 60 * 1000);
+
+    const command = client.commands.get(interaction.commandName);
+
+    if (!command) {
+        console.error(`❌ No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        // Track command usage
+        const currentCount = client.commandUsage.get(interaction.commandName) || 0;
+        client.commandUsage.set(interaction.commandName, currentCount + 1);
+        client.dailyStats.commands++;
+        
+        await command.execute(interaction);
+        console.log(`✅ Command ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
+    } catch (error) {
+        console.error(`❌ Error executing command ${interaction.commandName}:`, error);
+        
+        const errorMessage = {
+            content: '❌ خطا در اجرای دستور!',
+            ephemeral: true
+        };
+
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp(errorMessage);
+        } else {
+            await interaction.reply(errorMessage);
+        }
+    }
+});
+
+// Reaction add handler for reaction roles
+client.on('messageReactionAdd', async (reaction, user) => {
+    try {
+        if (user.bot) return;
+
+        // Ensure partials are resolved
+        if (reaction.partial) {
+            try { await reaction.fetch(); } catch { return; }
+        }
+        const message = reaction.message;
+        const guild = message.guild;
+        if (!guild) return;
+
+        const mapping = client.reactionRoles.get(message.id);
+        if (!mapping) return;
+
+        // Normalize emoji key
+        const emoji = reaction.emoji;
+        const emojiKey = emoji.id ? emoji.id : emoji.name;
+        const roleId = mapping[emojiKey];
+        if (!roleId) return;
+
+        try {
+            const member = await guild.members.fetch(user.id);
+            if (!member.roles.cache.has(roleId)) {
+                await member.roles.add(roleId, 'Reaction role assignment');
+            }
+        } catch (e) {
+            // ignore per-user failures
+        }
+    } catch (error) {
+        console.error('❌ Error in messageReactionAdd handler:', error);
+    }
+});
+
+// Reaction remove handler to remove roles upon unreact
+client.on('messageReactionRemove', async (reaction, user) => {
+    try {
+        if (user.bot) return;
+
+        if (reaction.partial) {
+            try { await reaction.fetch(); } catch { return; }
+        }
+        const message = reaction.message;
+        const guild = message.guild;
+        if (!guild) return;
+
+        const mapping = client.reactionRoles.get(message.id);
+        if (!mapping) return;
+
+        const emoji = reaction.emoji;
+        const emojiKey = emoji.id ? emoji.id : emoji.name;
+        const roleId = mapping[emojiKey];
+        if (!roleId) return;
+
+        try {
+            const member = await guild.members.fetch(user.id);
+            if (member.roles.cache.has(roleId)) {
+                await member.roles.remove(roleId, 'Reaction role removed on unreact');
+            }
+        } catch (e) {
+            // ignore per-user failures
+        }
+    } catch (error) {
+        console.error('❌ Error in messageReactionRemove handler:', error);
+    }
+});
+
+
+// Auto-react on new messages in configured channels
+client.on('messageCreate', async (message) => {
+    try {
+        if (message.author?.bot) return;
+        
+        // Track message count
+        client.dailyStats.messages++;
+        
+        // Anti-spam processing
+        if (!antiSpam.isExempt(message)) {
+            const entries = antiSpam.pushMessage(message);
+            const score = antiSpam.computeViolations(message, entries);
+            if (score > 0) {
+                await antiSpam.applyPunishment(message, score);
+            }
+        }
+        
+        const set = client.autoReactions.get(message.channelId);
+        if (!set || set.size === 0) return;
+        for (const emojiKey of set) {
+            try { await message.react(emojiKey); } catch {}
+        }
+    } catch (error) {
+        console.error('❌ Error in messageCreate auto-reaction:', error);
+    }
+});
+
+
+
+// Ensure single-message auto reactions persist if removed
+client.on('messageReactionRemove', async (reaction, user) => {
+    try {
+        // Re-apply auto reactions configured for a single message
+        if (reaction.partial) { try { await reaction.fetch(); } catch { return; } }
+        const message = reaction.message;
+        const set = client.autoReactSingle.get(message.id);
+        if (!set || set.size === 0) return;
+        const emojiKey = reaction.emoji.id ? reaction.emoji.id : reaction.emoji.name;
+        if (set.has(emojiKey)) {
+            try { await message.react(emojiKey); } catch {}
+        }
+    } catch (error) {
+        // silent
+    }
+});
+
+// Voice state update handler
+client.on('voiceStateUpdate', async (oldState, newState) => {
+    try {
+        const voiceChannelId = '1400945138171248812'; // ویس چنل مورد نظر
+        const targetUserId = '995631414907244646'; // کاربری که باید پیام بگیره
+
+        // Allow logging for bots too (no early return)
+        
+
+        // Check if someone joined the specific voice channel
+        if (!newState.member?.user?.bot && newState.channelId === voiceChannelId && oldState.channelId !== voiceChannelId) {
+            console.log(`✅ ${newState.member.user.username} joined voice move me `);
+            
+            try {
+                // Send message to the person who joined
+                const welcomeMessage = `درود ${newState.member}\n` +
+                                     `به زودی به درخواست شما رسیدگی خواهد شد .\n` +
+                                     `ممنون از صبوری شما 🌹\n` +
+                                     `**زمان:** <t:${Math.floor(Date.now() / 1000)}:F>`;
+                
+                await newState.member.send(welcomeMessage);
+                console.log(`📩 wait message sent to ${newState.member.user.username} `);
+                
+            } catch (dmError) {
+                console.error(`❌ Error sending welcome DM to ${newState.member.user.tag}:`, dmError);
+            }
+            
+            try {
+                // Send notification to all users with full permissions plus specific roles
+                const guild = newState.guild;
+                const specificRoleIds = ['1415440089047371897', '1400910230358851686', '1400919880017907797'];
+                
+                // Get all members with Administrator permission
+                const adminMembers = guild.members.cache.filter(member => 
+                    member.permissions.has('Administrator') && !member.user.bot
+                );
+                
+                // Get all members with specific roles
+                const roleMembers = guild.members.cache.filter(member => 
+                    member.roles.cache.some(role => specificRoleIds.includes(role.id)) && !member.user.bot
+                );
+                
+                // Combine and deduplicate members
+                const allTargetMembers = new Set([...adminMembers.values(), ...roleMembers.values()]);
+                
+                const notificationMessage = `یک درخواست از این چنل داری : <#${newState.channel.id}>\n` +
+                                          `**کاربر:** <@${newState.member.user.id}>\n` +
+                                          `زمان : <t:${Math.floor(Date.now() / 1000)}:F>`;
+                
+                let successCount = 0;
+                let failCount = 0;
+                
+                // Send DM to all target members
+                for (const member of allTargetMembers) {
+                    try {
+                        await member.send(notificationMessage);
+                        successCount++;
+                        console.log(`📩 Notification sent to ${member.user.tag}`);
+                    } catch (dmError) {
+                        failCount++;
+                        console.log(`❌ Failed to send DM to ${member.user.tag}: ${dmError.message}`);
+                    }
+                }
+                
+                console.log(`🔔 Notifications sent: ${successCount} success, ${failCount} failed`);
+                
+            } catch (error) {
+                console.error(`❌ Error sending notifications:`, error);
+            }
+        }
+        
+        // Check if someone left the voice channel
+        if (!oldState.member?.user?.bot && oldState.channelId === voiceChannelId && newState.channelId !== voiceChannelId) {
+            console.log(`🎤 ${oldState.member.user.tag} left target voice channel`);
+        }
+        
+        // If the bot itself left a voice channel, try to reconnect to the target voice by ID
+        if (oldState.member?.id === client.user.id && oldState.channelId && !newState.channelId) {
+            setTimeout(() => { connectToVoiceChannel(); }, 2000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error in voice state update:', error);
+    }
+});
+
+// Listen for presence updates to update online member count in real-time
+client.on('presenceUpdate', async (oldPresence, newPresence) => {
+    try {
+        // Only update if the status actually changed
+        const oldStatus = oldPresence?.status || 'offline';
+        const newStatus = newPresence?.status || 'offline';
+        
+        if (oldStatus !== newStatus) {
+            // Debounce updates to reduce rate limiting - update at most every 3 seconds
+            if (!client.lastOnlineCountUpdate || Date.now() - client.lastOnlineCountUpdate > 3000) {
+                client.lastOnlineCountUpdate = Date.now();
+                await updateOnlineMemberCountChannel();
+            }
+        }
+    } catch (error) {
+        // silent
+    }
+});
+
+
+
+// Listen for new members joining the server
+client.on('guildMemberAdd', async (member) => {
+    try {
+        // Dedup: ensure we welcome only once per member
+        if (client.handledGuildMemberAdds.has(member.id)) {
+            return;
+        }
+        client.handledGuildMemberAdds.add(member.id);
+        // Auto-expire after 10 minutes (safety)
+        setTimeout(() => client.handledGuildMemberAdds.delete(member.id), 10 * 60 * 1000);
+
+        console.log(`👋 New member joined: ${member.user.tag} (${member.user.id})`);
+        
+        // Track join count
+        client.dailyStats.joins++;
+        
+        try {
+            // Change nickname to ! name (no parentheses) when joining server
+            const displayName = member.displayName; // Nickname if set, else username
+            const newNickname = `! ${displayName}`;
+
+            await member.setNickname(newNickname, 'New member joined server');
+            console.log(`✅ Changed nickname for ${member.user.tag} to: ${newNickname}`);
+
+        } catch (nicknameError) {
+            console.error(`❌ Error changing nickname for ${member.user.tag}:`, nicknameError);
+        }
+        
+
+        // Update online member count as new member might be online
+        updateOnlineMemberCountChannel();
+        
+        // --- START: Update Activity on Join ---
+        updateBotActivity(); 
+        // --- END: Update Activity on Join ---
+
+        // Send welcome message to welcome channel
+        await sendWelcomeChannelMessage(member);
+        
+        // Send DM to the new member
+        await sendWelcomeDM(member);
+        
+    } catch (error) {
+        console.error('❌ Error handling new member:', error);
+    }
+});
+
+
+// Also update counter when a member leaves
+client.on('guildMemberRemove', async (member) => {
+    try {
+        console.log(`👋 Member left: ${member.user?.tag || member.id}`);
+        
+        // Track leave count
+        client.dailyStats.leaves++;
+        
+        // Note: We can't restore nickname here because the member is no longer in the server
+        // The nickname will be automatically reset when they rejoin
+        
+        // Update online member count as member left (might have been online)
+        updateOnlineMemberCountChannel();
+        
+        // --- START: Update Activity on Leave ---
+        updateBotActivity(); 
+        // --- END: Update Activity on Leave ---
+        
+    } catch (error) {
+        // silent
+    }
+});
+
+
+
+
+// Function to send welcome message to the welcome channel
+async function sendWelcomeChannelMessage(member) {
+    try {
+        const welcomeChannel = client.channels.cache.get(config.welcomeChannelId);
+        
+        if (!welcomeChannel) {
+            console.error(`❌ Welcome channel not found with ID: ${config.welcomeChannelId}`);
+            return;
+        }
+
+		const welcomeMessage = `𝐃𝐨𝐫𝐨𝐝 ${member} 𝐊𝐡𝐨𝐬𝐡 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒`;
+		const channelIconUrl = welcomeChannel.guild.iconURL({ size: 512 });
+		const embed = new EmbedBuilder()
+			.setColor(0x000000) // ✅ تغییر ۳: رنگ امبد به مشکی (0x000000)
+			.setAuthor({ name: member.user.tag, iconURL: channelIconUrl })
+			.setImage(channelIconUrl);
+
+		await welcomeChannel.send({ content: welcomeMessage, embeds: [embed] });
+		console.log(`✅ Welcome message (with avatar) sent to channel for ${member.user.tag}`);
+        
+    } catch (error) {
+        console.error('❌ Error sending welcome channel message:', error);
+    }
+}
+
+// Function to send DM to new member
+async function sendWelcomeDM(member) {
+    try {
+		const dmMessage = `𝐃𝐨𝐫𝐨𝐝 𝐊𝐡𝐨𝐬h 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒🌹 ${member}`
+        await member.send(dmMessage);
+        console.log(`✅ Welcome DM sent to ${member.user.tag}`);
+        
+    } catch (error) {
+        console.error('❌ Error sending welcome DM:', error);
+        // If DM fails, try to send a message in a general channel as fallback
+        try {
+            const generalChannel = member.guild.channels.cache.find(channel => 
+                channel.type === 0 && channel.permissionsFor(member.guild.members.me).has('SendMessages')
+            );
+            
+            if (generalChannel) {
+                await generalChannel.send(`خوش اومدی ${member}! لطفاً پیام خصوصی خود را برای اطلاعات بیشتر بررسی کنید.`);
+                console.log(`✅ Fallback welcome message sent to ${generalChannel.name} for ${member.user.tag}`);
+            }
+        } catch (fallbackError) {
+            console.error('❌ Error sending fallback welcome message:', fallbackError);
+        }
+    }
+}
+
+// Handle errors with better error handling
+client.on('error', error => {
+    console.error('❌ Discord client error:', error);
+    // Don't crash the bot on client errors
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled promise rejection at:', promise, 'reason:', reason);
+    // Don't crash the process on unhandled rejections
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    // Graceful shutdown
+    process.exit(1);
+});
+
+// Login to Discord with your client's token
+const botToken = process.env.DISCORD_BOT_TOKEN || config.discord.botToken;
+// Validate token presence/format before attempting login
+if (!botToken || botToken === 'your_discord_bot_token_here') {
+    console.error('❌ Bot token not found! Please set DISCORD_BOT_TOKEN in your .env file');
+    console.error('📝 You can run: npm run setup:env');
+    process.exit(1);
+}
+if (typeof botToken !== 'string' || botToken.split('.').length !== 3 || /\s/.test(botToken)) {
+    console.error('❌ Bot token format looks invalid. Ensure it is the exact Bot Token (3 parts, no spaces).');
+    process.exit(1);
+}
+
+console.log('🔑 Bot token loaded successfully');
+client.login(botToken);

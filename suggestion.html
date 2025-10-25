@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>پیشنهاد و انتقاد — CLUBS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="/picture/clb-logo-clb-letter-clb-letter-logo-design-initials-clb-logo-linked-with-circle-and-uppercase-monogram-logo-clb-typography-for-technology-business-and-real-estate-brand-vector.png">
+  <style>
+    /* Minimal copy of main page styles for visual parity */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Roboto',sans-serif;background:linear-gradient(135deg,#0c0c0c 0%,#1a1a2e 50%,#16213e 100%);color:#ffffff;min-height:100vh;overflow-x:hidden;padding-bottom:140px}
+    .header{padding:2rem 0;text-align:center;background:rgba(0,0,0,0.14);backdrop-filter:blur(8px);border-bottom:2px solid #00ff88}
+    .logo{font-family:'Orbitron',monospace;font-size:2.6rem;background:linear-gradient(45deg,#00ff88,#00d4ff,#ff0080);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .tagline{color:#00ff88;margin-top:6px}
+    .container{max-width:1100px;margin:2rem auto;padding:0 1.5rem}
+    .card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:28px;border-radius:14px;box-shadow:0 12px 30px rgba(2,6,23,0.5)}
+    h1{font-family:'Orbitron',monospace;color:#00d4ff;text-align:center;margin-bottom:12px}
+    label{display:block;margin-top:12px;font-size:14px;color:#dbeeff}
+    input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);color:#eaf6ff;margin-top:6px}
+    textarea{resize:none;height:120px}
+    .row{display:flex;gap:12px}
+    .small{flex:0 0 200px}
+    .btn{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:12px;background:linear-gradient(90deg,#06b6d4,#00ff88);color:#001;font-weight:800;cursor:pointer;border:none}
+    .notice{margin-top:16px;color:#a8c0df}
+    .copy-name-btn{background:linear-gradient(90deg,#00ff88,#00d4ff);color:#001;border:none;padding:8px 10px;border-radius:8px;font-weight:800;cursor:pointer}
+    /* CTA row mimic */
+    .cta-row{display:flex;justify-content:center;gap:20px;align-items:center;margin-top:2rem}
+    .discord-btn{border:none;border-radius:14px;padding:12px 20px;color:#fff;display:inline-flex;align-items:center;gap:10px;height:60px;min-width:320px;justify-content:center}
+    .discord-btn.join{background:linear-gradient(135deg,#5865f2,#7289da,#99aab5);box-shadow:0 8px 25px rgba(88,101,242,0.2);border:1px solid rgba(88,101,242,0.3);position:relative;overflow:hidden}
+    .discord-btn.join::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transition:left 0.6s ease}
+    .discord-btn.join:hover{transform:translateY(-6px);box-shadow:0 15px 35px rgba(88,101,242,0.3);background:linear-gradient(135deg,#4752c4,#5b6eae,#7c8db0)}
+    .discord-btn.join:hover::before{left:100%}
+    .discord-btn.join:active{transform:translateY(-3px);box-shadow:0 8px 20px rgba(88,101,242,0.25)}
+    .discord-btn.suggest{background:linear-gradient(135deg,#ff6b6b,#ff8e8e,#ffa8a8);box-shadow:0 8px 25px rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.3);position:relative;overflow:hidden}
+    .discord-btn.suggest::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transition:left 0.6s ease}
+    .discord-btn.suggest:hover{transform:translateY(-6px);box-shadow:0 15px 35px rgba(255,107,107,0.3);background:linear-gradient(135deg,#ff5252,#ff7979,#ff9f9f)}
+    .discord-btn.suggest:hover::before{left:100%}
+    .discord-btn.suggest:active{transform:translateY(-3px);box-shadow:0 8px 20px rgba(255,107,107,0.25)}
+    .server-card{background:linear-gradient(90deg,rgba(6,18,31,0.9),rgba(10,28,44,0.9));border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;height:60px;min-width:320px;justify-content:center}
+    .server-badge{background:linear-gradient(135deg,#00f0d0,#00d4aa);color:#001a14;padding:8px 12px;border-radius:10px;font-weight:800;box-shadow:0 4px 15px rgba(0,240,208,0.25);border:1px solid rgba(0,240,208,0.3);cursor:pointer;transition:all 0.3s ease}
+    .server-badge:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,240,208,0.4);background:linear-gradient(135deg,#00ffdd,#00e6c4)}
+    .server-info{direction:ltr;color:#dbeeff;font-weight:800;background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);font-family:'Orbitron',monospace;font-size:0.9rem;letter-spacing:0.5px}
+    /* floating launcher (reuse compact style) */
+    .float-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1000;background:linear-gradient(90deg,#47a6f3,#2b79c7);padding:8px 18px;border-radius:40px;display:flex;gap:12px;align-items:center}
+    .home-btn{width:46px;height:46px;border-radius:50%;background:transparent;border:none;display:inline-flex;align-items:center;justify-content:center}
+    .float-btn{background:transparent;border:none;color:#fff;padding:8px;border-radius:10px}
+    @media (max-width:720px){.container{padding:0 1rem}}
+  </style>
+</head>
+<body>
+  <canvas id="particleCanvas" style="position:fixed;inset:0;z-index:-2;pointer-events:none;"></canvas>
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">CLUBS</h1>
+      <p class="tagline">پیشنهاد و انتقاد — CLUBS</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>پیشنهادات و انتقادات</h1>
+      <form id="suggestForm">
+        <label>نام 
+          <input type="text" id="name" placeholder="نام شما">
+        </label>
+
+        <label>پیشنهاد / انتقاد
+          <textarea id="message" rows="6" placeholder="نظر، پیشنهاد یا گزارش خود را اینجا وارد کنید..."></textarea>
+        </label>
+
+        <label>آدرس فایل (اختیاری)
+          <input id="filelink" placeholder="لینک فایل بارگذاری‌شده (اختیاری)">
+        </label>
+
+        <div style="display:flex;gap:12px;align-items:center;margin-top:12px;">
+          <button class="btn" type="submit">ارسال</button>
+          <a href="/" class="discord-btn join" style="text-decoration:none;color:#fff"> <span>بازگشت به صفحه اصلی</span></a>
+        </div>
+
+        <div class="notice" id="notice"></div>
+      </form>
+
+      
+
+
+
+  <script>
+    // Submit suggestion
+    document.getElementById('suggestForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const filelink = document.getElementById('filelink').value.trim();
+      const notice = document.getElementById('notice');
+      if(!message){ notice.textContent='لطفاً متن خود را وارد کنید'; return; }
+      notice.textContent='در حال ارسال...';
+      try{
+        const res = await fetch('/api/submit-suggestion',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name,message,filelink})});
+        const j = await res.json();
+        if(j.success){ notice.textContent='ارسال شد — متشکریم!'; document.getElementById('message').value=''; document.getElementById('name').value=''; document.getElementById('filelink').value=''; }
+        else notice.textContent='ارسال ناموفق: '+(j.error||'خطا');
+      }catch(err){ notice.textContent='خطا در ارسال'; console.error(err); }
+    });
+
+    // copy helper
+    async function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ta.remove(); }catch(e){ ta.remove(); throw e; } }
+
+    // server copy
+    document.getElementById('copyServerBtn').addEventListener('click', async ()=>{
+      try{ await copyToClipboard('connect sv4.maxgaming.ir:28456'); /* Silent copy - no feedback message */ }catch(e){ alert('کپی نشد: connect sv4.maxgaming.ir:28456'); }
+    });
+
+    // floating launcher handlers
+    (function(){
+      const goAdmin = document.getElementById('goAdmin');
+      const goDev = document.getElementById('goDev');
+      const goJoin = document.getElementById('goJoin');
+      const goSuggest = document.getElementById('goSuggest');
+      const homeBtn = document.getElementById('homeBtn');
+      if (goAdmin) goAdmin.addEventListener('click', ()=>{ window.location.href = '/'; });
+      if (goDev) goDev.addEventListener('click', ()=>{ window.location.href = '/'; });
+      if (goJoin) goJoin.addEventListener('click', ()=>{ window.location.href = '/'; });
+      if (goSuggest) goSuggest.addEventListener('click', ()=>{ /* already here */ window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); });
+      if (homeBtn) homeBtn.addEventListener('click', ()=>{ document.querySelector('.header')?.scrollIntoView({behavior:'smooth',block:'start'}); });
+    })();
+
+    // particle canvas (same as index)
+    (function() {
+      const canvas = document.getElementById('particleCanvas'); if (!canvas) return; const ctx = canvas.getContext('2d'); let w = canvas.width = window.innerWidth; let h = canvas.height = window.innerHeight; const points = []; const POINTS = Math.max(40, Math.floor((w*h)/80000)); const mouse = { x: null, y: null };
+      function rand(min,max){return Math.random()*(max-min)+min}
+      function init(){ points.length=0; for(let i=0;i<POINTS;i++){ points.push({ x:rand(0,w), y:rand(0,h), vx:rand(-0.3,0.3), vy:rand(-0.3,0.3), r:rand(0.6,1.6) }); } }
+      function resize(){ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; init(); }
+      window.addEventListener('resize', resize); window.addEventListener('mousemove', (e)=>{ mouse.x=e.clientX; mouse.y=e.clientY; }); window.addEventListener('mouseout', ()=>{ mouse.x=null; mouse.y=null; });
+      function step(){ ctx.clearRect(0,0,w,h); for(let i=0;i<points.length;i++){ const p=points[i]; p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>w) p.vx*=-1; if(p.y<0||p.y>h) p.vy*=-1; if(mouse.x!=null){ const dx=p.x-mouse.x, dy=p.y-mouse.y, d=Math.sqrt(dx*dx+dy*dy); if(d<120){ p.x+=dx*0.002; p.y+=dy*0.002; } } ctx.beginPath(); ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+        for(let i=0;i<points.length;i++){ for(let j=i+1;j<points.length;j++){ const a=points[i], b=points[j]; const dx=a.x-b.x, dy=a.y-b.y; const d=dx*dx+dy*dy; if(d<25000){ const alpha=0.6-(d/25000)*0.6; ctx.strokeStyle=`rgba(160,190,255,${alpha*0.6})`; ctx.lineWidth=0.8; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); } } }
+        requestAnimationFrame(step);
+      }
+      init(); step();
+    })();
+  </script>
+</body>
+</html>

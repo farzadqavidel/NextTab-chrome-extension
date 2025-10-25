@@ -1,0 +1,37 @@
+{
+  "name": "clubs-website",
+  "version": "1.0.0",
+  "description": "CLUBS Gaming Team Website with Discord Integration",
+  "main": "api.js",
+  "scripts": {
+    "start": "node start.js",
+    "start:api": "node api.js",
+    "start:bot": "node bot.js",
+    "dev": "nodemon api.js",
+    "setup": "node setup.js",
+    "setup:env": "node setup-env.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "discord",
+    "gaming",
+    "website",
+    "clubs",
+    "cs2"
+  ],
+  "author": "CLUBS Team",
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/voice": "^0.19.0",
+    "cors": "^2.8.5",
+    "discord.js": "^14.14.1",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLUBS - تیم گیمینگ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/picture/clb-logo-clb-letter-clb-letter-logo-design-initials-clb-logo-linked-with-circle-and-uppercase-monogram-logo-clb-typography-for-technology-business-and-real-estate-brand-vector.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-20px) translateY(-10px); }
+            50% { transform: translateX(20px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(20px); }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            padding: 2rem 0;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #ff0080);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #00ff88;
+            margin-top: 1rem;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Stats Section */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            min-width: 200px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #cccccc;
+            margin-top: 0.5rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            margin: 4rem 0;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            color: #00ff88;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .section-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #cccccc;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Admin Section */
+        .admin-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            border: 2px solid rgba(255, 0, 128, 0.3);
+        }
+
+        .admin-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            color: #ff0080;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+        }
+
+        .admin-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .admin-card {
+            background: rgba(255, 0, 128, 0.1);
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .admin-card:hover {
+            background: rgba(255, 0, 128, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 0, 128, 0.3);
+        }
+
+        /* Join Team Section */
+        .join-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .join-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        /* inline instructional text used in join section */
+        .text {
+            display: block;
+            max-width: 920px;
+            margin: 0 auto 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
+            color: #dbeeff;
+            font-size: 1rem;
+            line-height: 1.6;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+        }
+
+        .join-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .join-input {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.12));
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            border-radius: 12px;
+            padding: 1.2rem 2rem;
+            color: #ffffff;
+            font-size: 1.1rem;
+            width: 300px;
+            text-align: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .join-input::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .join-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), 0 8px 25px rgba(0, 212, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.16));
+            transform: translateY(-2px);
+        }
+
+        .join-input:focus::before {
+            left: 100%;
+        }
+
+        .join-input::placeholder {
+            color: #a8c0df;
+            font-weight: 500;
+        }
+
+        /* prevent resize for message textareas (class: message) */
+        textarea.message { resize: none; }
+
+        .join-btn {
+            background: linear-gradient(135deg, #00d4ff, #00ff88, #00e6c4);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+            border-radius: 12px;
+            padding: 1.2rem 3rem;
+            color: #001a14;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .join-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 212, 255, 0.5);
+            background: linear-gradient(135deg, #00b8e6, #00e673, #00d4aa);
+        }
+
+        .join-btn:hover::before {
+            left: 100%;
+        }
+
+        .join-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .result.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .result.error {
+            background: rgba(255, 0, 128, 0.2);
+            border: 2px solid #ff0080;
+            color: #ff0080;
+        }
+
+        /* Discord / CTA Buttons */
+        .discord-btn {
+            border: none;
+            border-radius: 14px;
+            padding: 1.2rem 2.2rem;
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 2rem 0;
+            text-transform: none;
+            letter-spacing: 0.4px;
+            min-width: 320px; /* make CTA buttons (discord/suggest) match server-card width */
+            justify-content: center;
+            height: 60px; /* Fixed height to match other elements */
+        }
+
+        /* Suggest / feedback button - warm gradient */
+        .discord-btn.suggest {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e, #ffa8a8);
+            box-shadow: 0 8px 25px rgba(255,107,107,0.2);
+            padding: 1rem 2rem;
+            border: 1px solid rgba(255,107,107,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .discord-btn.suggest::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .discord-btn.suggest:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 15px 35px rgba(255,107,107,0.3);
+            background: linear-gradient(135deg, #ff5252, #ff7979, #ff9f9f);
+        }
+
+        .discord-btn.suggest:hover::before {
+            left: 100%;
+        }
+
+        .discord-btn.suggest:active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255,107,107,0.25);
+        }
+
+        /* Join Discord button - vibrant purple/blue */
+        .discord-btn.join {
+            background: linear-gradient(135deg, #5865f2, #7289da, #99aab5);
+            box-shadow: 0 8px 25px rgba(88,101,242,0.2);
+            padding: 1rem 2rem;
+            border: 1px solid rgba(88,101,242,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .discord-btn.join::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .discord-btn.join:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 15px 35px rgba(88,101,242,0.3);
+            background: linear-gradient(135deg, #4752c4, #5b6eae, #7c8db0);
+        }
+
+        .discord-btn.join:hover::before {
+            left: 100%;
+        }
+
+        .discord-btn.join:active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(88,101,242,0.25);
+        }
+
+        /* Discord icon styling */
+        .discord-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .discord-icon img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        /* Suggestion icon styling */
+        .suggestion-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        /* Developer section distinct style */
+        .dev-section {
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2.5rem 0;
+            border: 1px solid rgba(0, 212, 255, 0.08);
+        }
+
+        .dev-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: #ffd166;
+            margin-bottom: 1.2rem;
+            text-shadow: 0 0 8px rgba(255, 209, 102, 0.15);
+        }
+
+        .dev-list { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+
+        .dev-card {
+            background: rgba(255, 209, 102, 0.05);
+            border: 1px solid rgba(255, 209, 102, 0.12);
+            border-radius: 10px;
+            padding: 0.8rem 1.2rem;
+            color: #fff6e6;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+    .dev-card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(255, 209, 102, 0.12); }
+    /* make dev card slightly more visible */
+    .dev-card { box-shadow: 0 6px 18px rgba(255,209,102,0.03); }
+
+    /* interactive hover subtle lift */
+    .interactive { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+    .interactive:hover { transform: translateY(-6px) scale(1.02); }
+
+        /* Server Copy Card */
+        .server-card {
+            background: linear-gradient(135deg, rgba(6,18,31,0.95), rgba(10,28,44,0.95));
+            border: 1px solid rgba(60,150,200,0.15);
+            border-radius: 14px;
+            padding: 0.8rem 1rem;
+            color: #e6f7ff;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            min-width: 320px;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(6,18,31,0.25) inset, 0 4px 20px rgba(0,0,0,0.3);
+            height: 60px; /* Fixed height to match other elements */
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(0,240,208,0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .server-card:hover::before {
+            opacity: 1;
+        }
+
+        .server-card:hover {
+            border-color: rgba(0,212,255,0.3);
+            box-shadow: 0 8px 30px rgba(6,18,31,0.25) inset, 0 8px 30px rgba(0,212,255,0.15);
+        }
+
+        .server-badge {
+            background: linear-gradient(135deg, #00f0d0, #00d4aa);
+            color: #001a14;
+            font-weight: 800;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-left: 8px;
+            box-shadow: 0 4px 15px rgba(0,240,208,0.25);
+            border: 1px solid rgba(0,240,208,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .server-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .server-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,240,208,0.4);
+            background: linear-gradient(135deg, #00ffdd, #00e6c4);
+        }
+
+        .server-badge:hover::before {
+            left: 100%;
+        }
+
+        .server-badge:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(0,240,208,0.3);
+        }
+
+        .server-title { font-family: 'Orbitron', monospace; color: #7be7ff; font-weight:700; }
+
+        .server-info { 
+            direction:ltr; 
+            color:#dbeeff; 
+            font-weight:800; 
+            background: rgba(255,255,255,0.05); 
+            padding:8px 12px; 
+            border-radius:8px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-btn { background: transparent; border: none; color: #001018; font-weight:700; cursor:pointer; border-radius:8px; padding:6px 10px; }
+
+        .copy-btn:hover { transform: translateY(-3px); }
+
+
+        /* small copy button shown next to name result */
+        .copy-name-btn {
+            background: linear-gradient(90deg,#00ff88,#00d4ff);
+            color: #001018;
+            border: none;
+            padding: 0.45rem 0.8rem;
+            margin-left: 8px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0,212,255,0.08);
+        }
+
+        .copy-name-btn:hover { transform: translateY(-3px); }
+
+        /* CLB styled output (use special unicode letters already placed in template) */
+        .clb-text {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #ff0080);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0,255,136,0.12);
+            display: inline-block;
+            padding: 0 6px;
+            border-radius: 6px;
+        }
+
+        .clb-username { font-family: 'Roboto', sans-serif; font-weight:700; color: #00ff88; }
+
+        /* Ensure enough bottom space so floating launcher doesn't block final content */
+        body { padding-bottom: 180px; }
+
+        .discord-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(88, 101, 242, 0.4);
+        }
+
+        /* Footer-style launcher: rounded blue pill with left circular home button */
+        .float-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: linear-gradient(90deg, #47a6f3 0%, #2b79c7 100%);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            backdrop-filter: blur(6px) saturate(120%);
+            box-shadow: 0 6px 20px rgba(43,121,199,0.18);
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            min-width: 220px;
+        }
+
+        /* circular primary/home button on the left (no black ring) */
+        .home-btn {
+            width: 46px;
+            height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: transparent; /* removed dark ring */
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(43,121,199,0.14);
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        /* ensure image inside home button is sized */
+        .home-btn .icon img { width:24px; height:24px; display:block; }
+
+        /* small icon-only buttons (pill interior) */
+        .float-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.95);
+            border: none;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+        }
+
+          /* hide textual labels visually but keep them in DOM for accessibility/JS stability
+              only hide spans that are NOT the icon container */
+          .float-btn > span:not(.icon) { display: none !important; }
+
+          /* ensure icon images size and alignment */
+          .icon img { width:18px; height:18px; display:block; }
+
+        /* icon style for launcher buttons */
+        .icon { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; color: white; }
+
+        @media (max-width: 720px) {
+            /* keep launcher bottom center on small screens */
+            .float-bar { left: 50%; top: auto; bottom: 12px; transform: translateX(-50%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .join-input {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 255, 136, 0.3);
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <canvas id="particleCanvas" style="position:fixed;inset:0;z-index:-2;pointer-events:none;"></canvas>
+    
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">CLUBS</h1>
+            <p class="tagline">تیم حرفه ای در زمینه های گیم و توسعه‌دهنده </p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Stats Section -->
+        <section class="section">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="memberCount">11</div>
+                    <div class="stat-label">عضو آنلاین</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMembers">76</div>
+                    <div class="stat-label">کل اعضا</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="adminCount">3</div>
+                    <div class="stat-label">ادمین</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Developer Section (moved below admin) -->
+
+        <!-- About Section -->
+        <section class="section">
+            <h2 class="section-title">درباره CLUBS</h2>
+            <div class="section-content">
+                <p>CLUBS یک تیم گیمینگ حرفه‌ای است که با هدف ایجاد جامعه‌ای قوی از گیمرهای ایرانی تشکیل شده است. ما در حال آماده‌سازی برای راه‌اندازی سرور اختصاصی CS2 هستیم و به زودی یکی از بهترین سرورهای گیمینگ کشور را در اختیار شما قرار خواهیم داد.</p>
+                <br>
+                <p>تیم ما متشکل از افرادی با تجربه و مهارت بالا در زمینه گیمینگ است که آماده ارائه بهترین خدمات به اعضای خود هستند.</p>
+            </div>
+        </section>
+
+    <!-- Admin Section -->
+    <section class="admin-section" id="adminSection">
+            <h2 class="admin-title">تیم مدیریت</h2>
+            <div class="admin-list" id="adminList">
+                <div class="admin-card">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://cdn.discordapp.com/avatars/806856918747840513/9c28af611adf5fc4a9ad81c0d7f2f13c.webp?size=64" 
+                             alt="Unknown" 
+                             style="width: 40px; height: 40px; border-radius: 50%;">
+                        <span>Unknown</span>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://cdn.discordapp.com/avatars/995631414907244646/9e1ae73a49124decfa8c9c7cdeab55dd.webp?size=64" 
+                             alt="Farzad" 
+                             style="width: 40px; height: 40px; border-radius: 50%;">
+                        <span>Farzad</span>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://cdn.discordapp.com/avatars/1123656848705327225/9bf1daa13b8e9b4ebf4fcb10d06c2d61.webp?size=64" 
+                             alt="Parsa Vh" 
+                             style="width: 40px; height: 40px; border-radius: 50%;">
+                        <span>Parsa Vh</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Join Team Section -->
+        <!-- Developer Section -->
+        <section class="dev-section" id="developerSection">
+            <h2 class="dev-title">تیم توسعه دهنده</h2>
+            <div class="dev-list" id="developerList">
+                <div class="dev-card">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" 
+                             alt="توسعه‌دهنده" 
+                             style="width: 40px; height: 40px; border-radius: 50%;">
+                        <span>در حال بارگذاری...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="join-section">
+            <h2 class="join-title">عضو تیم ما شوید</h2>
+            <h4 class="text">برای شروع نام خود را از فیلد پایین دریافت کنید سپس وراد چنل دیسکورد شده و تیکت باز کنید  .</h4><br>
+            <form class="join-form" id="joinForm">
+                <input type="text" class="join-input" id="userName" placeholder="نام خود را وارد کنید ." required>
+                <button type="submit" class="join-btn">عضو شوید</button>
+            </form>
+            <div class="result" id="result"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>در حال پردازش...</p>
+            </div>
+        </section>
+
+        <!-- Discord + Server Row -->
+        <div style="display:flex; justify-content:center; gap:20px; align-items:center; margin: 2rem 0;">
+            <a href="https://discord.gg/95ubwScKzH" class="discord-btn join interactive" target="_blank">
+                <span class="discord-icon"><img src="https://img.icons8.com/?size=100&id=25627&format=png&color=000000" alt="discordicon"></span>
+                <span>به دیسکورد ما بپیوندید</span>
+            </a>
+
+            <div class="server-card interactive" role="region" aria-label="سرور CS2">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                        <div class="server-title">سرور CS2</div>
+                        <div class="server-info" style="direction:ltr;">connect sv4.maxgaming.ir:28456</div>
+                    </div>
+                </div>
+                <button class="server-badge" id="copyServerBtn" title="کپی آدرس سرور">کپی</button>
+            </div>
+
+            <!-- suggestion page link -->
+            <a href="/suggestion.html" class="discord-btn suggest interactive" target="_blank"> 
+                <span class="suggestion-icon">💬</span>
+                <span>پیشنهاد و انتقاد</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- Floating launcher (centered) styled as footer pill with circular home button -->
+    <div class="float-bar" id="floatBar" aria-hidden="false">
+        <button class="home-btn" id="homeBtn" title="خانه" aria-label="خانه">
+            <span class="icon" aria-hidden="true">
+                <img src="https://img.icons8.com/?size=100&id=86527&format=png&color=000000" alt="خانه"/>
+            </span>
+        </button>
+
+        <button class="float-btn" id="goAdmin" title="تیم مدیریت" aria-label="تیم مدیریت">
+            <span class="icon" aria-hidden="true">
+                <img src="https://img.icons8.com/?size=100&id=59743&format=png&color=000000" alt="مدیریت"/>
+            </span>
+            <span>مدیریت</span>
+        </button>
+
+        <button class="float-btn" id="goDev" title="تیم توسعه" aria-label="تیم توسعه">
+            <span class="icon" aria-hidden="true">
+                <img src="https://img.icons8.com/?size=100&id=11260&format=png&color=000000" alt="توسعه"/>
+            </span>
+            <span>توسعه</span>
+        </button>
+
+        <button class="float-btn" id="goJoin" title="عضو شوید" aria-label="عضو شوید">
+            <span class="icon" aria-hidden="true">
+                <img src="https://img.icons8.com/?size=100&id=ZtB3jqAxy0R6&format=png&color=000000" alt="عضو شدن"/>
+            </span>
+            <span>عضو شدن</span>
+        </button>
+
+        <button class="float-btn" id="goSuggest" title="پیشنهاد و انتقاد" aria-label="پیشنهاد و انتقاد">
+            <span class="icon" aria-hidden="true">
+                <img src="https://cdn-icons-png.flaticon.com/512/1380/1380338.png" alt="پیشنهاد"/>
+            </span>
+            <span>پیشنهاد</span>
+        </button>
+    </div>
+
+    <script>
+        // Discord Bot Integration
+        // These values are now loaded from the server-side API
+        // No need to hardcode them in the frontend
+
+        // Fetch Discord data
+        async function fetchDiscordData() {
+            try {
+                console.log('Fetching Discord data...');
+                const response = await fetch('/api/discord-stats');
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (result.success && result.data) {
+                    const data = result.data;
+                    console.log('Data:', data);
+                    
+                    document.getElementById('memberCount').textContent = data.onlineMembers || '---';
+                    document.getElementById('totalMembers').textContent = data.totalMembers || '---';
+                    document.getElementById('adminCount').textContent = data.adminCount || '---';
+                    
+                    // Display admins
+                    displayAdmins(data.admins || []);
+
+                    // Load developer info for specific ID and display it
+                    try {
+                        fetch('/api/user/995631414907244646')
+                            .then(r => r.json())
+                            .then(u => {
+                                if (u && u.success && u.data) {
+                                    displayDeveloper(u.data);
+                                } else {
+                                    console.warn('Developer info not available', u);
+                                }
+                            }).catch(err => console.warn('Error fetching developer info', err));
+                    } catch (err) {
+                        console.warn('Error requesting developer info', err);
+                    }
+                } else {
+                    console.error('API returned unsuccessful response:', result);
+                    // Fallback to static data
+                    document.getElementById('memberCount').textContent = '---';
+                    document.getElementById('totalMembers').textContent = '---';
+                    document.getElementById('adminCount').textContent = '---';
+                }
+                
+            } catch (error) {
+                console.error('Error fetching Discord data:', error);
+                // Fallback to static data
+                document.getElementById('memberCount').textContent = '---';
+                document.getElementById('totalMembers').textContent = '---';
+                document.getElementById('adminCount').textContent = '---';
+            }
+        }
+
+        // basic HTML escape to prevent injected markup when inserting usernames
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Display admins (use displayName if available)
+        function displayAdmins(admins) {
+            const adminList = document.getElementById('adminList');
+            adminList.innerHTML = '';
+
+            if (admins.length === 0) {
+                adminList.innerHTML = '<p style="color: #888;">در حال بارگذاری...</p>';
+                return;
+            }
+
+            admins.forEach(admin => {
+                const name = admin.displayName || admin.username || admin.id || 'کاربر';
+                const avatar = admin.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                const adminCard = document.createElement('div');
+                adminCard.className = 'admin-card';
+                adminCard.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${avatar}" 
+                             alt="${name}" 
+                             style="width: 40px; height: 40px; border-radius: 50%;">
+                        <span>${name}</span>
+                    </div>
+                `;
+                adminList.appendChild(adminCard);
+            });
+        }
+
+        // Display developer info in "تیم توسعه دهنده"
+        function displayDeveloper(dev) {
+            const devList = document.getElementById('developerList');
+            devList.innerHTML = '';
+
+            if (!dev) {
+                devList.innerHTML = '<p style="color: #888;">اطلاعات توسعه‌دهنده در دسترس نیست.</p>';
+                return;
+            }
+
+            const name = (dev.member && dev.member.displayName) || dev.username || dev.id || 'توسعه‌دهنده';
+            const avatar = (dev.member && dev.member.avatar) || dev.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+            const devCard = document.createElement('div');
+            devCard.className = 'dev-card';
+            devCard.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="${avatar}" alt="${name}" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <span>${name}</span>
+                </div>
+            `;
+            devList.appendChild(devCard);
+        }
+
+        // Join team form
+        document.getElementById('joinForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userName = document.getElementById('userName').value.trim();
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            
+            if (!userName) {
+                showResult('لطفاً نام کاربری خود را وارد کنید', 'error');
+                return;
+            }
+            
+            // Show loading
+            loadingDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Show success message with styled CLB text and an inline copy button (no parentheses in copied text)
+                // escape the user input before injecting into innerHTML
+                const safeName = escapeHtml(userName);
+                // Display with parentheses around the user's name as requested
+                resultDiv.innerHTML = `اسم شما در تیم ما : <span class="clb-text">𝐂𝐋𝐁 | <span class="clb-username">${safeName}</span></span>`;
+
+                // Make sure the result container is visible and styled as a success message
+                resultDiv.className = 'result success';
+                resultDiv.style.display = 'block';
+
+                // add an inline copy button so user can copy their display name easily
+                const old = document.getElementById('copyNameBtn');
+                if (old) old.remove();
+                const copyBtn = document.createElement('button');
+                copyBtn.id = 'copyNameBtn';
+                copyBtn.className = 'copy-name-btn';
+                copyBtn.type = 'button';
+                copyBtn.textContent = 'کپی نام';
+                // attach handler - copy only the name part
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        // Copy only the formatted name without the button text
+                        const toCopy = `𝐂𝐋𝐁 | ${userName}`;
+                        await copyToClipboard(toCopy);
+                        // No feedback message - just copy silently
+                    } catch (err) {
+                        alert('کپی نام ممکن نشد. لطفاً دستی کپی کنید.');
+                    }
+                });
+                // place copy button after the result content
+                resultDiv.append(copyBtn);
+
+                // Clear form
+                document.getElementById('userName').value = '';
+                
+            } catch (error) {
+                showResult('خطا در پردازش درخواست شما', 'error');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        });
+
+        // Show result message
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // copy helper with fallback
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            // fallback
+            return new Promise((resolve, reject) => {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'absolute';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    ta.remove();
+                    if (ok) resolve(); else reject(new Error('execCommand failed'));
+                } catch (err) { reject(err); }
+            });
+        }
+
+        // Copy server address to clipboard (and other copy actions)
+        document.addEventListener('DOMContentLoaded', () => {
+            const copyBtn = document.getElementById('copyServerBtn');
+            const copyResult = document.getElementById('copyResult');
+            const serverText = 'connect sv4.maxgaming.ir:28456';
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await copyToClipboard(serverText);
+                        // No persistent feedback message - copy silently
+                        // Only show error if copy fails
+                    } catch (err) {
+                        console.warn('Clipboard failed', err);
+                        alert('لطفاً آدرس را به صورت دستی کپی کنید: ' + serverText);
+                    }
+                });
+            }
+        });
+
+        // Particle background + mouse interactions
+        (function() {
+            const canvas = document.getElementById('particleCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
+            const points = [];
+            const POINTS = Math.max(40, Math.floor((w*h)/80000));
+            const mouse = { x: null, y: null };
+
+            function rand(min,max){return Math.random()*(max-min)+min}
+
+            function init(){
+                points.length = 0;
+                for(let i=0;i<POINTS;i++){
+                    points.push({
+                        x: rand(0,w),
+                        y: rand(0,h),
+                        vx: rand(-0.3,0.3),
+                        vy: rand(-0.3,0.3),
+                        r: rand(0.6,1.6)
+                    });
+                }
+            }
+
+            function resize(){ w=canvas.width=window.innerWidth; h=canvas.height=window.innerHeight; init(); }
+            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', (e)=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
+            window.addEventListener('mouseout', ()=>{ mouse.x=null; mouse.y=null; });
+
+            function step(){
+                ctx.clearRect(0,0,w,h);
+                // draw lines
+                for(let i=0;i<points.length;i++){
+                    const p=points[i];
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x<0||p.x>w) p.vx *= -1;
+                    if (p.y<0||p.y>h) p.vy *= -1;
+
+                    // mouse attraction
+                    if (mouse.x!=null){
+                        const dx = p.x - mouse.x; const dy = p.y - mouse.y; const d = Math.sqrt(dx*dx+dy*dy);
+                        if (d < 120){ p.x += dx*0.002; p.y += dy*0.002; }
+                    }
+
+                    // draw star
+                    ctx.beginPath(); ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+                }
+
+                // lines
+                for(let i=0;i<points.length;i++){
+                    for(let j=i+1;j<points.length;j++){
+                        const a=points[i], b=points[j]; const dx=a.x-b.x, dy=a.y-b.y; const d=dx*dx+dy*dy;
+                        if (d < 25000){
+                            const alpha = 0.6 - (d/25000)*0.6;
+                            ctx.strokeStyle = `rgba(160,190,255,${alpha*0.6})`;
+                            ctx.lineWidth = 0.8;
+                            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(step);
+            }
+
+            init(); step();
+        })();
+
+        // small pointer-follow tilt effect for interactive cards
+        document.querySelectorAll('.interactive').forEach(el => {
+            el.addEventListener('mousemove', (e)=>{
+                const rect = el.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                el.style.transform = `translateY(-6px) scale(1.02) rotateX(${(-y*3).toFixed(2)}deg) rotateY(${(x*3).toFixed(2)}deg)`;
+            });
+            el.addEventListener('mouseleave', ()=>{ el.style.transform=''; });
+        });
+
+        // Floating launcher behavior (centered)
+        (function(){
+            const goAdmin = document.getElementById('goAdmin');
+            const goDev = document.getElementById('goDev');
+            const goJoin = document.getElementById('goJoin');
+            const goSuggest = document.getElementById('goSuggest');
+            const homeBtn = document.getElementById('homeBtn');
+
+            if (goAdmin) goAdmin.addEventListener('click', ()=>{ const el = document.getElementById('adminSection'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
+            if (goDev) goDev.addEventListener('click', ()=>{ const el = document.getElementById('developerSection'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
+            if (goJoin) goJoin.addEventListener('click', ()=>{ const el = document.getElementById('joinForm'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
+
+            // suggestion button: navigate to suggestion page
+            if (goSuggest) goSuggest.addEventListener('click', ()=>{
+                // direct navigation to suggestion page (page contains its own form)
+                window.location.href = '/suggestion.html';
+            });
+
+            // home button: scroll to header (top of page)
+            if (homeBtn) homeBtn.addEventListener('click', ()=>{
+                const headerEl = document.querySelector('.header');
+                if (headerEl) headerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                else window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        })();
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, fetching Discord data...');
+            
+            // Fetch real data immediately
+            fetchDiscordData();
+            
+            // Update stats every 30 seconds
+            setInterval(fetchDiscordData, 30000);
+        });
+
+        // Add some interactive effects
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.05)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
