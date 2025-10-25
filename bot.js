@@ -1050,8 +1050,23 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
-    // Graceful shutdown
+    try {
+        console.error('❌ Uncaught Exception:', error);
+        const msg = (error && (error.message || '')).toString();
+        // Handle known missing-DAVE error from @discordjs/voice gracefully so the bot doesn't exit
+        if (msg.includes('DAVE') || msg.includes('@snazzah/davey') || msg.includes('Cannot utilize the DAVE protocol')) {
+            console.error('⚠️ Detected missing DAVE dependency required by @discordjs/voice.');
+            console.error('👉 Install it with: npm install @snazzah/davey --save');
+            // Avoid exiting; allow process to keep running and attempt reconnection if appropriate.
+            return;
+        }
+    } catch (innerErr) {
+        console.error('❌ Error while processing uncaughtException handler:', innerErr);
+    }
+    // For other errors, perform default shutdown to avoid unknown corrupted state.
+    try {
+        console.error('❌ Fatal error, exiting process to avoid inconsistent state.');
+    } catch (_) {}
     process.exit(1);
 });
 
