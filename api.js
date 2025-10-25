@@ -43,7 +43,7 @@ let guildData = {
 };
 
 // Console logging to Discord
-const CONSOLE_LOG_CHANNEL_ID = 'محل قرار گیری چنل لاگ سایت';
+const CONSOLE_LOG_CHANNEL_ID = '1431212488501887076';
 const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
 
 function formatConsoleLine(level, message) {

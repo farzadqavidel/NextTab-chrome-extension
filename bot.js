@@ -44,7 +44,7 @@ const client = new Client({
 
 
 // --- Console Logging to Discord ---
-const CONSOLE_LOG_CHANNEL_ID = process.env.CONSOLE_LOG_CHANNEL_ID || null;
+const CONSOLE_LOG_CHANNEL_ID = '1430256356065018069';
 const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
 
 function formatConsoleLine(level, message) {
