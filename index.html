@@ -474,11 +474,11 @@
 
         /* Developer section distinct style */
         .dev-section {
-            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            background: linear-gradient(180deg, rgba(0,255,136,0.03), rgba(0,255,136,0.02));
             border-radius: 16px;
             padding: 2rem;
             margin: 2.5rem 0;
-            border: 1px solid rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.10);
         }
 
         .dev-title {
@@ -492,17 +492,16 @@
         .dev-list { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
 
         .dev-card {
-            background: rgba(255, 209, 102, 0.05);
-            border: 1px solid rgba(255, 209, 102, 0.12);
+            background: rgba(0, 255, 136, 0.06);
+            border: 1px solid rgba(0, 255, 136, 0.14);
             border-radius: 10px;
             padding: 0.8rem 1.2rem;
-            color: #fff6e6;
+            color: #d8ffef;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 6px 18px rgba(0,255,136,0.06);
         }
 
-    .dev-card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(255, 209, 102, 0.12); }
-    /* make dev card slightly more visible */
-    .dev-card { box-shadow: 0 6px 18px rgba(255,209,102,0.03); }
+    .dev-card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.18); }
 
     /* interactive hover subtle lift */
     .interactive { transition: transform 0.18s ease, box-shadow 0.18s ease; }
@@ -735,6 +734,25 @@
             }
         }
 
+        /* Extra responsive tweaks for small phones */
+        @media (max-width: 600px) {
+            .container { padding: 0 1rem; }
+            .discord-btn { min-width: 100%; height: 56px; }
+            .server-card { flex-direction: column; width: 100%; min-width: unset; }
+            .server-badge { margin-top: 8px; }
+            .stat-card { min-width: 160px; }
+            .section-title { font-size: 2rem; }
+            .logo { font-size: 2.2rem; }
+            .float-bar { gap: 8px; min-width: 200px; }
+        }
+
+        @media (max-width: 420px) {
+            .server-info { font-size: 0.8rem; }
+            .discord-btn { padding: 1rem; }
+            .join-btn { width: 100%; }
+            .join-input { max-width: 100%; }
+        }
+
         /* Loading Animation */
         .loading {
             display: none;
@@ -794,12 +812,51 @@
         <section class="section">
             <h2 class="section-title">درباره CLUBS</h2>
             <div class="section-content">
-                <p>CLUBS یک تیم گیمینگ حرفه‌ای است که با هدف ایجاد جامعه‌ای قوی از گیمرهای ایرانی تشکیل شده است. ما در حال آماده‌سازی برای راه‌اندازی سرور اختصاصی CS2 هستیم و به زودی یکی از بهترین سرورهای گیمینگ کشور را در اختیار شما قرار خواهیم داد.</p>
+                <p>تیم CLUBS یک تیم گیمر به همراه تیم دولوپر است که در حوزه‌های مختلف فعالیت می‌کند. هدف ما ساخت یک جامعه حرفه‌ای و پویا برای گیمرها و ارائه سرویس‌های باکیفیت در کنار توسعه ابزارها و سرویس‌های کاربردی است.</p>
                 <br>
-                <p>تیم ما متشکل از افرادی با تجربه و مهارت بالا در زمینه گیمینگ است که آماده ارائه بهترین خدمات به اعضای خود هستند.</p>
+                <p>در حال حاضر سرور CS2 کلاب در دسترس است.</p>
             </div>
         </section>
 
+        <!-- CS2 Server Section (with copy & open link) -->
+        <section class="section">
+            <h2 class="section-title">سرور CUBS CS2 </h2>
+            <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap;">
+                <div class="server-card interactive" role="region" aria-label="سرور CS2">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                            <div class="server-title"><a href="https://maxgaming.ir/connect/sv4.maxgaming.ir:28456" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;">ایپی سرور  cs2  CLUBS</a></div>
+                            <div class="server-info" style="direction:ltr;">connect sv4.maxgaming.ir:28456</div>
+                        </div>
+                    </div>
+                    <a class="server-badge" href="https://maxgaming.ir/connect/sv4.maxgaming.ir:28456" target="_blank" rel="noopener" title="باز کردن لینک">باز کردن</a>
+                    <button class="server-badge" id="copyServerBtn" title="کپی آدرس سرور">کپی</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIP Section -->
+        <section class="section">
+            <h2 class="section-title">دریافت VIP</h2>
+            <div class="section-content" style="max-width:900px;margin:auto;">
+                <p>برای دریافت VIP در سرور CS2 به چنل CLUBS مراجعه کنید و یک تیکت «درخواست VIP» باز کنید. همکاران ما درخواست شما را بررسی می‌کنند.</p>
+                <br>
+                <img src="/picture/image.png" alt="راهنمای VIP" style="max-width:100%;border-radius:16px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 30px rgba(0,0,0,0.35);" />
+            </div>
+        </section>
+        <section class="join-section" id="joinSection">
+            <h2 class="join-title">عضو تیم ما شوید</h2>
+            <h4 class="text">از قسمت پایین نام خود را دریافت کنید و در چنل <a href="https://discord.gg/95ubwScKzH" target="_blank">دیسکورد</a> CLUBS جوین شوید.</h4><br>
+            <form class="join-form" id="joinForm">
+                <input type="text" class="join-input" id="userName" placeholder="نام خود را وارد کنید ." required>
+                <button type="submit" class="join-btn">عضو شوید</button>
+            </form>
+            <div class="result" id="result"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>در حال پردازش...</p>
+            </div>
+        </section>
     <!-- Admin Section -->
     <section class="admin-section" id="adminSection">
             <h2 class="admin-title">تیم مدیریت</h2>
@@ -846,43 +903,21 @@
                 </div>
             </div>
         </section>
-        <section class="join-section">
-            <h2 class="join-title">عضو تیم ما شوید</h2>
-            <h4 class="text">برای شروع نام خود را از فیلد پایین دریافت کنید سپس وراد چنل دیسکورد شده و تیکت باز کنید  .</h4><br>
-            <form class="join-form" id="joinForm">
-                <input type="text" class="join-input" id="userName" placeholder="نام خود را وارد کنید ." required>
-                <button type="submit" class="join-btn">عضو شوید</button>
-            </form>
-            <div class="result" id="result"></div>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>در حال پردازش...</p>
-            </div>
-        </section>
+        
 
         <!-- Discord + Server Row -->
-        <div style="display:flex; justify-content:center; gap:20px; align-items:center; margin: 2rem 0;">
+        <div style="display:flex; justify-content:center; gap:20px; align-items:center; margin: 2rem 0; flex-wrap:wrap;">
             <a href="https://discord.gg/95ubwScKzH" class="discord-btn join interactive" target="_blank">
                 <span class="discord-icon"><img src="https://img.icons8.com/?size=100&id=25627&format=png&color=000000" alt="discordicon"></span>
                 <span>به دیسکورد ما بپیوندید</span>
             </a>
-
-            <div class="server-card interactive" role="region" aria-label="سرور CS2">
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                        <div class="server-title">سرور CS2</div>
-                        <div class="server-info" style="direction:ltr;">connect sv4.maxgaming.ir:28456</div>
-                    </div>
-                </div>
-                <button class="server-badge" id="copyServerBtn" title="کپی آدرس سرور">کپی</button>
-            </div>
-
-            <!-- suggestion page link -->
             <a href="/suggestion.html" class="discord-btn suggest interactive" target="_blank"> 
                 <span class="suggestion-icon">💬</span>
                 <span>پیشنهاد و انتقاد</span>
             </a>
         </div>
+
+        
     </main>
 
     <!-- Floating launcher (centered) styled as footer pill with circular home button -->
@@ -998,6 +1033,14 @@
                 return;
             }
 
+            if (admins.length === 0) {
+                const msg = document.createElement('div');
+                msg.className = 'admin-card';
+                msg.innerHTML = `<div style="display:flex;align-items:center;gap:10px;">❗ <span>تیم ادمین آفلاین می‌باشند</span></div>`;
+                adminList.appendChild(msg);
+                return;
+            }
+
             admins.forEach(admin => {
                 const name = admin.displayName || admin.username || admin.id || 'کاربر';
                 const avatar = admin.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -1065,7 +1108,7 @@
                 // escape the user input before injecting into innerHTML
                 const safeName = escapeHtml(userName);
                 // Display with parentheses around the user's name as requested
-                resultDiv.innerHTML = `اسم شما در تیم ما : <span class="clb-text">𝐂𝐋𝐁 | <span class="clb-username">${safeName}</span></span>`;
+                resultDiv.innerHTML = `اسم شما در تیم ما : <span class="clb-text">𝐂𝐋𝐁 | <span class="clb-username"> ${safeName}</span></span>`;
 
                 // Make sure the result container is visible and styled as a success message
                 resultDiv.className = 'result success';
@@ -1271,8 +1314,8 @@
             // Fetch real data immediately
             fetchDiscordData();
             
-            // Update stats every 30 seconds
-            setInterval(fetchDiscordData, 30000);
+            // Update stats every 5 minutes per request
+            setInterval(fetchDiscordData, 300000);
         });
 
         // Add some interactive effects

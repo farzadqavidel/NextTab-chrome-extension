@@ -5,16 +5,23 @@ const TICKET_CONFIG = {
     openCategoryId: '1430265943879057408',    // کتگوری تیکت‌های باز
     closeCategoryId: '1430265894839259136',   // کتگوری تیکت‌های بسته
     transcriptChannelId: '1430265420035784775', // چنل ارسال ترنسکریپت
-    allowedRoles: [                          // رول‌هایی که می‌توانند تیکت را ببینند
-        '1415440089047371897',
-        '1400919880017907797',
-        '1400910230358851686'
+    // رول‌هایی که به همه تیکت‌ها دسترسی دارند
+    allowedRoles: [
+        '1432688893106458705' // دسترسی کامل به همه تیکت‌ها
     ],
+    // دسترسی مخصوص برای برخی انواع تیکت
+    typeRoleAccess: {
+        server_complaint: ['1415440089047371897'], // رول فقط برای شکایت
+        vip_request: ['1415440089047371897'],      // رول فقط برای VIP
+        suggestions: ['1415440089047371897']       // رول فقط برای انتقادات/پیشنهادات
+    },
     ticketTypes: {
         server_complaint: { name: 'شکایت از سرور', emoji: '🚨', prefix: 'complaint' },
         membership: { name: 'درخواست عضویت', emoji: '🟢', prefix: 'membership' },
         suggestions: { name: 'انتقادات و پیشنهادات', emoji: '💡', prefix: 'suggestion' },
-        collaboration: { name: 'همکاری', emoji: '🤝', prefix: 'collaboration' }
+        collaboration: { name: 'همکاری', emoji: '🤝', prefix: 'collaboration' },
+        ban_review: { name: 'بررسی بن', emoji: '🛡️', prefix: 'banreview' },
+        vip_request: { name: 'درخواست VIP', emoji: '💎', prefix: 'vip' }
     }
 };
 
@@ -142,7 +149,7 @@ class TicketManager {
                 ]
             });
 
-            // اضافه کردن دسترسی برای رول‌های مجاز (محدود - بدون حذف)
+            // اضافه کردن دسترسی برای رول‌های عمومی همه تیکت‌ها
             for (const roleId of TICKET_CONFIG.allowedRoles) {
                 await ticketChannel.permissionOverwrites.create(roleId, {
                     ViewChannel: true,
@@ -152,6 +159,31 @@ class TicketManager {
                     EmbedLinks: true,
                     ManageMessages: true  // برای بستن تیکت
                     // بدون ManageChannels - نمی‌توانند تیکت را حذف کنند
+                });
+            }
+
+            // صراحتاً عدم دسترسی برای این دو رول
+            const denyRoles = ['1400919880017907797', '1400910230358851686'];
+            for (const roleId of denyRoles) {
+                await ticketChannel.permissionOverwrites.create(roleId, {
+                    ViewChannel: false,
+                    SendMessages: false,
+                    ReadMessageHistory: false,
+                    AttachFiles: false,
+                    EmbedLinks: false
+                });
+            }
+
+            // اضافه کردن دسترسی مخصوص برای نوع تیکت جاری (در صورت تعریف)
+            const typeSpecificRoles = (TICKET_CONFIG.typeRoleAccess && TICKET_CONFIG.typeRoleAccess[ticketType]) || [];
+            for (const roleId of typeSpecificRoles) {
+                await ticketChannel.permissionOverwrites.create(roleId, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                    AttachFiles: true,
+                    EmbedLinks: true,
+                    ManageMessages: true
                 });
             }
 
@@ -187,10 +219,26 @@ class TicketManager {
 
             // ارسال پیام خوشامد در تیکت
             await ticketChannel.send({
-                content: `${user} - تیکت شما ایجاد شد!`,
+                content: `${user} - تیکت شما ایجاد شد! `,
                 embeds: [welcomeEmbed],
-                components: [row]
+                components: [row],
+                allowedMentions: { roles: ['1432688893106458705'], users: [user.id] }
             });
+
+            // Restrict visibility strictly to opener + allowed roles
+            try {
+                // ابتدا همه را ببند
+                await ticketChannel.permissionOverwrites.edit(guild.roles.everyone, { ViewChannel: false });
+                // سپس دسترسی رول‌های عمومی و رول‌های نوع تیکت را که قبل‌تر اضافه کردیم حفظ می‌شود
+            } catch (_) {}
+
+            // Notify ticket manager role explicitly
+            try {
+                await ticketChannel.send({
+                    content: `<@&1432688893106458705> رسیدگی این تیکت با شما `,
+                    allowedMentions: { roles: ['1432688893106458705'] }
+                });
+            } catch (_) {}
 
             // ارسال لاگ ایجاد تیکت
             await this.sendTicketActionLog({
@@ -218,14 +266,13 @@ class TicketManager {
     // بستن تیکت
     async closeTicket(interaction) {
         try {
-            // بررسی دسترسی: ادمین، یا رول‌های مجاز، یا کسانی که دسترسی ManageChannels در این چنل دارند
+            // فقط این دو رول بتوانند ببندند (ادمین عمومی یا ManageChannels کافی نیست)
             const member = interaction.member;
             const channel = interaction.channel;
-            const hasAdminPermission = member.permissions.has(PermissionFlagsBits.Administrator);
-            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member.roles.cache.has(roleId));
-            const hasManageChannels = channel.permissionsFor(member)?.has(PermissionFlagsBits.ManageChannels);
+            const closeAllowedRoles = new Set(['1432688893106458705','1415440089047371897']);
+            const hasCloseRole = Array.from(member.roles.cache.keys()).some(id => closeAllowedRoles.has(id));
 
-            if (!hasAdminPermission && !hasAllowedRole && !hasManageChannels) {
+            if (!hasCloseRole) {
                 return await interaction.reply({
                     content: '❌ شما نمیتوانید تیکت را ببندید.',
                     flags: MessageFlags.Ephemeral
@@ -596,8 +643,33 @@ class TicketManager {
                 channelId: channel.id
             });
 
-            // بازگرداندن دسترسی رول‌های مجاز
+            // بازگرداندن دسترسی رول‌های مجاز همگانی
             for (const roleId of TICKET_CONFIG.allowedRoles) {
+                await channel.permissionOverwrites.create(roleId, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                    AttachFiles: true,
+                    EmbedLinks: true,
+                    ManageMessages: true
+                });
+            }
+
+            // صراحتاً عدم دسترسی برای این دو رول در حالت بازگشایی
+            const denyRoles2 = ['1400919880017907797', '1400910230358851686'];
+            for (const roleId of denyRoles2) {
+                await channel.permissionOverwrites.create(roleId, {
+                    ViewChannel: false,
+                    SendMessages: false,
+                    ReadMessageHistory: false,
+                    AttachFiles: false,
+                    EmbedLinks: false
+                });
+            }
+
+            // اضافه کردن دسترسی رول‌های مخصوص به نوع تیکت (اگر وجود داشته باشد)
+            const typeSpecificRoles = (TICKET_CONFIG.typeRoleAccess && TICKET_CONFIG.typeRoleAccess[ticketType]) || [];
+            for (const roleId of typeSpecificRoles) {
                 await channel.permissionOverwrites.create(roleId, {
                     ViewChannel: true,
                     SendMessages: true,
@@ -639,8 +711,13 @@ class TicketManager {
             // منشن کردن کاربر در تیکت بجای DM
             if (originalUser) {
                 await channel.send({
-                    content: `${originalUser} 🔓 **تیکت مجدداً باز شد**`,
-                    allowedMentions: { users: [originalUser.id] }
+                    content: `${originalUser} 🔓 **تیکت مجدداً باز شد** <@&1432688893106458705>`,
+                    allowedMentions: { users: [originalUser.id], roles: ['1432688893106458705'] }
+                });
+            } else {
+                await channel.send({
+                    content: `<@&1432688893106458705> 🔓 **تیکت مجدداً باز شد**`,
+                    allowedMentions: { roles: ['1432688893106458705'] }
                 });
             }
 
@@ -657,14 +734,12 @@ class TicketManager {
     // حذف تیکت
     async deleteTicket(interaction) {
         try {
-            // بررسی دسترسی: ادمین، رول مجاز یا کسانی که ManageChannels دارند
+            // فقط ادمین کل بتواند حذف کند؛ رول‌ها نتوانند حذف کنند
             const member = interaction.member;
             const channel = interaction.channel;
             const hasAdminPermission = member.permissions.has(PermissionFlagsBits.Administrator);
-            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member.roles.cache.has(roleId));
-            const hasManageChannels = channel.permissionsFor(member)?.has(PermissionFlagsBits.ManageChannels);
 
-            if (!hasAdminPermission && !hasAllowedRole && !hasManageChannels) {
+            if (!hasAdminPermission) {
                 return await interaction.reply({
                     content: '❌ شما دسترسی لازم برای حذف تیکت را ندارید!',
                     flags: MessageFlags.Ephemeral
@@ -1147,7 +1222,9 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                 .addOptions([
                     { label: 'همکاری', description: 'درخواست همکاری و مشارکت', value: 'collaboration', emoji: '🤝' },
                     { label: 'شکایت', description: 'گزارش مشکل یا شکایت از سرور', value: 'server_complaint', emoji: '🚨' },
-                    { label: 'انتقادات', description: 'ارسال پیشنهاد یا انتقاد', value: 'suggestions', emoji: '💡' }
+                    { label: 'انتقادات', description: 'ارسال پیشنهاد یا انتقاد', value: 'suggestions', emoji: '💡' },
+                    { label: 'بررسی بن', description: 'درخواست بررسی بن شدن', value: 'ban_review', emoji: '🛡️' },
+                    { label: 'درخواست VIP', description: 'درخواست دریافت VIP', value: 'vip_request', emoji: '💎' }
                 ]);
 
             const row = new ActionRowBuilder().addComponents(select);

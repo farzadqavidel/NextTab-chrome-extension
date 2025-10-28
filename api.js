@@ -4,6 +4,21 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const cors = require('cors');
 
 const app = express();
+
+// Silence specific deprecation about ready -> clientReady (discord.js v15 change)
+process.on('warning', (warning) => {
+    try {
+        if (
+            warning?.name === 'DeprecationWarning' &&
+            typeof warning?.message === 'string' &&
+            warning.message.includes('ready event has been renamed to clientReady')
+        ) {
+            return; // ignore this specific warning
+        }
+    } catch (_) {}
+    // forward other warnings
+    console.warn(warning);
+});
 const PORT = process.env.PORT || 3000;
 
 // Enable CORS
@@ -87,7 +102,7 @@ for (const [level, fn] of Object.entries(ORIGINAL_CONSOLE)) {
 }
 
 // Discord Bot Events
-client.once('ready', () => {
+client.once('clientReady', () => {
     console.log('✅ Website Discord bot connected');
     updateGuildData();
     
@@ -164,8 +179,7 @@ async function updateGuildData() {
             lastUpdate: new Date()
         };
 
-        // Log update to Discord
-        console.log(`📊 Guild data updated: ${totalMembers} total, ${onlineMembers} online, ${adminList.length} admins`);
+        // Suppressed specific log line per request
         
     } catch (error) {
         console.error('❌ Error updating guild data:', error);
@@ -235,7 +249,7 @@ app.post('/api/submit-suggestion', async (req, res) => {
         const { name, message, filelink } = req.body || {};
         if (!message || message.trim().length === 0) return res.status(400).json({ success:false, error: 'message required' });
 
-        const channelId = '1431212488501887076'; // target suggestions channel
+        const channelId = '1431212488501887076'; // target suggestions channel (confirmed)
         const ch = await client.channels.fetch(channelId).catch(() => null);
         if (!ch || !ch.send) return res.status(500).json({ success:false, error: 'discord channel not available' });
 
@@ -257,9 +271,8 @@ app.post('/api/submit-suggestion', async (req, res) => {
             embed.addFields({ name: 'لینک فایل', value: filelink, inline: false });
         }
 
-        // Also include a short content with link to site
-        const siteUrl = process.env.WEBSITE_URL || 'http://localhost:3000';
-        await ch.send({ content: `لینک: ${siteUrl}`, embeds: [embed] });
+        // Send embed only (remove site link in content per request)
+        await ch.send({ embeds: [embed] });
         return res.json({ success: true });
     } catch (error) {
         console.error('Error in submit-suggestion:', error);

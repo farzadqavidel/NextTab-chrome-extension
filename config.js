@@ -20,5 +20,8 @@ module.exports = {
         title: process.env.WEBSITE_TITLE || 'CLUBS - تیم گیمینگ',
         description: process.env.WEBSITE_DESCRIPTION || 'تیم گیمینگ حرفه‌ای - آماده برای CS2',
         discordInvite: process.env.DISCORD_INVITE || 'https://discord.gg/95ubwScKzH'
-    }
+    },
+
+    // Channel configuration
+    welcomeChannelId: process.env.WELCOME_CHANNEL_ID || '1400899603410321428'
 };

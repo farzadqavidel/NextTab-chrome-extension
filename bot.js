@@ -12,7 +12,7 @@ process.on('warning', (warning) => {
     }
     console.warn(warning);
 });
-const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { joinVoiceChannel } = require('@discordjs/voice');
 const { fetch } = require('undici');
 const config = require('./config');
@@ -304,6 +304,7 @@ const commandList = [
     commands.remindCommand,
     commands.weatherCommand,
     commands.timeCommand,
+    commands.fortestCommand,
     commands.sayCommand,
     commands.serverinfoCommand,
     commands.userinfoCommand,
@@ -512,7 +513,7 @@ async function connectToVoiceChannel() {
 // When the client is ready, run this code (only once)
 client.once('clientReady', async () => {
 	console.log(`✅ Bot started successfully. ${client.user.tag}`);
-	console.log(`http://localhost:3000`);
+// remove site link from startup logs per request
     console.log(`🔗 Bot is in ${client.guilds.cache.size} server(s)`);
     
     // Initial update + schedule periodic refresh for online member count
@@ -526,9 +527,7 @@ client.once('clientReady', async () => {
         }
     }, 2000);
     
-    setInterval(() => { 
-        updateOnlineMemberCountChannel().catch(() => {}); 
-    }, 5 * 60 * 1000); // ✅ تغییر ۱: به‌روزرسانی هر ۵ دقیقه (300,000 میلی‌ثانیه)
+    setInterval(() => { updateOnlineMemberCountChannel().catch(() => {}); }, 5 * 60 * 1000);
     
     // Reset daily stats at midnight (Tehran Time)
     const TEHRAN_TIMEZONE = 'Asia/Tehran';
@@ -917,6 +916,9 @@ client.on('presenceUpdate', async (oldPresence, newPresence) => {
 // Listen for new members joining the server
 client.on('guildMemberAdd', async (member) => {
     try {
+        // Ignore bot accounts for DM welcome and nickname change; only post in channel
+        const isBotAccount = member.user?.bot === true;
+
         // Dedup: ensure we welcome only once per member
         if (client.handledGuildMemberAdds.has(member.id)) {
             return;
@@ -930,16 +932,17 @@ client.on('guildMemberAdd', async (member) => {
         // Track join count
         client.dailyStats.joins++;
         
-        try {
-            // Change nickname to ! name (no parentheses) when joining server
-            const displayName = member.displayName; // Nickname if set, else username
-            const newNickname = `! ${displayName}`;
-
-            await member.setNickname(newNickname, 'New member joined server');
-            console.log(`✅ Changed nickname for ${member.user.tag} to: ${newNickname}`);
-
-        } catch (nicknameError) {
-            console.error(`❌ Error changing nickname for ${member.user.tag}:`, nicknameError);
+        if (isBotAccount) {
+            try { await member.setNickname('𝐂𝐋𝐔𝐁 𝐁𝐎𝐓', 'Rename bot on join as requested'); } catch (_) {}
+        } else {
+            // Prefix member nickname with '! ' keeping existing display name
+            try {
+                const baseName = member.displayName || member.user.username;
+                const prefixed = baseName.startsWith('! ') ? baseName : `! ${baseName}`;
+                if (prefixed !== member.displayName) {
+                    await member.setNickname(prefixed, 'Prefix name with ! on join');
+                }
+            } catch (_) {}
         }
         
 
@@ -950,11 +953,13 @@ client.on('guildMemberAdd', async (member) => {
         updateBotActivity(); 
         // --- END: Update Activity on Join ---
 
-        // Send welcome message to welcome channel
+        // Send welcome message to welcome channel for all joins
         await sendWelcomeChannelMessage(member);
         
-        // Send DM to the new member
-        await sendWelcomeDM(member);
+        // Send welcome DM to users only (not bots)
+        if (!isBotAccount) {
+            await sendWelcomeDM(member);
+        }
         
     } catch (error) {
         console.error('❌ Error handling new member:', error);
@@ -1005,7 +1010,18 @@ async function sendWelcomeChannelMessage(member) {
 			.setAuthor({ name: member.user.tag, iconURL: channelIconUrl })
 			.setImage(channelIconUrl);
 
-		await welcomeChannel.send({ content: welcomeMessage, embeds: [embed] });
+		// Add link button to join team channel
+		const guildId = welcomeChannel.guild.id;
+		const targetChannelId = '1432696565247512618';
+		const linkUrl = `https://discord.com/channels/${guildId}/${targetChannelId}`;
+		const row = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setStyle(ButtonStyle.Link)
+				.setLabel('برای عضویت در تیم کلاب کلیک کنید ')
+				.setURL(linkUrl)
+		);
+
+		await welcomeChannel.send({ content: welcomeMessage, embeds: [embed], components: [row] });
 		console.log(`✅ Welcome message (with avatar) sent to channel for ${member.user.tag}`);
         
     } catch (error) {
@@ -1017,7 +1033,17 @@ async function sendWelcomeChannelMessage(member) {
 async function sendWelcomeDM(member) {
     try {
 		const dmMessage = `𝐃𝐨𝐫𝐨𝐝 𝐊𝐡𝐨𝐬h 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒🌹 ${member}`
-        await member.send(dmMessage);
+        const guildId = member.guild.id;
+        const targetChannelId = '1432696565247512618';
+        const linkUrl = `https://discord.com/channels/${guildId}/${targetChannelId}`;
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel('برای عضویت در تیم CLB کلیک کنید')
+                .setURL(linkUrl)
+        );
+
+        await member.send({ content: dmMessage, components: [row] });
         console.log(`✅ Welcome DM sent to ${member.user.tag}`);
         
     } catch (error) {

@@ -11,6 +11,11 @@ const requiredEnvVars = ['DISCORD_BOT_TOKEN', 'GUILD_ID'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
+    console.error('\n❌ Missing environment variables:', missingVars.join(', '));
+    console.error('👉 Create a .env file with these keys, e.g.:');
+    console.error('   DISCORD_BOT_TOKEN=your_token_here');
+    console.error('   GUILD_ID=your_guild_id_here');
+    console.error('You can run: npm run setup:env');
     process.exit(1);
 }
 
