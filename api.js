@@ -62,16 +62,7 @@ const CONSOLE_LOG_CHANNEL_ID = '1431212488501887076';
 const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
 
 function formatConsoleLine(level, message) {
-    const now = new Date();
-    const time = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const icon = (
-        level === 'error' ? '❌' :
-        level === 'warn' ? '⚠️' :
-        level === 'info' ? 'ℹ️' :
-        level === 'debug' ? '🐞' :
-        '✅'
-    );
-    return `[${time}] ${icon} ${message}`;
+    return message;
 }
 
 async function sendConsoleLog(level, message) {

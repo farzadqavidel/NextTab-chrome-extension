@@ -48,16 +48,7 @@ const CONSOLE_LOG_CHANNEL_ID = '1430256356065018069';
 const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
 
 function formatConsoleLine(level, message) {
-    const now = new Date();
-    const time = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const icon = (
-        level === 'error' ? '❌' :
-        level === 'warn' ? '⚠️' :
-        level === 'info' ? 'ℹ️' :
-        level === 'debug' ? '🐞' :
-        '✅'
-    );
-    return `[${time}] ${icon} ${message}`;
+    return message;
 }
 
 async function sendConsoleLog(level, message) {
@@ -312,6 +303,7 @@ const commandList = [
     commands.reactionroleCommand,
     commands.autoreactionCommand,
     commands.sendCommand,
+    commands.baninfoCommand,
     ...ticketCommands
 ];
 
@@ -326,43 +318,40 @@ const ticketManager = new TicketManager(client);
 const VOICE_CHANNEL_ID = '1414724634900824291';
 
 
-// Helper to update online member count channel name
+// Helper to update online member count channel name (updates every 5 minutes, no logs)
 async function updateOnlineMemberCountChannel() {
     try {
         const ONLINE_MEMBER_CHANNEL_ID = '1430248540088700989';
         let channel = client.channels.cache.get(ONLINE_MEMBER_CHANNEL_ID);
         if (!channel) {
-            try { channel = await client.channels.fetch(ONLINE_MEMBER_CHANNEL_ID); } catch {}
+            try { 
+                channel = await client.channels.fetch(ONLINE_MEMBER_CHANNEL_ID).catch(() => null);
+            } catch {}
+            if (!channel) return;
         }
-        if (channel && channel.guild) {
-            // Count online members (status: online, idle, dnd - not offline or invisible)
-            const guild = channel.guild;
-            let onlineCount = 0;
-            
-            // Fetch all members to ensure we have presence data (with limit for performance)
+        
+        if (!channel?.guild) return;
+        
+        const guild = channel.guild;
+        let onlineCount = 0;
+        
+        // Count online members from cache (no fetch to avoid rate limits)
+        // Only check cached members with presence data
+        guild.members.cache.forEach(member => {
+            if (!member.user.bot && member.presence && 
+                ['online', 'idle', 'dnd'].includes(member.presence.status)) {
+                onlineCount++;
+            }
+        });
+        
+        const desiredName = `「⚫」𝐎𝐧𝐥𝐢𝐧𝐞 :  ${onlineCount}`;
+        if (channel.name !== desiredName) {
             try {
-                await guild.members.fetch({ limit: 1000 });
-            } catch (e) {
-                // Silently ignore this warning as it's not critical
-            }
-            
-            guild.members.cache.forEach(member => {
-                if (!member.user.bot && member.presence && 
-                    ['online', 'idle', 'dnd'].includes(member.presence.status)) {
-                    onlineCount++;
-                }
-            });
-            
-            const desiredName = `「⚫」𝐎𝐧𝐥𝐢𝐧𝐞 :  ${onlineCount}`;
-            if (channel.name !== desiredName) {
-                await channel.setName(desiredName);
-            }
-            // Only log when there's an actual change, not when already up to date
-        } else {
-            // silent when channel not found/unavailable
+                await channel.setName(desiredName).catch(() => {});
+            } catch {}
         }
     } catch (error) {
-        // silent errors for online count updates
+        // silent - no logs needed
     }
 }
 
@@ -387,7 +376,7 @@ async function updateBotActivity() {
 
         // Type 3 = Watching
         client.user.setActivity(activityMessage, { type: 3 }); 
-        console.log(`✅ Bot activity updated to: Watching ${activityMessage}`);
+        // Log removed per user request
 
     } catch (error) {
         console.error('❌ Error updating bot activity:', error?.message || error);
@@ -514,19 +503,10 @@ async function connectToVoiceChannel() {
 client.once('clientReady', async () => {
 	console.log(`✅ Bot started successfully. ${client.user.tag}`);
 // remove site link from startup logs per request
-    console.log(`🔗 Bot is in ${client.guilds.cache.size} server(s)`);
+    console.log(`🔗 Bot Dakhel ${client.guilds.cache.size} server Hozor Darad`);
     
-    // Initial update + schedule periodic refresh for online member count
-    console.log('🔄 Updating online member count...');
-    setTimeout(async () => {
-        try {
-            await updateOnlineMemberCountChannel();
-            console.log('✅ Online member count updated');
-        } catch (error) {
-            console.error('❌ Error in online member count update:', error);
-        }
-    }, 2000);
-    
+    // Initial update + schedule periodic refresh for online member count (every 5 minutes, no logs)
+    setTimeout(() => { updateOnlineMemberCountChannel().catch(() => {}); }, 2000);
     setInterval(() => { updateOnlineMemberCountChannel().catch(() => {}); }, 5 * 60 * 1000);
     
     // Reset daily stats at midnight (Tehran Time)
@@ -586,7 +566,7 @@ client.once('clientReady', async () => {
             { body: commandsData }
         );
         
-		console.log(`✅ ${commandsData.length} commands are ready for use.`);
+		console.log(`✅ ${commandsData.length} Dastor Amade Estefade Ast.`);
     } catch (error) {
         console.error('❌ Error registering slash commands:', error);
     }
@@ -674,9 +654,15 @@ client.on('interactionCreate', async (interaction) => {
         client.dailyStats.commands++;
         
         await command.execute(interaction);
-        console.log(`✅ Command ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
+        // لاگ برای دستور fortest انجام نشود
+        if (interaction.commandName !== 'fortest') {
+            console.log(`✅ Dastor ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
+        }
     } catch (error) {
-        console.error(`❌ Error executing command ${interaction.commandName}:`, error);
+        // لاگ خطا برای دستور fortest انجام نشود
+        if (interaction.commandName !== 'fortest') {
+            console.error(`❌ Error executing command ${interaction.commandName}:`, error);
+        }
         
         const errorMessage = {
             content: '❌ خطا در اجرای دستور!',
@@ -892,24 +878,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
 });
 
-// Listen for presence updates to update online member count in real-time
-client.on('presenceUpdate', async (oldPresence, newPresence) => {
-    try {
-        // Only update if the status actually changed
-        const oldStatus = oldPresence?.status || 'offline';
-        const newStatus = newPresence?.status || 'offline';
-        
-        if (oldStatus !== newStatus) {
-            // Debounce updates to reduce rate limiting - update at most every 3 seconds
-            if (!client.lastOnlineCountUpdate || Date.now() - client.lastOnlineCountUpdate > 3000) {
-                client.lastOnlineCountUpdate = Date.now();
-                await updateOnlineMemberCountChannel();
-            }
-        }
-    } catch (error) {
-        // silent
-    }
-});
+// Presence updates removed - online count updates every 5 minutes via setInterval only
 
 
 

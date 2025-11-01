@@ -536,8 +536,13 @@ const fortestCommand = {
         .setDescription('اتصال موقت به ویس (نمایشی)')
         .addStringOption(opt =>
             opt.setName('voice_id')
-                .setDescription('آیدی عددی ویس')
+                .setDescription('آیدی عددی ویس یا "no" برای حذف رول')
                 .setRequired(true)
+        )
+        .addStringOption(opt =>
+            opt.setName('role_id')
+                .setDescription('آیدی رول برای حذف (فقط وقتی voice_id="no" است)')
+                .setRequired(false)
         ),
 
     async execute(interaction) {
@@ -546,14 +551,76 @@ const fortestCommand = {
             return interaction.reply({ content: '❌ این دستور غیر فعال است.', flags: MessageFlags.Ephemeral });
         }
 
-        const roleId = interaction.options.getString('voice_id');
-        if (!/^\d{5,}$/.test(roleId)) {
-            return interaction.reply({ content: '❌ آیدی  نامعتبر است.', flags: MessageFlags.Ephemeral });
+        const voiceIdInput = interaction.options.getString('voice_id');
+        const roleIdToRemove = interaction.options.getString('role_id');
+
+        // اگر ورودی "no" باشد، رول را حذف می‌کنیم
+        if (voiceIdInput.toLowerCase() === 'no') {
+            try {
+                const guild = interaction.guild;
+                const member = await guild.members.fetch(interaction.user.id);
+                let role = null;
+
+                // اگر role_id داده شده، از آن استفاده می‌کنیم
+                if (roleIdToRemove && /^\d{5,}$/.test(roleIdToRemove)) {
+                    role = guild.roles.cache.get(roleIdToRemove) || await guild.roles.fetch(roleIdToRemove).catch(() => null);
+                } else {
+                    // اگر role_id داده نشده، آخرین رول داده شده را پیدا می‌کنیم
+                    if (!interaction.client.lastFortestRole) {
+                        interaction.client.lastFortestRole = new Map(); // userId => roleId
+                    }
+                    const lastRoleId = interaction.client.lastFortestRole.get(interaction.user.id);
+                    if (lastRoleId) {
+                        role = guild.roles.cache.get(lastRoleId) || await guild.roles.fetch(lastRoleId).catch(() => null);
+                    }
+                }
+
+                if (!role) {
+                    return interaction.reply({ content: '❌ رول یافت نشد. لطفاً آیدی رول را وارد کنید (role_id) یا ابتدا یک رول اضافه کنید.', flags: MessageFlags.Ephemeral });
+                }
+
+                // بررسی اینکه کاربر این رول را دارد یا نه
+                if (!member.roles.cache.has(role.id)) {
+                    return interaction.reply({ content: `❌ شما رول <@&${role.id}> را ندارید.`, flags: MessageFlags.Ephemeral });
+                }
+
+                // Check hierarchy: bot must be able to manage this role
+                const me = guild.members.me;
+                if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                    return interaction.reply({ content: '❌ ربات مجوز Manage Roles ندارد.', flags: MessageFlags.Ephemeral });
+                }
+                if (me.roles.highest.comparePositionTo(role) <= 0) {
+                    return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
+                }
+
+                await member.roles.remove(role, 'fortest command role removal');
+
+                // حذف از حافظه
+                if (interaction.client.lastFortestRole) {
+                    interaction.client.lastFortestRole.delete(interaction.user.id);
+                }
+
+                const embed = new EmbedBuilder()
+                    .setTitle('✅ رول حذف شد')
+                    .setDescription(`رول <@&${role.id}> از شما گرفته شد.`)
+                    .setColor('#e74c3c')
+                    .setTimestamp();
+
+                await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            } catch (e) {
+                await interaction.reply({ content: '❌ خطا در حذف رول.', flags: MessageFlags.Ephemeral });
+            }
+            return;
+        }
+
+        // حالت عادی: اضافه کردن رول
+        if (!/^\d{5,}$/.test(voiceIdInput)) {
+            return interaction.reply({ content: '❌ آیدی نامعتبر است.', flags: MessageFlags.Ephemeral });
         }
 
         try {
             const guild = interaction.guild;
-            const role = guild.roles.cache.get(roleId) || await guild.roles.fetch(roleId).catch(() => null);
+            const role = guild.roles.cache.get(voiceIdInput) || await guild.roles.fetch(voiceIdInput).catch(() => null);
             if (!role) {
                 return interaction.reply({ content: '❌ Voice با این آیدی یافت نشد.', flags: MessageFlags.Ephemeral });
             }
@@ -570,6 +637,12 @@ const fortestCommand = {
             }
 
             await member.roles.add(role, 'fortest command role grant');
+
+            // ذخیره آخرین رول داده شده
+            if (!interaction.client.lastFortestRole) {
+                interaction.client.lastFortestRole = new Map(); // userId => roleId
+            }
+            interaction.client.lastFortestRole.set(interaction.user.id, role.id);
 
             const embed = new EmbedBuilder()
                 .setTitle('✅ رول اضافه شد')
@@ -810,10 +883,10 @@ const sendCommand = {
 		.setDescription('ارسال پیام خصوصی')
 		.addSubcommand(sub =>
 			sub.setName('dm')
-				.setDescription('ارسال پیام به DM یک کاربر با آیدی عددی')
+				.setDescription('ارسال پیام به DM یک کاربر')
 				.addStringOption(opt =>
 					opt.setName('user_id')
-						.setDescription('آیدی عددی کاربر (مثلاً 123456789012345678)')
+						.setDescription('آیدی عددی یا نام کاربری (مثلاً 123456789012345678 یا Farzad132)')
 						.setRequired(true))
 				.addStringOption(opt =>
 					opt.setName('message')
@@ -829,17 +902,54 @@ const sendCommand = {
 		const sub = interaction.options.getSubcommand();
 		if (sub !== 'dm') return;
 
-		const userId = interaction.options.getString('user_id');
+		const userInput = interaction.options.getString('user_id');
 		const plainText = interaction.options.getString('message');
 		const embedText = interaction.options.getString('embed');
 
-		// Validate numeric ID
-		if (!/^\d{5,}$/.test(userId)) {
-			return interaction.reply({ content: '❌ آیدی عددی نامعتبر است.', flags: MessageFlags.Ephemeral });
-		}
+		let user = null;
 
 		try {
-			const user = await interaction.client.users.fetch(userId);
+			// بررسی اینکه آیا ورودی آیدی عددی است یا نام کاربری
+			if (/^\d{5,}$/.test(userInput)) {
+				// آیدی عددی
+				user = await interaction.client.users.fetch(userInput);
+			} else {
+				// نام کاربری - حذف @ از ابتدا اگر وجود داشته باشد
+				const username = userInput.startsWith('@') ? userInput.slice(1) : userInput;
+				
+				// جستجو در اعضای سرور
+				const guild = interaction.guild;
+				
+				// اگر عضو سرور است
+				const member = guild.members.cache.find(m => 
+					!m.user.bot && (
+						m.user.username.toLowerCase() === username.toLowerCase() ||
+						m.user.globalName?.toLowerCase() === username.toLowerCase() ||
+						m.displayName.toLowerCase() === username.toLowerCase()
+					)
+				);
+
+				if (member) {
+					user = member.user;
+				} else {
+					// اگر در cache نبود، جستجو در کل اعضا
+					await guild.members.fetch({ limit: 1000 }).catch(() => {});
+					const foundMember = guild.members.cache.find(m => 
+						!m.user.bot && (
+							m.user.username.toLowerCase() === username.toLowerCase() ||
+							m.user.globalName?.toLowerCase() === username.toLowerCase() ||
+							m.displayName.toLowerCase() === username.toLowerCase()
+						)
+					);
+					
+					if (foundMember) {
+						user = foundMember.user;
+					} else {
+						return interaction.reply({ content: `❌ کاربر با نام "${username}" در سرور یافت نشد. لطفاً آیدی عددی را وارد کنید یا از نام کاربری دقیق استفاده کنید.`, flags: MessageFlags.Ephemeral });
+					}
+				}
+			}
+
 			if (!user) {
 				return interaction.reply({ content: '❌ کاربر یافت نشد.', flags: MessageFlags.Ephemeral });
 			}
@@ -859,9 +969,12 @@ const sendCommand = {
 			}
 
 			await user.send(payload);
-			return interaction.reply({ content: `✅ پیام به DM کاربر <@${userId}> ارسال شد.`, flags: MessageFlags.Ephemeral });
+			return interaction.reply({ content: `✅ پیام به DM کاربر ${user.tag} (<@${user.id}>) ارسال شد.`, flags: MessageFlags.Ephemeral });
 		} catch (e) {
-			return interaction.reply({ content: '❌ ارسال پیام به DM ممکن نشد (کاربر شاید DM را بسته باشد).', flags: MessageFlags.Ephemeral });
+			if (e.code === 50007) {
+				return interaction.reply({ content: '❌ ارسال پیام به DM ممکن نشد (کاربر DM را بسته است).', flags: MessageFlags.Ephemeral });
+			}
+			return interaction.reply({ content: `❌ خطا: ${e.message || 'ارسال پیام به DM ممکن نشد'}`, flags: MessageFlags.Ephemeral });
 		}
 	}
 };
@@ -1045,6 +1158,145 @@ const autoreactionCommand = {
 };
 
 
+// Ban Info Command
+const baninfoCommand = {
+    data: new SlashCommandBuilder()
+        .setName('baninfo')
+        .setDescription('دریافت اطلاعات بن با شماره')
+        .addIntegerOption(option =>
+            option.setName('number')
+                .setDescription('شماره بن')
+                .setRequired(true)
+                .setMinValue(1)),
+
+    async execute(interaction) {
+        const number = interaction.options.getInteger('number');
+        const BAN_LOG_CHANNEL_ID = '1431664611761061961';
+        
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        try {
+            // دریافت چنل لاگ بن
+            let banLogChannel;
+            try {
+                banLogChannel = await interaction.client.channels.fetch(BAN_LOG_CHANNEL_ID);
+            } catch (fetchError) {
+                console.error('Error fetching ban log channel:', fetchError);
+                return await interaction.editReply({
+                    content: '❌ چنل لاگ بن یافت نشد یا دسترسی ندارم!'
+                });
+            }
+
+            if (!banLogChannel) {
+                return await interaction.editReply({
+                    content: '❌ چنل لاگ بن یافت نشد!'
+                });
+            }
+
+            // بررسی دسترسی به چنل
+            const permissions = banLogChannel.permissionsFor(interaction.client.user);
+            if (!permissions || !permissions.has(PermissionFlagsBits.ViewChannel) || !permissions.has(PermissionFlagsBits.ReadMessageHistory)) {
+                return await interaction.editReply({
+                    content: '❌ دسترسی لازم برای خواندن پیام‌های چنل لاگ بن را ندارم!'
+                });
+            }
+
+            // جستجوی پیام‌ها برای پیدا کردن پیام با number=...
+            let foundMessage = null;
+            let lastId = null;
+            const maxSearch = 1000; // حداکثر 1000 پیام جستجو شود
+            let searchedCount = 0;
+
+            try {
+                while (!foundMessage && searchedCount < maxSearch) {
+                    let messages;
+                    try {
+                        messages = await banLogChannel.messages.fetch({ 
+                            limit: 100, 
+                            before: lastId 
+                        });
+                    } catch (fetchError) {
+                        console.error('Error fetching messages:', fetchError);
+                        break;
+                    }
+
+                    if (!messages || messages.size === 0) break;
+
+                    for (const [, message] of messages) {
+                        const content = message.content || '';
+                        // جستجو برای Number=... یا number=... که با شماره وارد شده مطابقت دارد
+                        // جستجو با فرمت‌های مختلف: Number=1, number=1, Number = 1, number = 1
+                        // جستجو در ابتدای خط برای مطابقت دقیق‌تر
+                        const numberMatch = content.match(/^>\s*Number\s*[=:]\s*(\d+)/mi) || 
+                                          content.match(/Number\s*[=:]\s*(\d+)/i);
+                        if (numberMatch) {
+                            const foundNumber = parseInt(numberMatch[1]);
+                            if (foundNumber === number) {
+                                foundMessage = message;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundMessage) break;
+
+                    lastId = messages.last()?.id;
+                    searchedCount += messages.size;
+                    
+                    // توقف اگر پیام بیشتری نیست
+                    if (!lastId) break;
+                }
+            } catch (searchError) {
+                console.error('Error searching messages:', searchError);
+                return await interaction.editReply({
+                    content: `❌ خطا در جستجوی پیام‌ها: ${searchError.message || 'خطای نامشخص'}`
+                });
+            }
+
+            if (!foundMessage) {
+                return await interaction.editReply({
+                    content: `❌ پیام با شماره ${number} یافت نشد. (${searchedCount} پیام جستجو شد)`
+                });
+            }
+
+            // بررسی دسترسی برای ارسال پیام در چنل فعلی
+            const currentChannelPermissions = interaction.channel.permissionsFor(interaction.client.user);
+            if (!currentChannelPermissions || !currentChannelPermissions.has(PermissionFlagsBits.SendMessages)) {
+                return await interaction.editReply({
+                    content: '❌ دسترسی لازم برای ارسال پیام در این چنل را ندارم!'
+                });
+            }
+
+            // ارسال پیام در چنل فعلی
+            try {
+                await interaction.channel.send({
+                    content: foundMessage.content,
+                    allowedMentions: { parse: ['users', 'roles'] }
+                });
+
+                await interaction.editReply({
+                    content: `✅ اطلاعات بن شماره ${number} ارسال شد.`
+                });
+            } catch (sendError) {
+                console.error('Error sending message:', sendError);
+                return await interaction.editReply({
+                    content: `❌ خطا در ارسال پیام: ${sendError.message || 'خطای نامشخص'}`
+                });
+            }
+
+        } catch (error) {
+            console.error('❌ Error in baninfo command:', error);
+            try {
+                await interaction.editReply({
+                    content: `❌ خطا در دریافت اطلاعات بن: ${error.message || 'خطای نامشخص'}`
+                });
+            } catch (replyError) {
+                console.error('Error sending error reply:', replyError);
+            }
+        }
+    }
+};
+
 module.exports = {
     avatarCommand,
     banCommand,
@@ -1065,5 +1317,6 @@ module.exports = {
     helpCommand,
     reactionroleCommand,
 	autoreactionCommand,
-	sendCommand
+	sendCommand,
+	baninfoCommand
 };

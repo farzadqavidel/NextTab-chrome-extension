@@ -7,13 +7,13 @@ const TICKET_CONFIG = {
     transcriptChannelId: '1430265420035784775', // چنل ارسال ترنسکریپت
     // رول‌هایی که به همه تیکت‌ها دسترسی دارند
     allowedRoles: [
-        '1432688893106458705' // دسترسی کامل به همه تیکت‌ها
+        '1432688893106458705' // دسترسی به همه تیکت‌ها (می‌تواند ببندد، نمی‌تواند حذف کند)
     ],
     // دسترسی مخصوص برای برخی انواع تیکت
     typeRoleAccess: {
-        server_complaint: ['1415440089047371897'], // رول فقط برای شکایت
-        vip_request: ['1415440089047371897'],      // رول فقط برای VIP
-        suggestions: ['1415440089047371897']       // رول فقط برای انتقادات/پیشنهادات
+        vip_request: ['1415440089047371897'],      // رول فقط برای VIP (می‌تواند ببندد، نمی‌تواند حذف کند)
+        ban_review: ['1415440089047371897'],      // رول فقط برای بررسی بن
+        collaboration: ['1415440089047371897']    // رول فقط برای همکاری
     },
     ticketTypes: {
         server_complaint: { name: 'شکایت از سرور', emoji: '🚨', prefix: 'complaint' },
@@ -149,7 +149,7 @@ class TicketManager {
                 ]
             });
 
-            // اضافه کردن دسترسی برای رول‌های عمومی همه تیکت‌ها
+            // اضافه کردن دسترسی برای رول‌های عمومی همه تیکت‌ها (1432688893106458705)
             for (const roleId of TICKET_CONFIG.allowedRoles) {
                 await ticketChannel.permissionOverwrites.create(roleId, {
                     ViewChannel: true,
@@ -162,19 +162,8 @@ class TicketManager {
                 });
             }
 
-            // صراحتاً عدم دسترسی برای این دو رول
-            const denyRoles = ['1400919880017907797', '1400910230358851686'];
-            for (const roleId of denyRoles) {
-                await ticketChannel.permissionOverwrites.create(roleId, {
-                    ViewChannel: false,
-                    SendMessages: false,
-                    ReadMessageHistory: false,
-                    AttachFiles: false,
-                    EmbedLinks: false
-                });
-            }
-
-            // اضافه کردن دسترسی مخصوص برای نوع تیکت جاری (در صورت تعریف)
+            // اضافه کردن دسترسی مخصوص برای نوع تیکت جاری (فقط اگر تعریف شده باشد)
+            // رول 1415440089047371897 فقط برای vip_request, ban_review, collaboration
             const typeSpecificRoles = (TICKET_CONFIG.typeRoleAccess && TICKET_CONFIG.typeRoleAccess[ticketType]) || [];
             for (const roleId of typeSpecificRoles) {
                 await ticketChannel.permissionOverwrites.create(roleId, {
@@ -183,7 +172,21 @@ class TicketManager {
                     ReadMessageHistory: true,
                     AttachFiles: true,
                     EmbedLinks: true,
-                    ManageMessages: true
+                    ManageMessages: true  // برای بستن تیکت
+                    // بدون ManageChannels - نمی‌توانند تیکت را حذف کنند
+                });
+            }
+
+            // صراحتاً عدم دسترسی برای همه رول‌های دیگر (به جز این دو رول و رول‌های Full Permission)
+            // رول‌های خاص که باید بسته شوند:
+            const denyRoles = ['1400919880017907797', '1400910230358851686'];
+            for (const roleId of denyRoles) {
+                await ticketChannel.permissionOverwrites.create(roleId, {
+                    ViewChannel: false,
+                    SendMessages: false,
+                    ReadMessageHistory: false,
+                    AttachFiles: false,
+                    EmbedLinks: false
                 });
             }
 
@@ -266,15 +269,43 @@ class TicketManager {
     // بستن تیکت
     async closeTicket(interaction) {
         try {
-            // فقط این دو رول بتوانند ببندند (ادمین عمومی یا ManageChannels کافی نیست)
             const member = interaction.member;
             const channel = interaction.channel;
-            const closeAllowedRoles = new Set(['1432688893106458705','1415440089047371897']);
-            const hasCloseRole = Array.from(member.roles.cache.keys()).some(id => closeAllowedRoles.has(id));
+            
+            // بررسی دسترسی برای بستن تیکت
+            const hasRole1 = member.roles.cache.has('1432688893106458705'); // دسترسی به همه تیکت‌ها
+            const hasRole2 = member.roles.cache.has('1415440089047371897'); // دسترسی فقط به vip, ban_review, collaboration
+            
+            let canClose = false;
+            
+            if (hasRole1) {
+                // رول اول می‌تواند همه تیکت‌ها را ببندد
+                canClose = true;
+            } else if (hasRole2) {
+                // رول دوم فقط می‌تواند تیکت‌های vip_request, ban_review, collaboration را ببندد
+                let ticketInfo = activeTickets.get(channel.id);
+                
+                // اگر در لیست فعال نیست، سعی کن از نام چنل اطلاعات را استخراج کنی
+                if (!ticketInfo) {
+                    const channelName = channel.name;
+                    let ticketMatch = channelName.match(/^(?:ticket|closed-ticket)-(\d+)-(\w+)-(.+)$/);
+                    
+                    if (ticketMatch && ticketMatch.length >= 3) {
+                        ticketInfo = { ticketType: ticketMatch[2] };
+                    }
+                }
+                
+                const ticketType = ticketInfo?.ticketType || '';
+                const allowedTypesForRole2 = ['vip_request', 'ban_review', 'collaboration'];
+                
+                if (allowedTypesForRole2.includes(ticketType)) {
+                    canClose = true;
+                }
+            }
 
-            if (!hasCloseRole) {
+            if (!canClose) {
                 return await interaction.reply({
-                    content: '❌ شما نمیتوانید تیکت را ببندید.',
+                    content: '❌ شما نمیتوانید این تیکت را ببندید.',
                     flags: MessageFlags.Ephemeral
                 });
             }
