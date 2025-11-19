@@ -1,6 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { fetch } = require('undici');
 
+// Constants for special roles
+const ROLE_ID_VIPCLB = '1403512560262709339';
+const ROLE_ID_CLB = '1400907778473852995';
+
 // Avatar Command
 const avatarCommand = {
     data: new SlashCommandBuilder()
@@ -25,100 +29,6 @@ const avatarCommand = {
     }
 };
 
-// Ban Command
-const banCommand = {
-    data: new SlashCommandBuilder()
-        .setName('ban')
-        .setDescription('بن کردن کاربر از سرور')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('reason')
-                .setDescription('دلیل')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
-    
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason') || 'بدون دلیل';
-        
-        if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)) {
-            return interaction.reply({ content: '❌ شما مجوز بن کردن کاربران را ندارید!', flags: MessageFlags.Ephemeral });
-        }
-        // Prevent banning the protected owner user ID
-        if (user.id === '995631414907244646') {
-            return interaction.reply({ content: '❌ امکان بن کردن مالک سرور وجود ندارد.', flags: MessageFlags.Ephemeral });
-        }
-        
-        try {
-            // Try DM first
-            try {
-                await user.send(`⛔ You have been banned from ${interaction.guild.name}.\nReason: ${reason}`);
-            } catch (_) {}
-            await interaction.guild.members.ban(user, { reason });
-            
-            const embed = new EmbedBuilder()
-                .setTitle('✅ کاربر بن شد')
-                .setDescription(`**کاربر:** ${user.tag}\n**دلیل:** ${reason}\n**توسط:** ${interaction.user.tag}`)
-                .setColor('#ff0000')
-                .setTimestamp();
-            
-            await interaction.reply({ embeds: [embed] });
-        } catch (error) {
-            await interaction.reply({ content: '❌ خطا در بن کردن کاربر!', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
-
-// Kick Command
-const kickCommand = {
-    data: new SlashCommandBuilder()
-        .setName('kick')
-        .setDescription('کیک کردن کاربر از سرور')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('reason')
-                .setDescription('دلیل')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-    
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason') || 'بدون دلیل';
-        
-        if (!interaction.member.permissions.has(PermissionFlagsBits.KickMembers)) {
-            return interaction.reply({ content: '❌ شما مجوز کیک کردن کاربران را ندارید!', flags: MessageFlags.Ephemeral });
-        }
-        // Prevent kicking the protected owner user ID
-        if (user.id === '995631414907244646') {
-            return interaction.reply({ content: '❌ امکان کیک کردن مالک سرور وجود ندارد.', flags: MessageFlags.Ephemeral });
-        }
-        
-        try {
-            const member = await interaction.guild.members.fetch(user.id);
-            // Try DM first
-            try {
-                await user.send(`🚪 You have been kicked from ${interaction.guild.name}.\nReason: ${reason}`);
-            } catch (_) {}
-            await member.kick(reason);
-            
-            const embed = new EmbedBuilder()
-                .setTitle('✅ کاربر کیک شد')
-                .setDescription(`**کاربر:** ${user.tag}\n**دلیل:** ${reason}\n**توسط:** ${interaction.user.tag}`)
-                .setColor('#ffaa00')
-                .setTimestamp();
-            
-            await interaction.reply({ embeds: [embed] });
-        } catch (error) {
-            await interaction.reply({ content: '❌ خطا در کیک کردن کاربر!', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
 
 // Clear Command
 const clearCommand = {
@@ -162,6 +72,156 @@ const clearCommand = {
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         } catch (error) {
             await interaction.reply({ content: '❌ خطا در پاک کردن پیام‌ها!', flags: MessageFlags.Ephemeral });
+        }
+    }
+};
+
+// VipCLB Command: add role and set nickname "𝐕 | 𝐂𝐋𝐁 | {name}"
+const vipclbCommand = {
+    data: new SlashCommandBuilder()
+        .setName('vipclb')
+        .setDescription('دادن رول VIP CLB و تغییر نام کاربر')
+        .addUserOption(opt =>
+            opt.setName('user')
+                .setDescription('کاربر هدف')
+                .setRequired(true))
+        .addStringOption(opt =>
+            opt.setName('name')
+                .setDescription('نام دلخواه برای نمایش')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles | PermissionFlagsBits.ManageNicknames),
+
+    async execute(interaction) {
+        const targetUser = interaction.options.getUser('user');
+        const nameInput = (interaction.options.getString('name') || '').trim();
+
+        // Permissions check for invoker
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles) ||
+            !interaction.member.permissions.has(PermissionFlagsBits.ManageNicknames)) {
+            return interaction.reply({ content: '❌ شما مجوز لازم (Manage Roles/Nicknames) را ندارید.', flags: MessageFlags.Ephemeral });
+        }
+        // Bot permissions
+        const me = interaction.guild.members.me;
+        if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles) || !me.permissions.has(PermissionFlagsBits.ManageNicknames)) {
+            return interaction.reply({ content: '❌ ربات مجوز Manage Roles/Nicknames ندارد.', flags: MessageFlags.Ephemeral });
+        }
+
+        // Validate name and compose nickname
+        const prefix = '𝐕 | 𝐂𝐋𝐁 | ';
+        const desired = `${prefix}${nameInput}`;
+        if (!nameInput) {
+            return interaction.reply({ content: '❌ لطفاً یک نام معتبر وارد کنید.', flags: MessageFlags.Ephemeral });
+        }
+        if (desired.length > 32) {
+            return interaction.reply({ content: `❌ نام خیلی طولانی است. حداکثر 32 کاراکتر. (فعلی: ${desired.length})`, flags: MessageFlags.Ephemeral });
+        }
+
+        try {
+            const member = await interaction.guild.members.fetch(targetUser.id);
+            if (!member) return interaction.reply({ content: '❌ کاربر در سرور یافت نشد.', flags: MessageFlags.Ephemeral });
+
+            // Check hierarchy for role and member
+            const role = interaction.guild.roles.cache.get(ROLE_ID_VIPCLB) || await interaction.guild.roles.fetch(ROLE_ID_VIPCLB).catch(() => null);
+            if (!role) return interaction.reply({ content: '❌ رول VIP CLB یافت نشد.', flags: MessageFlags.Ephemeral });
+            if (me.roles.highest.comparePositionTo(role) <= 0) {
+                return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
+            }
+            if (!member.manageable) {
+                return interaction.reply({ content: '❌ امکان تغییر نام این کاربر وجود ندارد (نقش/سلسله‌مراتب).', flags: MessageFlags.Ephemeral });
+            }
+
+            // Grant role if not present
+            if (!member.roles.cache.has(role.id)) {
+                await member.roles.add(role, 'VipCLB command: grant role');
+            }
+            // Set nickname
+            if (member.displayName !== desired) {
+                await member.setNickname(desired, 'VipCLB command: set nickname');
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('Role Dade Shod Va Name Update Shod ❗')
+                .setDescription(`Be Karbar${member} Role <@&${role.id}> Dade Shod !\n\ 🆕New Name : ${desired} `)
+                .setColor('#000000')
+                .setTimestamp();
+            await interaction.reply({ embeds: [embed] });
+        } catch (e) {
+            await interaction.reply({ content: '❌ خطا در انجام عملیات (Role/Nick).', flags: MessageFlags.Ephemeral });
+        }
+    }
+};
+
+// CLB Command: add role and set nickname "𝐂𝐋𝐁 | {name}"
+const clbCommand = {
+    data: new SlashCommandBuilder()
+        .setName('clb')
+        .setDescription('دادن رول CLB و تغییر نام کاربر')
+        .addUserOption(opt =>
+            opt.setName('user')
+                .setDescription('کاربر هدف')
+                .setRequired(true))
+        .addStringOption(opt =>
+            opt.setName('name')
+                .setDescription('نام دلخواه برای نمایش')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles | PermissionFlagsBits.ManageNicknames),
+
+    async execute(interaction) {
+        const targetUser = interaction.options.getUser('user');
+        const nameInput = (interaction.options.getString('name') || '').trim();
+
+        // Permissions check for invoker
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles) ||
+            !interaction.member.permissions.has(PermissionFlagsBits.ManageNicknames)) {
+            return interaction.reply({ content: '❌ شما مجوز لازم (Manage Roles/Nicknames) را ندارید.', flags: MessageFlags.Ephemeral });
+        }
+        // Bot permissions
+        const me = interaction.guild.members.me;
+        if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles) || !me.permissions.has(PermissionFlagsBits.ManageNicknames)) {
+            return interaction.reply({ content: '❌ ربات مجوز Manage Roles/Nicknames ندارد.', flags: MessageFlags.Ephemeral });
+        }
+
+        // Validate name and compose nickname
+        const prefix = '𝐂𝐋𝐁 | ';
+        const desired = `${prefix}${nameInput}`;
+        if (!nameInput) {
+            return interaction.reply({ content: '❌ لطفاً یک نام معتبر وارد کنید.', flags: MessageFlags.Ephemeral });
+        }
+        if (desired.length > 32) {
+            return interaction.reply({ content: `❌ نام خیلی طولانی است. حداکثر 32 کاراکتر. (فعلی: ${desired.length})`, flags: MessageFlags.Ephemeral });
+        }
+
+        try {
+            const member = await interaction.guild.members.fetch(targetUser.id);
+            if (!member) return interaction.reply({ content: '❌ کاربر در سرور یافت نشد.', flags: MessageFlags.Ephemeral });
+
+            // Check hierarchy for role and member
+            const role = interaction.guild.roles.cache.get(ROLE_ID_CLB) || await interaction.guild.roles.fetch(ROLE_ID_CLB).catch(() => null);
+            if (!role) return interaction.reply({ content: '❌ رول CLB یافت نشد.', flags: MessageFlags.Ephemeral });
+            if (me.roles.highest.comparePositionTo(role) <= 0) {
+                return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
+            }
+            if (!member.manageable) {
+                return interaction.reply({ content: '❌ امکان تغییر نام این کاربر وجود ندارد (نقش/سلسله‌مراتب).', flags: MessageFlags.Ephemeral });
+            }
+
+            // Grant role if not present
+            if (!member.roles.cache.has(role.id)) {
+                await member.roles.add(role, 'CLB command: grant role');
+            }
+            // Set nickname
+            if (member.displayName !== desired) {
+                await member.setNickname(desired, 'CLB command: set nickname');
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('Role Dade Shod Va Name Update Shod ❗')
+                .setDescription(`Be Karbar${member} Role <@&${role.id}> Dade Shod !\n\ 🆕New Name : ${desired} `)
+                .setColor('#000000')
+                .setTimestamp();
+            await interaction.reply({ embeds: [embed] });
+        } catch (e) {
+            await interaction.reply({ content: '❌ خطا در انجام عملیات (Role/Nick).', flags: MessageFlags.Ephemeral });
         }
     }
 };
@@ -723,52 +783,98 @@ const sayCommand = {
         .setName('say')
         .setDescription('ارسال پیام همراه با امبد سفارشی')
         .addStringOption(option =>
-            option.setName('content')
-                .setDescription('متن خارج از امبد (پیام معمولی)')
+            option.setName('embadout')
+                .setDescription('متن خارج از امباد (می‌تواند کاربر و everyone را تگ کند)')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('title')
-                .setDescription('عنوان بزرگ امبد')
+                .setDescription('تایتل امباد')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('description')
-                .setDescription('متن داخل امبد (زیر عنوان)')
+            option.setName('discription')
+                .setDescription('متن داخل امباد')
                 .setRequired(false))
         .addStringOption(option =>
-            option.setName('image')
-                .setDescription('آدرس عکس برای نمایش در امبد (URL)')
+            option.setName('picture')
+                .setDescription('عکس داخل امباد (URL)')
                 .setRequired(false))
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربری که می‌خواهی منشن شود')
-                .setRequired(false)),
+        .addStringOption(option =>
+            option.setName('foter')
+                .setDescription('فوتر امباد')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('color')
+                .setDescription('رنگ امبد (یک گزینه را انتخاب کنید)')
+                .setRequired(false)
+                .addChoices(
+                    { name: 'نئون سبز', value: '#00ff88' },
+                    { name: 'آبی روشن', value: '#00b8ff' },
+                    { name: 'بنفش', value: '#8c4bff' },
+                    { name: 'قرمز', value: '#ff4d6d' },
+                    { name: 'نارنجی', value: '#ffaa00' },
+                    { name: 'سفید', value: '#ffffff' },
+                    { name: 'تیره', value: '#2f3136' }
+                )),
     
     async execute(interaction) {
-        const content = interaction.options.getString('content');
+        const embadout = interaction.options.getString('embadout');
         const title = interaction.options.getString('title');
-        const description = interaction.options.getString('description');
-        const image = interaction.options.getString('image');
-        const user = interaction.options.getUser('user');
+        const discription = interaction.options.getString('discription');
+        const picture = interaction.options.getString('picture');
+        const foter = interaction.options.getString('foter');
+        const color = interaction.options.getString('color');
 
-        if (!content && !title && !description && !image && !user) {
-            return interaction.reply({ content: '❌ حداقل یکی از فیلدها (content/title/description/image/user) را وارد کنید.', flags: MessageFlags.Ephemeral });
+        if (!embadout && !title && !discription && !picture && !foter && !color) {
+            return interaction.reply({ content: '❌ حداقل یکی از فیلدها را وارد کنید.', flags: MessageFlags.Ephemeral });
+        }
+
+        // Validate image URL if provided
+        let validImageUrl = null;
+        if (picture) {
+            try {
+                // Try to create a URL object to validate
+                const url = new URL(picture);
+                // Check if it's http or https
+                if (url.protocol === 'http:' || url.protocol === 'https:') {
+                    validImageUrl = picture;
+                } else {
+                    return interaction.reply({ content: '❌ آدرس عکس باید یک URL معتبر (http:// یا https://) باشد.', flags: MessageFlags.Ephemeral });
+                }
+            } catch (e) {
+                // If URL parsing fails, it's not a valid URL
+                return interaction.reply({ content: '❌ آدرس عکس باید یک URL معتبر باشد (مثلاً https://example.com/image.png).', flags: MessageFlags.Ephemeral });
+            }
         }
 
         const embeds = [];
-        let contentToSend = content || '';
-        if (user) contentToSend = `<@${user.id}> ${contentToSend}`.trim();
-        if (title || description || image) {
+        let contentToSend = embadout || '';
+        
+        // اگر امباد وجود دارد، آن را بساز
+        if (title || discription || validImageUrl || foter || color) {
             const embed = new EmbedBuilder()
-                .setColor('#0099ff')
-                .setTimestamp()
-                .setFooter({ text: `ارسال شده توسط ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() });
-            if (title) embed.setTitle(`**${title}**`);
-            if (description) embed.setDescription(description);
-            if (image) embed.setImage(image);
+                .setColor(color || '#636060')
+                .setTimestamp();
+            
+            if (title) embed.setTitle(title);
+            if (discription) embed.setDescription(discription);
+            if (validImageUrl) embed.setImage(validImageUrl);
+            if (foter) embed.setFooter({ text: foter });
+            
             embeds.push(embed);
         }
 
-        await interaction.reply({ content: contentToSend || undefined, embeds, allowedMentions: { parse: ['users', 'everyone'] } });
+        // ارسال پیام در چنل با اجازه تگ کردن کاربران و everyone
+        await interaction.channel.send({ 
+            content: contentToSend || undefined, 
+            embeds: embeds.length > 0 ? embeds : undefined, 
+            allowedMentions: { parse: ['users', 'everyone', 'roles'] } 
+        });
+        
+        // پاسخ به interaction
+        await interaction.reply({ 
+            content: '✅ پیام با موفقیت ارسال شد.', 
+            flags: MessageFlags.Ephemeral 
+        });
     }
 };
 
@@ -784,7 +890,7 @@ const helpCommand = {
             .setDescription('دستورات موجود در ربات:')
             .addFields(
 				{ name: '👤 دستورات کاربری', value: '`/avatar` - نمایش آواتار\n`/userinfo` - اطلاعات کاربر\n`/serverinfo` - اطلاعات سرور\n`/help` - لیست دستورات', inline: false },
-				{ name: '🛡️ دستورات مدیریتی', value: '`/ban` `/kick` `/warn` `/warn2` `/warnlist` `/clearwarns` `/clear` `/reactionrole` `/autoreaction` `/send dm`', inline: false },
+				{ name: '🛡️ دستورات مدیریتی', value: '`/warn` `/warn2` `/warnlist` `/clearwarns` `/clear` `/reactionrole` `/autoreaction` `/send dm`', inline: false },
 				{ name: '🧰 ابزارها', value: '`/say` `/remind` `/weather` `/time`', inline: false }
             )
             .setColor('#0099ff')
@@ -1158,149 +1264,9 @@ const autoreactionCommand = {
 };
 
 
-// Ban Info Command
-const baninfoCommand = {
-    data: new SlashCommandBuilder()
-        .setName('baninfo')
-        .setDescription('دریافت اطلاعات بن با شماره')
-        .addIntegerOption(option =>
-            option.setName('number')
-                .setDescription('شماره بن')
-                .setRequired(true)
-                .setMinValue(1)),
-
-    async execute(interaction) {
-        const number = interaction.options.getInteger('number');
-        const BAN_LOG_CHANNEL_ID = '1431664611761061961';
-        
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-        try {
-            // دریافت چنل لاگ بن
-            let banLogChannel;
-            try {
-                banLogChannel = await interaction.client.channels.fetch(BAN_LOG_CHANNEL_ID);
-            } catch (fetchError) {
-                console.error('Error fetching ban log channel:', fetchError);
-                return await interaction.editReply({
-                    content: '❌ چنل لاگ بن یافت نشد یا دسترسی ندارم!'
-                });
-            }
-
-            if (!banLogChannel) {
-                return await interaction.editReply({
-                    content: '❌ چنل لاگ بن یافت نشد!'
-                });
-            }
-
-            // بررسی دسترسی به چنل
-            const permissions = banLogChannel.permissionsFor(interaction.client.user);
-            if (!permissions || !permissions.has(PermissionFlagsBits.ViewChannel) || !permissions.has(PermissionFlagsBits.ReadMessageHistory)) {
-                return await interaction.editReply({
-                    content: '❌ دسترسی لازم برای خواندن پیام‌های چنل لاگ بن را ندارم!'
-                });
-            }
-
-            // جستجوی پیام‌ها برای پیدا کردن پیام با number=...
-            let foundMessage = null;
-            let lastId = null;
-            const maxSearch = 1000; // حداکثر 1000 پیام جستجو شود
-            let searchedCount = 0;
-
-            try {
-                while (!foundMessage && searchedCount < maxSearch) {
-                    let messages;
-                    try {
-                        messages = await banLogChannel.messages.fetch({ 
-                            limit: 100, 
-                            before: lastId 
-                        });
-                    } catch (fetchError) {
-                        console.error('Error fetching messages:', fetchError);
-                        break;
-                    }
-
-                    if (!messages || messages.size === 0) break;
-
-                    for (const [, message] of messages) {
-                        const content = message.content || '';
-                        // جستجو برای Number=... یا number=... که با شماره وارد شده مطابقت دارد
-                        // جستجو با فرمت‌های مختلف: Number=1, number=1, Number = 1, number = 1
-                        // جستجو در ابتدای خط برای مطابقت دقیق‌تر
-                        const numberMatch = content.match(/^>\s*Number\s*[=:]\s*(\d+)/mi) || 
-                                          content.match(/Number\s*[=:]\s*(\d+)/i);
-                        if (numberMatch) {
-                            const foundNumber = parseInt(numberMatch[1]);
-                            if (foundNumber === number) {
-                                foundMessage = message;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (foundMessage) break;
-
-                    lastId = messages.last()?.id;
-                    searchedCount += messages.size;
-                    
-                    // توقف اگر پیام بیشتری نیست
-                    if (!lastId) break;
-                }
-            } catch (searchError) {
-                console.error('Error searching messages:', searchError);
-                return await interaction.editReply({
-                    content: `❌ خطا در جستجوی پیام‌ها: ${searchError.message || 'خطای نامشخص'}`
-                });
-            }
-
-            if (!foundMessage) {
-                return await interaction.editReply({
-                    content: `❌ پیام با شماره ${number} یافت نشد. (${searchedCount} پیام جستجو شد)`
-                });
-            }
-
-            // بررسی دسترسی برای ارسال پیام در چنل فعلی
-            const currentChannelPermissions = interaction.channel.permissionsFor(interaction.client.user);
-            if (!currentChannelPermissions || !currentChannelPermissions.has(PermissionFlagsBits.SendMessages)) {
-                return await interaction.editReply({
-                    content: '❌ دسترسی لازم برای ارسال پیام در این چنل را ندارم!'
-                });
-            }
-
-            // ارسال پیام در چنل فعلی
-            try {
-                await interaction.channel.send({
-                    content: foundMessage.content,
-                    allowedMentions: { parse: ['users', 'roles'] }
-                });
-
-                await interaction.editReply({
-                    content: `✅ اطلاعات بن شماره ${number} ارسال شد.`
-                });
-            } catch (sendError) {
-                console.error('Error sending message:', sendError);
-                return await interaction.editReply({
-                    content: `❌ خطا در ارسال پیام: ${sendError.message || 'خطای نامشخص'}`
-                });
-            }
-
-        } catch (error) {
-            console.error('❌ Error in baninfo command:', error);
-            try {
-                await interaction.editReply({
-                    content: `❌ خطا در دریافت اطلاعات بن: ${error.message || 'خطای نامشخص'}`
-                });
-            } catch (replyError) {
-                console.error('Error sending error reply:', replyError);
-            }
-        }
-    }
-};
 
 module.exports = {
     avatarCommand,
-    banCommand,
-    kickCommand,
     clearCommand,
     warnCommand,
     warn2Command,
@@ -1318,5 +1284,6 @@ module.exports = {
     reactionroleCommand,
 	autoreactionCommand,
 	sendCommand,
-	baninfoCommand
+    vipclbCommand,
+    clbCommand
 };

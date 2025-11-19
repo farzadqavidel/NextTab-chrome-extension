@@ -19,6 +19,8 @@ const config = require('./config');
 const commands = require('./command');
 const { TicketManager, ticketCommands } = require('./ticket');
 
+const TEHRAN_TIMEZONE = 'Asia/Tehran';
+
 // Create a new client instance
 const client = new Client({
     intents: [
@@ -284,8 +286,6 @@ const antiSpam = new AntiSpamManager(config.antiSpam);
 // Add commands to collection
 const commandList = [
     commands.avatarCommand,
-    commands.banCommand,
-    commands.kickCommand,
     commands.clearCommand,
     commands.warnCommand,
     commands.warn2Command,
@@ -296,6 +296,8 @@ const commandList = [
     commands.weatherCommand,
     commands.timeCommand,
     commands.fortestCommand,
+    commands.vipclbCommand,
+    commands.clbCommand,
     commands.sayCommand,
     commands.serverinfoCommand,
     commands.userinfoCommand,
@@ -303,7 +305,6 @@ const commandList = [
     commands.reactionroleCommand,
     commands.autoreactionCommand,
     commands.sendCommand,
-    commands.baninfoCommand,
     ...ticketCommands
 ];
 
@@ -352,6 +353,71 @@ async function updateOnlineMemberCountChannel() {
         }
     } catch (error) {
         // silent - no logs needed
+    }
+}
+
+const SOLAR_DATE_CHANNEL_ID = '1440705278994550885';
+function gregorianToJalali(date) {
+    const gDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const jDaysInMonth = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+
+    let gy = date.getFullYear() - 1600;
+    let gm = date.getMonth();
+    let gd = date.getDate() - 1;
+
+    let gDayNo = 365 * gy + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400);
+    for (let i = 0; i < gm; ++i) {
+        gDayNo += gDaysInMonth[i];
+    }
+    if (gm > 1 && ((gy + 1600) % 4 === 0) && (((gy + 1600) % 100 !== 0) || ((gy + 1600) % 400 === 0))) {
+        gDayNo++;
+    }
+    gDayNo += gd;
+
+    let jDayNo = gDayNo - 79;
+
+    const jNp = Math.floor(jDayNo / 12053);
+    jDayNo %= 12053;
+
+    let jy = 979 + 33 * jNp + 4 * Math.floor(jDayNo / 1461);
+    jDayNo %= 1461;
+
+    if (jDayNo >= 366) {
+        jy += Math.floor((jDayNo - 1) / 365);
+        jDayNo = (jDayNo - 1) % 365;
+    }
+
+    let jm = 0;
+    for (; jm < 11 && jDayNo >= jDaysInMonth[jm]; ++jm) {
+        jDayNo -= jDaysInMonth[jm];
+    }
+    const jd = jDayNo + 1;
+
+    return { year: jy, month: jm + 1, day: jd };
+}
+
+async function updateSolarDateChannel() {
+    try {
+        if (!SOLAR_DATE_CHANNEL_ID) return;
+
+        const nowTehran = new Date(new Date().toLocaleString('en-US', { timeZone: TEHRAN_TIMEZONE }));
+        const { year, month, day } = gregorianToJalali(nowTehran);
+        const desiredName = `「📅」${year}/${month}/${day}`;
+
+        let channel = client.channels.cache.get(SOLAR_DATE_CHANNEL_ID);
+        if (!channel) {
+            try {
+                channel = await client.channels.fetch(SOLAR_DATE_CHANNEL_ID);
+            } catch {
+                return;
+            }
+        }
+
+        if (channel && channel.name !== desiredName) {
+            await channel.setName(desiredName).catch(() => {});
+        }
+    } catch (error) {
+        console.error('❌ Error updating solar date channel:', error?.message || error);
     }
 }
 
@@ -510,7 +576,6 @@ client.once('clientReady', async () => {
     setInterval(() => { updateOnlineMemberCountChannel().catch(() => {}); }, 5 * 60 * 1000);
     
     // Reset daily stats at midnight (Tehran Time)
-    const TEHRAN_TIMEZONE = 'Asia/Tehran';
     // 1. دریافت زمان فعلی تهران (به شکل یک شیء Date)
     const nowTehran = new Date(new Date().toLocaleString('en-US', { timeZone: TEHRAN_TIMEZONE }));
 
@@ -542,10 +607,15 @@ client.once('clientReady', async () => {
     setTimeout(() => { connectToVoiceChannel(); }, 3000);
     
     updateBotActivity();
-    // Update activity every 30 seconds to refresh the member count
+    // Update activity every 15 minutes to refresh the member count
     setInterval(() => {
         updateBotActivity().catch(() => {});
     }, 900000);
+    
+    updateSolarDateChannel();
+    setInterval(() => {
+        updateSolarDateChannel().catch(() => {});
+    }, 60 * 60 * 1000);
     // --- END: Setting Bot Activity (Watching Status) ---
 
     // Reaction-role disabled per new requirement; using auto-role on member join instead
@@ -666,7 +736,7 @@ client.on('interactionCreate', async (interaction) => {
         
         const errorMessage = {
             content: '❌ خطا در اجرای دستور!',
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         };
 
         if (interaction.replied || interaction.deferred) {
@@ -754,12 +824,65 @@ client.on('messageCreate', async (message) => {
         // Track message count
         client.dailyStats.messages++;
         
+        // بررسی تگ کردن کاربر محافظت شده در چنل‌های مشخص شده
+        const protectedUserId = '995631414907244646';
+        const restrictedChannels = ['1401868465954099271', '1430208119891427368', '1428110246337056778'];
+        
+        if (restrictedChannels.includes(message.channelId)) {
+            // بررسی اینکه آیا پیام شامل تگ کاربر محافظت شده است
+            const mentionsUser = message.mentions.users.has(protectedUserId) || 
+                                message.content.includes(`<@${protectedUserId}>`) || 
+                                message.content.includes(`<@!${protectedUserId}>`);
+            
+            if (mentionsUser) {
+                try {
+                    // حذف پیام
+                    await message.delete();
+                    
+                    // ارسال پیام هشدار موقت در چنل (فقط برای چند ثانیه نمایش داده می‌شود)
+                    const warningMessage = await message.channel.send({
+                        content: `${message.author} این شخص رو تگ نکن اینجا پسر خوب 😡🤣`
+                    });
+                    
+                    // حذف پیام هشدار بعد از 3 ثانیه (فقط کاربر فرصت دیدن دارد)
+                    setTimeout(async () => {
+                        try {
+                            await warningMessage.delete();
+                        } catch (e) {
+                            // ignore
+                        }
+                    }, 3000);
+                    
+                    return; // از ادامه پردازش جلوگیری می‌کند
+                } catch (error) {
+                    console.error('❌ Error handling protected user mention:', error);
+                }
+            }
+        }
+        
         // Anti-spam processing
         if (!antiSpam.isExempt(message)) {
             const entries = antiSpam.pushMessage(message);
             const score = antiSpam.computeViolations(message, entries);
             if (score > 0) {
                 await antiSpam.applyPunishment(message, score);
+            }
+        }
+        
+        // Auto-react with specific emojis for specific channels
+        const channelEmojiMap = {
+            '1431664611761061961': '🚫', // :no_entry_sign:
+            '1430208119891427368': '⛔', // :no_entry:
+            '1401868465954099271': '👁️', // :eye:
+            '1428110246337056778': '👨‍👩‍👧‍👦' // :family:
+        };
+        
+        const emojiForChannel = channelEmojiMap[message.channelId];
+        if (emojiForChannel) {
+            try {
+                await message.react(emojiForChannel);
+            } catch (reactError) {
+                console.error(`❌ Error reacting to message in channel ${message.channelId}:`, reactError);
             }
         }
         

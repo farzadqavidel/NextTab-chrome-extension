@@ -61,6 +61,29 @@ class TicketManager {
         this.client = client;
     }
 
+    // تابع کمکی برای editReply با مدیریت خطا
+    async safeEditReply(interaction, content, options = {}) {
+        try {
+            if (interaction.replied || interaction.deferred) {
+                await interaction.editReply({ content, ...options }).catch(err => {
+                    // اگر خطای Unknown Message بود، نادیده بگیر
+                    if (err.code === 10008) {
+                        console.log('ℹ️ Interaction message already deleted, skipping editReply');
+                    } else {
+                        throw err;
+                    }
+                });
+            }
+        } catch (error) {
+            // اگر خطای Unknown Message بود، نادیده بگیر
+            if (error.code === 10008) {
+                console.log('ℹ️ Interaction message already deleted, skipping editReply');
+            } else {
+                console.error('❌ Error editing reply:', error);
+            }
+        }
+    }
+
     // ارسال لاگ اکشن تیکت
     async sendTicketActionLog({ guild, actorUser, ticketNumber, action }) {
         try {
@@ -199,30 +222,31 @@ class TicketManager {
             saveTicketCounter(ticketCounter);
 
             // ایجاد embed پیام خوشامد
+            const ticketNumber = String(ticketCounter - 1).padStart(4, '0');
+            const creationTime = Math.floor(Date.now() / 1000);
+            
             const welcomeEmbed = new EmbedBuilder()
                 .setColor(0x000000) // تغییر رنگ به مشکی
-                .setTitle(`${typeInfo.emoji} تیکت ${typeInfo.name} ایجاد شد`)
-                .setDescription(`سلام ${user}!\n\nتیکت ${typeInfo.name} شما با موفقیت ایجاد شد. لطفاً ${typeInfo.name === 'شکایت از سرور' ? 'مشکل خود را' : typeInfo.name === 'انتقادات و پیشنهادات' ? 'انتقاد یا پیشنهاد خود را' : 'درخواست همکاری خود را'} به صورت کامل توضیح دهید.\n\nتیم پشتیبانی به زودی پاسخ شما را خواهد داد.`)
                 .addFields([
-                    { name: '👤 کاربر', value: user.toString(), inline: true },
-                    { name: '🕒 زمان ایجاد', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                    { name: '🔢 شماره تیکت', value: `#${String(ticketCounter - 1).padStart(4, '0')}`, inline: true },
-                    { name: '📋 نوع تیکت', value: typeInfo.name, inline: true }
+                    { name: 'Ticket Number:', value: `#${ticketNumber}`, inline: true },
+                    { name: 'Zaman Ijad:', value: `<t:${creationTime}:F>`, inline: true },
+                    { name: 'Mozo Ticket:', value: '\u200b' + typeInfo.name, inline: true },
+                    { name: 'Dorod Form Zir Ro Por Konid Va Montazer Pasokh Bashid !', value: '', inline: false },
+                    { name: '\u200b', value: '```\nName Shoma :\nTozihat Shoma :\n```', inline: false }
                 ])
-                .setFooter({ text: 'برای بستن تیکت، روی دکمه زیر کلیک کنید' })
                 .setTimestamp();
 
             // دکمه بستن تیکت
             const closeButton = new ButtonBuilder()
                 .setCustomId('close_ticket')
-                .setLabel('🔒 بستن تیکت')
+                .setLabel('Close Ticket     🔒')
                 .setStyle(ButtonStyle.Danger);
 
             const row = new ActionRowBuilder().addComponents(closeButton);
 
             // ارسال پیام خوشامد در تیکت
             await ticketChannel.send({
-                content: `${user} - تیکت شما ایجاد شد! `,
+                content: `Ticket Shoma Ijad Shod ${user}\n||<@&1432688893106458705>||`,
                 embeds: [welcomeEmbed],
                 components: [row],
                 allowedMentions: { roles: ['1432688893106458705'], users: [user.id] }
@@ -235,14 +259,6 @@ class TicketManager {
                 // سپس دسترسی رول‌های عمومی و رول‌های نوع تیکت را که قبل‌تر اضافه کردیم حفظ می‌شود
             } catch (_) {}
 
-            // Notify ticket manager role explicitly
-            try {
-                await ticketChannel.send({
-                    content: `<@&1432688893106458705> رسیدگی این تیکت با شما `,
-                    allowedMentions: { roles: ['1432688893106458705'] }
-                });
-            } catch (_) {}
-
             // ارسال لاگ ایجاد تیکت
             await this.sendTicketActionLog({
                 guild,
@@ -253,7 +269,7 @@ class TicketManager {
 
             // پاسخ به کاربر
             await interaction.editReply({
-                content: `✅ تیکت شما با موفقیت ایجاد شد: ${ticketChannel}`
+                content: `✅Ticket Shoma: ${ticketChannel}`
             });
 
             console.log(`✅ New ticket created: ${ticketChannel.name} by ${user.tag}`);
@@ -273,12 +289,17 @@ class TicketManager {
             const channel = interaction.channel;
             
             // بررسی دسترسی برای بستن تیکت
+            // رول‌های Full Permissions (Administrator) دسترسی کامل دارند
+            const hasAdminPermission = member.permissions.has(PermissionFlagsBits.Administrator);
             const hasRole1 = member.roles.cache.has('1432688893106458705'); // دسترسی به همه تیکت‌ها
             const hasRole2 = member.roles.cache.has('1415440089047371897'); // دسترسی فقط به vip, ban_review, collaboration
             
             let canClose = false;
             
-            if (hasRole1) {
+            if (hasAdminPermission) {
+                // رول‌های Full Permissions دسترسی کامل دارند
+                canClose = true;
+            } else if (hasRole1) {
                 // رول اول می‌تواند همه تیکت‌ها را ببندد
                 canClose = true;
             } else if (hasRole2) {
@@ -335,9 +356,24 @@ class TicketManager {
                     let userId = null;
                     try {
                         const guild = interaction.guild;
-                        const members = await guild.members.fetch();
-                        const user = members.find(member => member.user.username === username)?.user;
-                        userId = user?.id;
+                        // استفاده از cache به جای fetch برای جلوگیری از timeout
+                        const user = guild.members.cache.find(member => member.user.username === username)?.user;
+                        if (user) {
+                            userId = user.id;
+                        } else {
+                            // اگر در cache نبود، سعی کن fetch کنی با timeout
+                            try {
+                                const members = await Promise.race([
+                                    guild.members.fetch(),
+                                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                                ]);
+                                const foundUser = members.find(member => member.user.username === username)?.user;
+                                userId = foundUser?.id || null;
+                            } catch (fetchError) {
+                                // اگر timeout شد یا خطا داد، از cache استفاده کن
+                                console.log(`⚠️ Could not fetch members for username ${username}, using cache only`);
+                            }
+                        }
                     } catch (error) {
                         console.error('Error finding user by username:', error);
                     }
@@ -457,47 +493,58 @@ class TicketManager {
                 }
             }
 
-            // پیام بستن تیکت
-            const closeEmbed = new EmbedBuilder()
-                .setColor(0x000000) // تغییر رنگ به مشکی
-                .setTitle('🔒 تیکت بسته شد')
-                .setDescription('این تیکت توسط عضو تیم پشتیبانی بسته شد.')
-                .addFields([
-                    { name: '👤 بسته شده توسط', value: interaction.user.toString(), inline: true },
-                    { name: '🕒 زمان بسته شدن', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
-                ])
-                .setTimestamp();
+            // پیام بستن تیکت (مطابق با تصویر)
+            const closeMessage = `**Ticket Closed by ${interaction.user}**\n\n` +
+                `Entekhab Konid ❗\n` ;
 
-            // دکمه‌های مدیریت تیکت بسته
-            const deleteButton = new ButtonBuilder()
-                .setCustomId('delete_ticket')
-                .setLabel('🗑️ حذف تیکت')
-                .setStyle(ButtonStyle.Danger);
+            // دکمه‌های مدیریت تیکت بسته (مطابق با تصویر)
+            const transcriptButton = new ButtonBuilder()
+                .setCustomId('delete_ticket_with_transcript')
+                .setLabel('Transcript Ticket')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('☑️');
 
             const reopenButton = new ButtonBuilder()
                 .setCustomId('reopen_ticket')
-                .setLabel('🔓 باز کردن تیکت')
-                .setStyle(ButtonStyle.Success);
+                .setLabel('Open Ticket')
+                .setStyle(ButtonStyle.Success)
+                .setEmoji('✅');
 
-            const row = new ActionRowBuilder().addComponents(reopenButton, deleteButton);
+            const deleteButton = new ButtonBuilder()
+                .setCustomId('delete_ticket')
+                .setLabel('Delete Ticket')
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('➖');
 
-            await interaction.editReply({
-                embeds: [closeEmbed],
+            const row = new ActionRowBuilder().addComponents(transcriptButton, reopenButton, deleteButton);
+
+            // ارسال پیام در چنل تیکت
+            await channel.send({
+                content: closeMessage,
                 components: [row]
+            });
+
+            // پاسخ به interaction
+            await interaction.editReply({
+                content: '✅ تیکت با موفقیت بسته شد.',
+                components: []
             });
 
             // ارسال اطلاع‌رسانی به کاربر اصلی
             if (originalUser) {
                 try {
+                    const ticketNumber = ticketInfo.ticketNumber || 0;
+                    const closeTime = Math.floor(Date.now() / 1000);
+                    const ticketNumberFormatted = String(ticketNumber).padStart(4, '0');
+                    
                     const userNotificationEmbed = new EmbedBuilder()
-                        .setColor(0x000000) // تغییر رنگ به مشکی
-                        .setTitle('🔒 تیکت شما بسته شد')
-                        .setDescription(`تیکت #${String(ticketInfo.ticketNumber).padStart(4, '0')} شما توسط تیم پشتیبانی بسته شد.`)
+                        .setTitle('Ticket Shoma Baste Shod ❗')
+                        .setDescription(`Ticket Shoma Ba shomare #${ticketNumberFormatted} Tavasot ${interaction.user} Baste Shod !`)
                         .addFields([
-                            { name: '🕒 زمان بسته شدن', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                            { name: '👤 بسته شده توسط', value: interaction.user.tag, inline: true }
+                            { name: 'Zaman Baste Shodan Ticket:', value: `<t:${closeTime}:F>`, inline: false }
                         ])
-                        .setFooter({ text: 'CLUBS_ticket' })
+                        .setFooter({ text: 'Clubs _Ticket' })
+                        .setColor(0x000000)
                         .setTimestamp();
 
                     await originalUser.send({ embeds: [userNotificationEmbed] });
@@ -711,15 +758,16 @@ class TicketManager {
                 });
             }
 
-            // پیام باز کردن مجدد تیکت (پیام موقت)
+            // ساخت embed پیام باز کردن مجدد تیکت
+            const reopenTime = Math.floor(Date.now() / 1000);
+            const reopenDescription = originalUser 
+                ? `Dorod ${originalUser} Ticket Shoma Tavasot ${interaction.user} Baz Shod`
+                : `Ticket Shoma Tavasot ${interaction.user} Baz Shod`;
+            
             const reopenEmbed = new EmbedBuilder()
-                .setColor(0x000000) // تغییر رنگ به مشکی
-                .setTitle('🔓 تیکت مجدداً باز شد')
-                .setDescription('این تیکت توسط عضو تیم پشتیبانی مجدداً باز شد.')
-                .addFields([
-                    { name: '👤 باز شده توسط', value: interaction.user.toString(), inline: true },
-                    { name: '🕒 زمان باز شدن', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
-                ])
+                .setDescription(reopenDescription)
+                .setFooter({ text: `<t:${reopenTime}:F>` })
+                .setColor(0x000000)
                 .setTimestamp();
 
             // ارسال پیام موقت که حذف می‌شود
@@ -737,20 +785,10 @@ class TicketManager {
                 }
             }, 8000);
 
-            // دکمه بستن تیکت حذف شد - فقط ادمین‌ها می‌توانند از slash command استفاده کنند
-
-            // منشن کردن کاربر در تیکت بجای DM
-            if (originalUser) {
-                await channel.send({
-                    content: `${originalUser} 🔓 **تیکت مجدداً باز شد** <@&1432688893106458705>`,
-                    allowedMentions: { users: [originalUser.id], roles: ['1432688893106458705'] }
-                });
-            } else {
-                await channel.send({
-                    content: `<@&1432688893106458705> 🔓 **تیکت مجدداً باز شد**`,
-                    allowedMentions: { roles: ['1432688893106458705'] }
-                });
-            }
+            // ارسال پیام در چنل تیکت
+            await channel.send({
+                embeds: [reopenEmbed]
+            });
 
             console.log(`✅ Ticket reopened: ${channel.name} by ${interaction.user.tag}`);
 
@@ -785,65 +823,18 @@ class TicketManager {
                 });
             }
 
-            // ایجاد embed سوال برای ترنسکریپت
-            const transcriptQuestionEmbed = new EmbedBuilder()
-                .setColor(0x000000)
-                .setTitle('📋 آیا می‌خواهید ترنسکریپت تیکت ایجاد شود؟')
-                .setDescription('قبل از حذف تیکت، آیا می‌خواهید یک ترنسکریپت کامل از تمام پیام‌های تیکت ایجاد شود؟')
-                .addFields([
-                    { name: '✅ بله', value: 'ترنسکریپت ایجاد می‌شود و سپس تیکت حذف می‌شود', inline: true },
-                    { name: '❌ خیر', value: 'تیکت بدون ترنسکریپت حذف می‌شود', inline: true }
-                ])
-                .setFooter({ text: 'CLUBS_ticket' })
-                .setTimestamp();
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-            // دکمه‌های انتخاب
-            const yesButton = new ButtonBuilder()
-                .setCustomId('delete_ticket_with_transcript')
-                .setLabel('✅ بله - با ترنسکریپت')
-                .setStyle(ButtonStyle.Success);
+            // استخراج اطلاعات تیکت
+            let ticketInfo = activeTickets.get(channel.id);
 
-            const noButton = new ButtonBuilder()
-                .setCustomId('delete_ticket_without_transcript')
-                .setLabel('❌ خیر - بدون ترنسکریپت')
-                .setStyle(ButtonStyle.Danger);
-
-            const cancelButton = new ButtonBuilder()
-                .setCustomId('cancel_delete_ticket')
-                .setLabel('🚫 لغو حذف')
-                .setStyle(ButtonStyle.Secondary);
-
-            const row = new ActionRowBuilder().addComponents(yesButton, noButton, cancelButton);
-
-            await interaction.reply({
-                embeds: [transcriptQuestionEmbed],
-                components: [row],
-                flags: MessageFlags.Ephemeral
-            });
-
-            // ذخیره اطلاعات تیکت برای استفاده در دکمه‌ها
-            this.pendingDeletions = this.pendingDeletions || new Map();
+            // اگر در لیست فعال نیست، از نام چنل استخراج کن
+            if (!ticketInfo) {
             const channelName = channel.name;
-            
-            // استخراج اطلاعات تیکت از نام چنل
             let ticketMatch = channelName.match(/^closed-ticket-(\d+)-(\w+)-(.+)$/);
             
-            // اگر پیدا نشد، شاید فرمت قدیمی باشد
-            if (!ticketMatch) {
-                // قدیمی 1: closed-شماره-نوع-آیدی
-                ticketMatch = channelName.match(/closed-(\d+)-(\w+)-(\d+)/);
-                if (!ticketMatch) {
-                    // قدیمی 2: closed-ticket-شماره-نام کاربر
-                    ticketMatch = channelName.match(/closed-ticket-(\d+)-(.+)/);
-                }
-            }
-            
-            let ticketInfo = null;
             if (ticketMatch) {
                 const ticketNumber = parseInt(ticketMatch[1]);
-                
-                if (ticketMatch.length === 4) {
-                    // فرمت جدید: closed-ticket-شماره-موضوع-نام کاربر
                     const ticketType = ticketMatch[2];
                     const username = ticketMatch[3];
                     
@@ -851,9 +842,24 @@ class TicketManager {
                     let userId = null;
                     try {
                         const guild = interaction.guild;
-                        const members = await guild.members.fetch();
-                        const user = members.find(member => member.user.username === username)?.user;
-                        userId = user?.id;
+                        // استفاده از cache به جای fetch برای جلوگیری از timeout
+                        const user = guild.members.cache.find(member => member.user.username === username)?.user;
+                        if (user) {
+                            userId = user.id;
+                        } else {
+                            // اگر در cache نبود، سعی کن fetch کنی با timeout
+                            try {
+                                const members = await Promise.race([
+                                    guild.members.fetch(),
+                                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                                ]);
+                                const foundUser = members.find(member => member.user.username === username)?.user;
+                                userId = foundUser?.id || null;
+                            } catch (fetchError) {
+                                // اگر timeout شد یا خطا داد، از cache استفاده کن
+                                console.log(`⚠️ Could not fetch members for username ${username}, using cache only`);
+                            }
+                        }
                     } catch (error) {
                         console.error('Error finding user by username:', error);
                     }
@@ -862,68 +868,130 @@ class TicketManager {
                         ticketNumber: ticketNumber,
                         userId: userId,
                         channelId: channel.id,
+                        createdAt: Date.now(),
                         ticketType: ticketType
-                    };
-                } else if (ticketMatch.length === 3) {
-                    // قدیمی 1: closed-شماره-نوع-آیدی
-                    const ticketType = ticketMatch[2];
-                    const userId = ticketMatch[3];
-                    
-                    ticketInfo = {
-                        ticketNumber: ticketNumber,
-                        userId: userId,
-                        channelId: channel.id,
-                        ticketType: ticketType
-                    };
-                } else {
-                    // قدیمی 2: closed-ticket-شماره-نام کاربر
-                    const username = ticketMatch[2];
-                    
-                    // پیدا کردن کاربر اصلی
-                    let originalUserId = null;
-                    try {
-                        const guild = interaction.guild;
-                        const members = await guild.members.fetch();
-                        const originalUser = members.find(member => member.user.username === username)?.user;
-                        originalUserId = originalUser?.id;
-                    } catch (error) {
-                        console.error('Error finding original user:', error);
-                    }
-
-                    ticketInfo = {
-                        ticketNumber: ticketNumber,
-                        userId: originalUserId,
-                        channelId: channel.id
                     };
                 }
             }
 
-            // ذخیره اطلاعات برای استفاده در دکمه‌ها
-            this.pendingDeletions.set(interaction.user.id, {
-                channel: channel,
-                ticketInfo: ticketInfo,
-                interaction: interaction
-            });
+            // تاخیر 3 ثانیه برای خواندن پیام
+            setTimeout(async () => {
+                try {
+                    // بررسی اینکه چنل هنوز وجود دارد
+                    try {
+                        await channel.fetch();
+                    } catch (fetchError) {
+                        // چنل قبلاً حذف شده است
+                        console.log(`ℹ️ Channel ${channel.id} already deleted, skipping deletion.`);
+                        return;
+                    }
+                    
+                    await channel.delete();
+                    console.log(`✅ Ticket deleted without transcript: ${channel.name} by ${interaction.user.tag}`);
+                    // ارسال لاگ حذف تیکت
+                    if (ticketInfo) {
+                        await this.sendTicketActionLog({
+                            guild: interaction.guild,
+                            actorUser: interaction.user,
+                            ticketNumber: ticketInfo?.ticketNumber || 0,
+                            action: 'Deleted'
+                        });
+                    }
+                } catch (error) {
+                    // اگر خطای Unknown Channel بود، فقط لاگ کن (چنل قبلاً حذف شده)
+                    if (error.code === 10003) {
+                        console.log(`ℹ️ Channel ${channel.id} already deleted (Unknown Channel).`);
+                    } else {
+                        console.error('❌ Error deleting ticket:', error);
+                    }
+                }
+            }, 3000);
+
+            // بررسی اینکه آیا interaction هنوز معتبر است
+            await this.safeEditReply(interaction, '✅ تیکت در حال حذف...');
 
         } catch (error) {
             console.error('❌ Error deleting ticket:', error);
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await this.safeEditReply(interaction, '❌ خطا در حذف تیکت!');
+                } else {
+                    await interaction.reply({
+                        content: '❌ خطا در حذف تیکت!',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            } catch (replyError) {
+                console.error('Error sending error message:', replyError);
+            }
         }
     }
 
     // حذف تیکت با ترنسکریپت
     async deleteTicketWithTranscript(interaction) {
         try {
-            const pendingData = this.pendingDeletions?.get(interaction.user.id);
-            if (!pendingData) {
-                return await interaction.reply({
-                    content: '❌ اطلاعات تیکت یافت نشد! لطفاً دوباره تلاش کنید.',
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            const { channel, ticketInfo } = pendingData;
-
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+            let channel, ticketInfo;
+
+            // بررسی اینکه آیا داده در pendingDeletions وجود دارد
+            const pendingData = this.pendingDeletions?.get(interaction.user.id);
+            if (pendingData) {
+                channel = pendingData.channel;
+                ticketInfo = pendingData.ticketInfo;
+                // حذف از لیست انتظار
+                this.pendingDeletions.delete(interaction.user.id);
+            } else {
+                // استخراج اطلاعات از چنل فعلی
+                channel = interaction.channel;
+                
+                // بررسی اینکه آیا در کتگوری تیکت بسته است
+                if (channel.parentId !== TICKET_CONFIG.closeCategoryId) {
+                    return await interaction.editReply({
+                        content: '❌ این چنل یک تیکت بسته نیست!'
+                    });
+                }
+
+                // استخراج اطلاعات تیکت
+                ticketInfo = activeTickets.get(channel.id);
+
+                // اگر در لیست فعال نیست، از نام چنل استخراج کن
+                if (!ticketInfo) {
+                    const channelName = channel.name;
+                    let ticketMatch = channelName.match(/^closed-ticket-(\d+)-(\w+)-(.+)$/);
+                    
+                    if (ticketMatch) {
+                        const ticketNumber = parseInt(ticketMatch[1]);
+                        const ticketType = ticketMatch[2];
+                        const username = ticketMatch[3];
+                        
+                        // پیدا کردن آیدی کاربر از نام کاربری
+                        let userId = null;
+                        try {
+                            const guild = interaction.guild;
+                            const members = await guild.members.fetch();
+                            const user = members.find(member => member.user.username === username)?.user;
+                            userId = user?.id;
+                        } catch (error) {
+                            console.error('Error finding user by username:', error);
+                        }
+                        
+                        ticketInfo = {
+                            ticketNumber: ticketNumber,
+                            userId: userId,
+                            channelId: channel.id,
+                            createdAt: Date.now(),
+                            ticketType: ticketType
+                        };
+                    }
+                }
+
+                if (!ticketInfo) {
+                    return await interaction.editReply({
+                        content: '❌ اطلاعات تیکت یافت نشد! لطفاً دوباره تلاش کنید.'
+                    });
+                }
+            }
 
             // ایجاد ترنسکریپت
             const transcript = await this.generateTranscript(channel, ticketInfo);
@@ -934,6 +1002,15 @@ class TicketManager {
             // تاخیر 3 ثانیه برای خواندن پیام
             setTimeout(async () => {
                 try {
+                    // بررسی اینکه چنل هنوز وجود دارد
+                    try {
+                        await channel.fetch();
+                    } catch (fetchError) {
+                        // چنل قبلاً حذف شده است
+                        console.log(`ℹ️ Channel ${channel.id} already deleted, skipping deletion.`);
+                        return;
+                    }
+                    
                     await channel.delete();
                     console.log(`✅ Ticket deleted with transcript: ${channel.name} by ${interaction.user.tag}`);
                     // ارسال لاگ حذف تیکت
@@ -944,22 +1021,31 @@ class TicketManager {
                         action: 'Deleted'
                     });
                 } catch (error) {
+                    // اگر خطای Unknown Channel بود، فقط لاگ کن (چنل قبلاً حذف شده)
+                    if (error.code === 10003) {
+                        console.log(`ℹ️ Channel ${channel.id} already deleted (Unknown Channel).`);
+                    } else {
                     console.error('❌ Error deleting ticket:', error);
+                    }
                 }
             }, 3000);
 
-            // حذف از لیست انتظار
-            this.pendingDeletions.delete(interaction.user.id);
-
-            await interaction.editReply({
-                content: '✅ تیکت با ترنسکریپت در حال حذف...'
-            });
+            await this.safeEditReply(interaction, '✅ تیکت با ترنسکریپت در حال حذف...');
 
         } catch (error) {
             console.error('❌ Error deleting ticket with transcript:', error);
-            await interaction.editReply({
-                content: '❌ خطا در حذف تیکت!'
-            });
+            try {
+                if (interaction.replied || interaction.deferred) {
+                    await this.safeEditReply(interaction, '❌ خطا در حذف تیکت!');
+                } else {
+                    await interaction.reply({
+                        content: '❌ خطا در حذف تیکت!',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+            } catch (replyError) {
+                console.error('Error sending error message:', replyError);
+            }
         }
     }
 
@@ -981,6 +1067,15 @@ class TicketManager {
             // تاخیر 3 ثانیه برای خواندن پیام
             setTimeout(async () => {
                 try {
+                    // بررسی اینکه چنل هنوز وجود دارد
+                    try {
+                        await channel.fetch();
+                    } catch (fetchError) {
+                        // چنل قبلاً حذف شده است
+                        console.log(`ℹ️ Channel ${channel.id} already deleted, skipping deletion.`);
+                        return;
+                    }
+                    
                     await channel.delete();
                     console.log(`✅ Ticket deleted without transcript: ${channel.name} by ${interaction.user.tag}`);
                     // ارسال لاگ حذف تیکت
@@ -991,22 +1086,23 @@ class TicketManager {
                         action: 'Deleted'
                     });
                 } catch (error) {
+                    // اگر خطای Unknown Channel بود، فقط لاگ کن (چنل قبلاً حذف شده)
+                    if (error.code === 10003) {
+                        console.log(`ℹ️ Channel ${channel.id} already deleted (Unknown Channel).`);
+                    } else {
                     console.error('❌ Error deleting ticket:', error);
+                    }
                 }
             }, 3000);
 
             // حذف از لیست انتظار
             this.pendingDeletions.delete(interaction.user.id);
 
-            await interaction.editReply({
-                content: '✅ تیکت بدون ترنسکریپت در حال حذف...'
-            });
+            await this.safeEditReply(interaction, '✅ تیکت بدون ترنسکریپت در حال حذف...');
 
         } catch (error) {
             console.error('❌ Error deleting ticket without transcript:', error);
-            await interaction.editReply({
-                content: '❌ خطا در حذف تیکت!'
-            });
+            await this.safeEditReply(interaction, '❌ خطا در حذف تیکت!');
         }
     }
 
@@ -1232,12 +1328,12 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
             const panelEmbed = new EmbedBuilder()
                 .setColor(0x000000) 
                     .setAuthor({ name: 'CLUBS', iconURL: this.client.user?.displayAvatarURL?.({ size: 64 }) })
-                    .setTitle('📩 پنل پشتیبانی و درخواست‌ها')
-                .setDescription('لطفاً نوع درخواست خود را انتخاب کنید. قبل از ارسال، توضیحات و مدارک لازم را آماده کنید.')
+                    .setTitle('📩 CLUBS Ticket Panel')
+                .setDescription('Salam Dost Aziz Lotfan Mozo Ticket Ro Entekhab Konid.')
                 .addFields([
-                    { name: ' نکات مهم', value: '• هر کاربر فقط یک تیکت فعال می‌تواند داشته باشد\n• در صورت نیاز مدارک را ضمیمه کنید\n• از ارسال چند تیکت هم‌موضوع خودداری کنید', inline: false }
+                    { name: 'Nokte :', value: '• Har Karbar Mitavanad 1 Ticket Fa`al Dashte Bashad.\n• Be Sorat Kamel Va Ba Madrak Sohbat Konid', inline: false }
                 ])
-                    .setFooter({ text: 'برای انتخاب، روی منوی زیر کلیک کنید' });
+                    .setFooter({ text: 'Roye Menu Zir Bezanid Va Entekhab Konid.' });
 
                 // use guild icon as thumbnail if available
                 try {
@@ -1249,13 +1345,13 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
             // Create a select menu (drop-down) with the requested ticket types
             const select = new StringSelectMenuBuilder()
                 .setCustomId('ticket_select')
-                .setPlaceholder('انتخاب نوع تیکت...')
+                .setPlaceholder('Entekhab Ticket')
                 .addOptions([
-                    { label: 'همکاری', description: 'درخواست همکاری و مشارکت', value: 'collaboration', emoji: '🤝' },
-                    { label: 'شکایت', description: 'گزارش مشکل یا شکایت از سرور', value: 'server_complaint', emoji: '🚨' },
-                    { label: 'انتقادات', description: 'ارسال پیشنهاد یا انتقاد', value: 'suggestions', emoji: '💡' },
-                    { label: 'بررسی بن', description: 'درخواست بررسی بن شدن', value: 'ban_review', emoji: '🛡️' },
-                    { label: 'درخواست VIP', description: 'درخواست دریافت VIP', value: 'vip_request', emoji: '💎' }
+                    { label: 'Hamkari', description: 'Darkhast Hamkari', value: 'collaboration', emoji: '🤝' },
+                    { label: 'Shekayat', description: 'Gozaresh Az Player Ya Server', value: 'server_complaint', emoji: '😡' },
+                    { label: 'Pishnahadat', description: 'Pishnahadat Va Enteghadat', value: 'suggestions', emoji: '🫴' },
+                    { label: 'Barresi Ban', description: 'Barresi Ban Va Raf Ban', value: 'ban_review', emoji: '⛔' },
+                    { label: 'Darkhast Vip', description: 'Darkhast Va Kharid Vip', value: 'vip_request', emoji: '💎' }
                 ]);
 
             const row = new ActionRowBuilder().addComponents(select);
@@ -1405,8 +1501,10 @@ const ticketCommands = [
             .setName('ticket-stats')
             .setDescription('نمایش آمار تیکت‌ها'),
         async execute(interaction) {
-            // بررسی دسترسی
-            const hasPermission = interaction.member.permissions.has(PermissionFlagsBits.ManageChannels) ||
+            // بررسی دسترسی - رول‌های Full Permissions (Administrator) دسترسی کامل دارند
+            const hasAdminPermission = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+            const hasPermission = hasAdminPermission ||
+                                interaction.member.permissions.has(PermissionFlagsBits.ManageChannels) ||
                                 TICKET_CONFIG.allowedRoles.some(roleId => interaction.member.roles.cache.has(roleId));
 
             if (!hasPermission) {
