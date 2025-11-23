@@ -66,7 +66,7 @@ const clearCommand = {
             const embed = new EmbedBuilder()
                 .setTitle('✅ پیام‌ها پاک شدند')
 				.setDescription(`**تعداد پیام‌های پاک شده:** ${messages.size}\n**توسط:** ${interaction.user.tag}`)
-                .setColor('#00ff00')
+                .setColor('#ff0000')
                 .setTimestamp();
             
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -401,89 +401,6 @@ const clearwarnsCommand = {
     }
 };
 
-// Delete Message User Command
-const deletemessageuserCommand = {
-    data: new SlashCommandBuilder()
-        .setName('deletemessageuser')
-        .setDescription('حذف پیام‌های یک کاربر در این چنل (با محدودیت 14 روز)')
-        .addUserOption(opt =>
-            opt.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .addIntegerOption(opt =>
-            opt.setName('amount')
-                .setDescription('تعداد پیام قابل حذف از آن کاربر (1-1000)')
-                .setRequired(true)
-                .setMinValue(1)
-                .setMaxValue(1000))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
-
-    async execute(interaction) {
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
-            return interaction.reply({ content: '❌ شما مجوز Manage Messages ندارید.', flags: MessageFlags.Ephemeral });
-        }
-        if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ManageMessages)) {
-            return interaction.reply({ content: '❌ ربات مجوز Manage Messages ندارد.', flags: MessageFlags.Ephemeral });
-        }
-
-        const target = interaction.options.getUser('user');
-        const amount = interaction.options.getInteger('amount');
-
-        const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-
-        try {
-            const channel = interaction.channel;
-            let collected = [];
-            let lastId = undefined;
-            let fetchedCount = 0;
-            // Fetch messages in pages until we have enough candidates or no more messages
-            while (collected.length < amount) {
-                const batch = await channel.messages.fetch({ limit: 100, before: lastId }).catch(() => null);
-                if (!batch || batch.size === 0) break;
-                fetchedCount += batch.size;
-                // Filter by author and age < 14 days
-                for (const [, msg] of batch) {
-                    if (msg.author?.id === target.id && (now - msg.createdTimestamp) < FOURTEEN_DAYS_MS) {
-                        collected.push(msg);
-                        if (collected.length >= amount) break;
-                    }
-                }
-                lastId = batch.last()?.id;
-                if (!lastId) break;
-                // Safety cap to avoid excessive pagination
-                if (fetchedCount >= 5000) break;
-            }
-
-            if (collected.length === 0) {
-                return interaction.reply({ content: 'ℹ️ پیامی برای حذف یافت نشد (یا قدیمی‌تر از 14 روز است).', flags: MessageFlags.Ephemeral });
-            }
-
-            // Delete in chunks of up to 100
-            let deletedTotal = 0;
-            for (let i = 0; i < collected.length; i += 100) {
-                const chunk = collected.slice(i, i + 100);
-                try {
-                    const res = await channel.bulkDelete(chunk, true);
-                    deletedTotal += res?.size || 0;
-                } catch (_) {
-                    // ignore chunk failures and continue
-                }
-            }
-
-            const embed = new EmbedBuilder()
-                .setTitle('🧹 حذف پیام‌ها انجام شد')
-                .setDescription(`تعداد ${deletedTotal} پیام از ${target} حذف شد.`)
-                .setColor('#2ecc71')
-                .setTimestamp();
-
-            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-        } catch (e) {
-            await interaction.reply({ content: '❌ خطا در حذف پیام‌ها.', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
-
 // Remind Command
 const remindCommand = {
     data: new SlashCommandBuilder()
@@ -760,6 +677,16 @@ const userinfoCommand = {
         const user = interaction.options.getUser('user') || interaction.user;
         const member = interaction.guild.members.cache.get(user.id);
         
+        // Get roles as mentions, excluding @everyone
+        let rolesText = 'نامشخص';
+        if (member) {
+            const roles = member.roles.cache
+                .filter(role => role.id !== interaction.guild.id) // Exclude @everyone
+                .map(role => role.toString()) // Convert to mention format
+                .join(' ');
+            rolesText = roles || 'بدون رول';
+        }
+        
         const embed = new EmbedBuilder()
             .setTitle(`اطلاعات ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
@@ -768,9 +695,9 @@ const userinfoCommand = {
                 { name: '🆔 آیدی', value: user.id, inline: true },
                 { name: '📅 تاریخ عضویت', value: member ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : 'نامشخص', inline: true },
                 { name: '📅 تاریخ ایجاد اکانت', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: true },
-                { name: '🎭 رول‌ها', value: member ? member.roles.cache.map(role => role.name).join(', ') : 'نامشخص', inline: false }
+                { name: '🎭 رول‌ها', value: rolesText, inline: false }
             )
-            .setColor('#0099ff')
+            .setColor('#000000')
             .setTimestamp();
         
         await interaction.reply({ embeds: [embed] });
@@ -891,7 +818,7 @@ const helpCommand = {
             .addFields(
 				{ name: '👤 دستورات کاربری', value: '`/avatar` - نمایش آواتار\n`/userinfo` - اطلاعات کاربر\n`/serverinfo` - اطلاعات سرور\n`/help` - لیست دستورات', inline: false },
 				{ name: '🛡️ دستورات مدیریتی', value: '`/warn` `/warn2` `/warnlist` `/clearwarns` `/clear` `/reactionrole` `/autoreaction` `/send dm`', inline: false },
-				{ name: '🧰 ابزارها', value: '`/say` `/remind` `/weather` `/time`', inline: false }
+				{ name: '🧰 ابزارها', value: '`/say` `/remind` `/time`', inline: false }
             )
             .setColor('#0099ff')
             .setTimestamp();
@@ -1263,7 +1190,313 @@ const autoreactionCommand = {
     }
 };
 
+// Ban Info Command
+const baninfoCommand = {
+    data: new SlashCommandBuilder()
+        .setName('baninfo')
+        .setDescription('جستجوی اطلاعات بن با شماره')
+        .addIntegerOption(option =>
+            option.setName('number')
+                .setDescription('شماره بن (مثلاً 14)')
+                .setRequired(true)
+                .setMinValue(1)),
 
+    async execute(interaction) {
+        const number = interaction.options.getInteger('number');
+        const BAN_CHANNEL_ID = '1431664611761061961';
+
+        try {
+            // Fetch the channel
+            let channel = interaction.client.channels.cache.get(BAN_CHANNEL_ID);
+            if (!channel) {
+                channel = await interaction.client.channels.fetch(BAN_CHANNEL_ID).catch(() => null);
+            }
+
+            if (!channel) {
+                return interaction.reply({ 
+                    content: '❌ چنل مورد نظر یافت نشد.' 
+                });
+            }
+
+            // Check if bot can read message history
+            const botMember = channel.guild?.members?.me;
+            if (botMember) {
+                const permissions = channel.permissionsFor(botMember);
+                if (!permissions || !permissions.has('ReadMessageHistory')) {
+                    return interaction.reply({ 
+                        content: '❌ ربات دسترسی خواندن تاریخچه پیام‌ها را ندارد.' 
+                    });
+                }
+            }
+
+            // Search for messages containing "Number={number}"
+            const searchPattern = new RegExp(`Number\\s*=\\s*${number}\\b`, 'i');
+            let foundMessage = null;
+            let lastId = undefined;
+            let searchedCount = 0;
+            const MAX_SEARCH = 5000; // Limit search to avoid rate limits
+
+            // Search through messages
+            while (!foundMessage && searchedCount < MAX_SEARCH) {
+                const batch = await channel.messages.fetch({ 
+                    limit: 100, 
+                    before: lastId 
+                }).catch(() => null);
+
+                if (!batch || batch.size === 0) break;
+
+                searchedCount += batch.size;
+
+                // Check each message for the pattern
+                for (const [, msg] of batch) {
+                    if (msg.content && searchPattern.test(msg.content)) {
+                        foundMessage = msg;
+                        break;
+                    }
+                }
+
+                if (foundMessage) break;
+
+                lastId = batch.last()?.id;
+                if (!lastId) break;
+            }
+
+            if (!foundMessage) {
+                return interaction.reply({ 
+                    content: `❌ فرمی با شماره ${number} یافت نشد.` 
+                });
+            }
+
+            // Extract and format the form content
+            const formContent = foundMessage.content;
+            const messageLink = `https://discord.com/channels/${channel.guild.id}/${channel.id}/${foundMessage.id}`;
+
+            // Reply with the form content and link
+            const replyContent = formContent.length > 1900 
+                ? formContent.slice(0, 1897) + '...' 
+                : formContent;
+            
+            await interaction.reply({ 
+                content: `${replyContent}\n\n🔗 [Link Payam](${messageLink})`
+            });
+
+        } catch (error) {
+            console.error('❌ Error in baninfo command:', error);
+            await interaction.reply({ 
+                content: '❌ خطا در جستجوی اطلاعات بن.' 
+            });
+        }
+    }
+};
+
+// Member Count Command
+const membercountCommand = {
+    data: new SlashCommandBuilder()
+        .setName('membercount')
+        .setDescription('تعداد اعضا با جزئیات'),
+
+    async execute(interaction) {
+        try {
+            const guild = interaction.guild;
+            const members = guild.members.cache;
+            
+            const total = guild.memberCount;
+            const online = members.filter(m => m.presence?.status && ['online', 'idle', 'dnd'].includes(m.presence.status)).size;
+            const offline = total - online;
+            const bots = members.filter(m => m.user.bot).size;
+            const humans = total - bots;
+
+            const embed = new EmbedBuilder()
+                .setTitle('👥 تعداد اعضا')
+                .addFields(
+                    { name: '📊 کل اعضا', value: `${total}`, inline: true },
+                    { name: '👤 انسان‌ها', value: `${humans}`, inline: true },
+                    { name: '🤖 ربات‌ها', value: `${bots}`, inline: true },
+                    { name: '🟢 آنلاین', value: `${online}`, inline: true },
+                    { name: '⚫ آفلاین', value: `${offline}`, inline: true }
+                )
+                .setColor('#3498db')
+                .setTimestamp();
+
+            await interaction.reply({ embeds: [embed] });
+        } catch (error) {
+            console.error('❌ Error in membercount command:', error);
+            await interaction.reply({ 
+                content: '❌ خطا در دریافت تعداد اعضا.', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+    }
+};
+
+// Roast Command (سنگین و بد!)
+const roastCommand = {
+    data: new SlashCommandBuilder()
+        .setName('roast')
+        .setDescription('راست کردن کاربر (سنگین!)')
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('کاربری که میخوای راست کنی')
+                .setRequired(true)),
+
+    async execute(interaction) {
+        const targetUser = interaction.options.getUser('user');
+
+        // Prevent self-roast
+        if (targetUser.id === interaction.user.id) {
+            return interaction.reply({ 
+                content: '❌ نمی‌تونی خودت رو راست کنی! 😂', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        // Prevent roasting the bot
+        if (targetUser.bot) {
+            return interaction.reply({ 
+                content: '❌ ربات‌ها رو راست نکن! 🤖', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        const roasts = [
+            `🔥 ${targetUser}، IQ تو از دمای اتاق کمتره!`,
+            `💀 ${targetUser}، اگه استوپید بودن یک ورزش بود، تو المپیک می‌بردی!`,
+            `🤡 ${targetUser}، مغز تو خالیه... حتی اکو هم نداره!`,
+            `💩 ${targetUser}، تو انقدر احمقی که حتی یک گیاه هم از تو باهوش‌تره!`,
+            `🧠 ${targetUser}، مغز تو مثل اینترنت تو: خیلی کند و همیشه قطع!`,
+            `🎭 ${targetUser}، تو انقدر زشته که حتی فیلتر هم نمی‌تونه کمکت کنه!`,
+            `💀 ${targetUser}، اگه احمقی یک بیماری بود، تو همه رو آلوده می‌کردی!`,
+            `🔥 ${targetUser}، تو انقدر بدبختی که حتی شانس هم از تو فرار می‌کنه!`,
+            `🤡 ${targetUser}، IQ تو منفی است! حتی ماشین حساب هم نمی‌تونه محاسبه کنه!`,
+            `💩 ${targetUser}، تو انقدر زشته که آینه‌ها از تو عکس نمی‌گیرن!`,
+            `🧠 ${targetUser}، مغز تو مثل RAM 1MB: خیلی کم و همیشه پر!`,
+            `🎭 ${targetUser}، تو انقدر احمقی که حتی یک سنگ هم از تو باهوش‌تره!`,
+            `💀 ${targetUser}، اگه احمقی یک شغل بود، تو مدیر عامل می‌بودی!`,
+            `🔥 ${targetUser}، تو انقدر بدبختی که حتی بدشانسی هم از تو خجالت می‌کشه!`,
+            `🤡 ${targetUser}، IQ تو صفر است! حتی یک عدد هم نیست!`,
+            `💩 ${targetUser}، تو انقدر زشته که حتی یک کرم هم از تو بهتره!`,
+            `🧠 ${targetUser}، مغز تو مثل اینترنت دایل‌آپ: خیلی کند و همیشه قطع!`,
+            `🎭 ${targetUser}، تو انقدر احمقی که حتی یک درخت هم از تو باهوش‌تره!`,
+            `💀 ${targetUser}، اگه احمقی یک هنر بود، تو استاد می‌بودی!`,
+            `🔥 ${targetUser}، تو انقدر بدبختی که حتی بدشانسی هم از تو فرار می‌کنه!`
+        ];
+
+        const randomRoast = roasts[Math.floor(Math.random() * roasts.length)];
+
+        await interaction.reply({ content: randomRoast });
+    }
+};
+
+// Feedback Command
+const feedbackCommand = {
+    data: new SlashCommandBuilder()
+        .setName('feedback')
+        .setDescription('ارسال بازخورد به ادمین‌ها')
+        .addStringOption(option =>
+            option.setName('message')
+                .setDescription('متن بازخورد')
+                .setRequired(true)),
+
+    async execute(interaction) {
+        const feedbackText = interaction.options.getString('message');
+        const FEEDBACK_CHANNEL_ID = '1430256356065018069';
+
+        try {
+            const feedbackChannel = await interaction.client.channels.fetch(FEEDBACK_CHANNEL_ID).catch(() => null);
+
+            if (!feedbackChannel) {
+                return interaction.reply({ 
+                    content: '❌ چنل بازخورد یافت نشد.', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('💬 بازخورد جدید')
+                .setDescription(feedbackText)
+                .addFields(
+                    { name: '👤 از طرف', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                    { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                    { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                )
+                .setColor('#3498db')
+                .setTimestamp();
+
+            await feedbackChannel.send({ embeds: [embed] });
+
+            await interaction.reply({ 
+                content: '✅ بازخورد شما با موفقیت ارسال شد. ممنون! 🙏', 
+                flags: MessageFlags.Ephemeral 
+            });
+        } catch (error) {
+            console.error('❌ Error in feedback command:', error);
+            await interaction.reply({ 
+                content: '❌ خطا در ارسال بازخورد.', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+    }
+};
+
+// Bug Report Command
+const bugCommand = {
+    data: new SlashCommandBuilder()
+        .setName('bug')
+        .setDescription('گزارش باگ')
+        .addStringOption(option =>
+            option.setName('description')
+                .setDescription('توضیح باگ')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('steps')
+                .setDescription('مراحل تکرار باگ (اختیاری)')
+                .setRequired(false)),
+
+    async execute(interaction) {
+        const description = interaction.options.getString('description');
+        const steps = interaction.options.getString('steps');
+        const BUG_CHANNEL_ID = '1430256356065018069';
+
+        try {
+            const bugChannel = await interaction.client.channels.fetch(BUG_CHANNEL_ID).catch(() => null);
+
+            if (!bugChannel) {
+                return interaction.reply({ 
+                    content: '❌ چنل گزارش باگ یافت نشد.', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('🐛 گزارش باگ جدید')
+                .setDescription(`**توضیحات:**\n${description}`)
+                .addFields(
+                    { name: '👤 گزارش‌دهنده', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                    { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                    { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                )
+                .setColor('#e74c3c')
+                .setTimestamp();
+
+            if (steps) {
+                embed.addFields({ name: '📝 مراحل تکرار', value: steps, inline: false });
+            }
+
+            await bugChannel.send({ embeds: [embed] });
+
+            await interaction.reply({ 
+                content: '✅ گزارش باگ شما با موفقیت ارسال شد. ممنون! 🙏', 
+                flags: MessageFlags.Ephemeral 
+            });
+        } catch (error) {
+            console.error('❌ Error in bug command:', error);
+            await interaction.reply({ 
+                content: '❌ خطا در ارسال گزارش باگ.', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+    }
+};
 
 module.exports = {
     avatarCommand,
@@ -1272,9 +1505,7 @@ module.exports = {
     warn2Command,
     warnlistCommand,
     clearwarnsCommand,
-    deletemessageuserCommand,
     remindCommand,
-    weatherCommand,
     timeCommand,
     fortestCommand,
     sayCommand,
@@ -1285,5 +1516,10 @@ module.exports = {
 	autoreactionCommand,
 	sendCommand,
     vipclbCommand,
-    clbCommand
+    clbCommand,
+    baninfoCommand,
+    membercountCommand,
+    roastCommand,
+    feedbackCommand,
+    bugCommand
 };

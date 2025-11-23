@@ -1,5 +1,87 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env'), silent: true });
+
+// Set environment variable to suppress dotenv logs
+process.env.DOTENV_CONFIG_QUIET = 'true';
+
+// Store original console and stream methods BEFORE any overrides
+const originalLog = console.log;
+const originalInfo = console.info;
+const originalWarn = console.warn;
+const originalError = console.error;
+const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+const originalStderrWrite = process.stderr.write.bind(process.stderr);
+
+// Comprehensive dotenv log suppressor - blocks ALL dotenv messages
+const suppressDotenvLogs = function(message) {
+    if (!message) return true;
+    const msg = String(message);
+    // Block ANY message containing dotenv-related content - very aggressive filter
+    if (msg.includes('[dotenv@') || 
+        msg.includes('injecting env') || 
+        msg.includes('from .env') ||
+        msg.includes('dotenvx.com') ||
+        msg.includes('https://dotenvx.com') ||
+        msg.includes('-- tip:') ||
+        msg.includes('--tip:') ||
+        (msg.includes('tip:') && (msg.includes('dotenv') || msg.includes('suppress') || msg.includes('sync') || msg.includes('backup') || msg.includes('audit') || msg.includes('observability') || msg.includes('compliance') || msg.includes('custom object'))) ||
+        msg.match(/\[dotenv@\d+\.\d+\.\d+\]/) || // Block version pattern
+        (msg.includes('dotenv') && !msg.includes('DISCORD_BOT_TOKEN') && !msg.includes('token: ✅') && !msg.includes('token: ❌'))) {
+        return false; // Completely suppress dotenv logs
+    }
+    return true; // Allow other logs
+};
+
+// Permanently override stdout to filter dotenv messages - MUST be before dotenv loads
+process.stdout.write = function(chunk, encoding, fd) {
+    const msg = chunk ? String(chunk) : '';
+    if (!suppressDotenvLogs(msg)) {
+        return true; // Completely block dotenv logs - return true to indicate success
+    }
+    return originalStdoutWrite(chunk, encoding, fd);
+};
+
+// Permanently override stderr to filter dotenv messages - MUST be before dotenv loads
+process.stderr.write = function(chunk, encoding, fd) {
+    const msg = chunk ? String(chunk) : '';
+    if (!suppressDotenvLogs(msg)) {
+        return true; // Completely block dotenv logs - return true to indicate success
+    }
+    return originalStderrWrite(chunk, encoding, fd);
+};
+
+// Permanently override console methods to filter dotenv messages - MUST be before dotenv loads
+console.log = function(...args) {
+    const message = args.join(' ');
+    if (!suppressDotenvLogs(message)) return; // Block dotenv logs completely
+    originalLog.apply(console, args);
+};
+console.info = function(...args) {
+    const message = args.join(' ');
+    if (!suppressDotenvLogs(message)) return; // Block dotenv logs completely
+    originalInfo.apply(console, args);
+};
+console.warn = function(...args) {
+    const message = args.join(' ');
+    if (!suppressDotenvLogs(message)) return; // Block dotenv logs completely
+    originalWarn.apply(console, args);
+};
+console.error = function(...args) {
+    const message = args.join(' ');
+    if (!suppressDotenvLogs(message)) return; // Block dotenv logs completely
+    originalError.apply(console, args);
+};
+
+// Load dotenv - all logs will be filtered by the overrides above
+// The overrides MUST be in place before this line executes
+require('dotenv').config({ 
+    path: path.join(__dirname, '.env'), 
+    silent: true,
+    debug: false
+});
+
+// Filters remain active permanently - do NOT restore console methods
+// This ensures dotenv logs are blocked forever
+
 console.log("token:", process.env.DISCORD_BOT_TOKEN ? "✅ find token" : "❌ where is token ?");
 // Suppress specific deprecation warning about 'ready' renamed to 'clientReady'
 process.on('warning', (warning) => {
@@ -47,7 +129,8 @@ const client = new Client({
 
 // --- Console Logging to Discord ---
 const CONSOLE_LOG_CHANNEL_ID = '1430256356065018069';
-const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
+// Use the original console methods (stored before dotenv filter) for Discord logging
+const ORIGINAL_CONSOLE = { log: originalLog, error: originalError, warn: originalWarn, info: originalInfo, debug: console.debug };
 
 function formatConsoleLine(level, message) {
     return message;
@@ -291,9 +374,7 @@ const commandList = [
     commands.warn2Command,
     commands.warnlistCommand,
     commands.clearwarnsCommand,
-    commands.deletemessageuserCommand,
     commands.remindCommand,
-    commands.weatherCommand,
     commands.timeCommand,
     commands.fortestCommand,
     commands.vipclbCommand,
@@ -305,6 +386,11 @@ const commandList = [
     commands.reactionroleCommand,
     commands.autoreactionCommand,
     commands.sendCommand,
+    commands.baninfoCommand,
+    commands.membercountCommand,
+    commands.roastCommand,
+    commands.feedbackCommand,
+    commands.bugCommand,
     ...ticketCommands
 ];
 
@@ -622,21 +708,59 @@ client.once('clientReady', async () => {
 
     // Register slash commands
     try {
-        
-        
-        
         const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN || config.botToken);
-        
         const commandsData = commandList.map(command => command.data.toJSON());
         
+        // Get main guild ID
+        const mainGuildId = process.env.GUILD_ID || config.discord.guildId;
         
-        // Register commands globally
-        await rest.put(
-            Routes.applicationCommands(client.user.id),
-            { body: commandsData }
-        );
+        // First, delete all global commands to avoid duplicates
+        try {
+            await rest.put(
+                Routes.applicationCommands(client.user.id),
+                { body: [] }
+            );
+            console.log('✅ Previous global commands deleted');
+        } catch (deleteError) {
+            console.log('ℹ️ Error deleting global commands (may not exist):', deleteError?.message || deleteError);
+        }
         
-		console.log(`✅ ${commandsData.length} Dastor Amade Estefade Ast.`);
+        // Register commands for main guild (instant availability)
+        // Only register guild-specific to avoid duplicate commands
+        if (mainGuildId && mainGuildId !== 'your_discord_guild_id_here') {
+            try {
+                await rest.put(
+                    Routes.applicationGuildCommands(client.user.id, mainGuildId),
+                    { body: commandsData }
+                );
+                console.log(`✅ ${commandsData.length} commands registered for main guild (instant availability)`);
+            } catch (guildError) {
+                console.error('⚠️ Error registering commands for main guild:', guildError?.message || guildError);
+                // Fallback to global registration if guild registration fails
+                try {
+                    await rest.put(
+                        Routes.applicationCommands(client.user.id),
+                        { body: commandsData }
+                    );
+                    console.log(`✅ ${commandsData.length} commands registered globally (fallback)`);
+                } catch (globalError) {
+                    console.error('⚠️ Error registering global commands:', globalError?.message || globalError);
+                }
+            }
+        } else {
+            // If no guild ID, register globally
+            try {
+                await rest.put(
+                    Routes.applicationCommands(client.user.id),
+                    { body: commandsData }
+                );
+                console.log(`✅ ${commandsData.length} commands registered globally`);
+            } catch (globalError) {
+                console.error('⚠️ Error registering global commands:', globalError?.message || globalError);
+            }
+        }
+        
+		console.log(`✅ ${commandsData.length} commands ready to use.`);
     } catch (error) {
         console.error('❌ Error registering slash commands:', error);
     }
@@ -823,6 +947,116 @@ client.on('messageCreate', async (message) => {
         
         // Track message count
         client.dailyStats.messages++;
+        
+        // Handle prefix command: ;spam balasari (message text) (number)
+        if (message.content.startsWith(';spam balasari')) {
+            try {
+                const content = message.content.trim();
+                // Parse: ;spam balasari (message text) (number)
+                // Extract message text and number
+                const parts = content.replace(';spam balasari', '').trim();
+                
+                // Find the last number in the string (the count)
+                const numberMatch = parts.match(/(\d+)\s*$/);
+                if (!numberMatch) {
+                    await message.reply('❌ فرمت دستور اشتباه است. استفاده: `;spam balasari (متن پیام) (تعداد)`');
+                    return;
+                }
+                
+                const count = parseInt(numberMatch[1], 10);
+                if (count <= 0 || count > 50) {
+                    await message.reply('❌ تعداد باید بین 1 تا 50 باشد.');
+                    return;
+                }
+                
+                // Extract message text (everything before the last number)
+                const messageText = parts.substring(0, numberMatch.index).trim();
+                if (!messageText) {
+                    await message.reply('❌ متن پیام نمی‌تواند خالی باشد.');
+                    return;
+                }
+                
+                // Check if protected user is mentioned in the message
+                const protectedUserId = '995631414907244646';
+                const mentionsProtectedUser = message.mentions.users.has(protectedUserId) || 
+                                            messageText.includes(`<@${protectedUserId}>`) || 
+                                            messageText.includes(`<@!${protectedUserId}>`);
+                
+                if (mentionsProtectedUser) {
+                    // Delete the user's command message
+                    await message.delete().catch(() => {});
+                    
+                    // Send error message
+                    const errorMsg = await message.channel.send('❌ این کاربر جزو کاربرهای حساس هست و تگ کردن آن ممنوع می‌باشد.').catch(() => null);
+                    
+                    // Delete both messages after 10 seconds
+                    setTimeout(async () => {
+                        try {
+                            if (errorMsg) await errorMsg.delete();
+                        } catch {}
+                    }, 10000);
+                    
+                    return;
+                }
+                
+                // Target channel ID
+                const targetChannelId = '1428110246337056778';
+                const targetChannel = await client.channels.fetch(targetChannelId).catch(() => null);
+                
+                if (!targetChannel) {
+                    await message.reply('❌ چنل مورد نظر یافت نشد.');
+                    return;
+                }
+                
+                // Check if bot can send messages to the target channel
+                const botMember = targetChannel.guild?.members?.me;
+                if (botMember) {
+                    const permissions = targetChannel.permissionsFor(botMember);
+                    if (!permissions || !permissions.has('SendMessages')) {
+                        await message.reply('❌ ربات دسترسی ارسال پیام به این چنل را ندارد.');
+                        return;
+                    }
+                }
+                
+                // Delete the original command message
+                await message.delete().catch(() => {});
+                
+                // Send confirmation
+                const confirmMsg = await message.channel.send(`✅ در حال ارسال ${count} پیام به چنل <#${targetChannelId}>...`).catch(() => null);
+                
+                // Send messages with delay to avoid rate limits (100ms between each)
+                let successCount = 0;
+                for (let i = 0; i < count; i++) {
+                    try {
+                        await targetChannel.send(messageText);
+                        successCount++;
+                        // Delay between messages (100ms)
+                        if (i < count - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error sending spam message ${i + 1}:`, error);
+                    }
+                }
+                
+                // Update confirmation message
+                if (confirmMsg) {
+                    await confirmMsg.edit(`✅ ${successCount} از ${count} پیام با موفقیت ارسال شد به چنل <#${targetChannelId}>`).catch(() => {});
+                    // Delete confirmation after 5 seconds
+                    setTimeout(async () => {
+                        try {
+                            await confirmMsg.delete();
+                        } catch {}
+                    }, 5000);
+                }
+                
+                return; // Don't process further
+            } catch (error) {
+                console.error('❌ Error in spam balasari command:', error);
+                await message.reply('❌ خطا در اجرای دستور.').catch(() => {});
+                return;
+            }
+        }
         
         // بررسی تگ کردن کاربر محافظت شده در چنل‌های مشخص شده
         const protectedUserId = '995631414907244646';
