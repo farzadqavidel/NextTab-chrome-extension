@@ -58,9 +58,9 @@ let guildData = {
     lastUpdate: null
 };
 
-// Console logging to Discord
-const CONSOLE_LOG_CHANNEL_ID = '1440709846033760256';
-const PANEL_LOG_CHANNEL_ID = '1440709846033760256';
+// Console logging to Discord (غیرفعال شده طبق درخواست)
+const CONSOLE_LOG_CHANNEL_ID = '';
+const PANEL_LOG_CHANNEL_ID = '';
 const panelAuthChallenges = new Map(); // challengeId => { code, expires }
 
 const ORIGINAL_CONSOLE = { log: console.log, error: console.error, warn: console.warn, info: console.info, debug: console.debug };
@@ -98,7 +98,7 @@ for (const [level, fn] of Object.entries(ORIGINAL_CONSOLE)) {
 
 // Discord Bot Events
 client.once('clientReady', () => {
-    console.log('✅ Website Discord bot connected');
+    console.log('✅ Website Loaded');
     updateGuildData();
     
     // Update data every 5 minutes
@@ -615,41 +615,10 @@ function getRequestIp(req) {
     );
 }
 
-// Endpoint to receive suggestion form submissions and forward to Discord channel
+// Endpoint to receive suggestion form submissions
+// این اندپوینت طبق درخواست لاگ و ارسال به دیسکورد را انجام نمی‌دهد و فقط موفقیت برمی‌گرداند
 app.post('/api/submit-suggestion', async (req, res) => {
-    try {
-        const { name, message, filelink } = req.body || {};
-        if (!message || message.trim().length === 0) return res.status(400).json({ success:false, error: 'message required' });
-
-        const channelId = '1440709846033760256'; // target suggestions channel (confirmed)
-        const ch = await client.channels.fetch(channelId).catch(() => null);
-        if (!ch || !ch.send) return res.status(500).json({ success:false, error: 'discord channel not available' });
-
-        const username = name && name.trim().length ? name.trim() : 'Anonymous';
-        // Build a nicer embed similar to website webhook style
-        const { EmbedBuilder } = require('discord.js');
-        const ip = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || req.socket?.remoteAddress || req.ip || 'unknown';
-        const embed = new EmbedBuilder()
-            .setTitle('📨 پیشنهاد جدید از سایت')
-            .setColor(0x00ff88)
-            .addFields(
-                { name: 'نام', value: username, inline: true },
-                { name: 'پیام', value: message.length > 1024 ? message.slice(0,1021) + '...' : message, inline: false }
-            )
-            .setFooter({ text: `IP: ${ip}` })
-            .setTimestamp(new Date());
-
-        if (filelink && filelink.trim().length) {
-            embed.addFields({ name: 'لینک فایل', value: filelink, inline: false });
-        }
-
-        // Send embed only (remove site link in content per request)
-        await ch.send({ embeds: [embed] });
-        return res.json({ success: true });
-    } catch (error) {
-        console.error('Error in submit-suggestion:', error);
-        return res.status(500).json({ success:false, error: 'internal error' });
-    }
+    return res.json({ success: true, message: 'suggestions disabled' });
 });
 
 app.get('/api/health', (req, res) => {

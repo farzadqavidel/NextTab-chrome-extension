@@ -1498,43 +1498,6 @@ const ticketCommands = [
     },
     {
         data: new SlashCommandBuilder()
-            .setName('ticket-stats')
-            .setDescription('نمایش آمار تیکت‌ها'),
-        async execute(interaction) {
-            // بررسی دسترسی - رول‌های Full Permissions (Administrator) دسترسی کامل دارند
-            const hasAdminPermission = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
-            const hasPermission = hasAdminPermission ||
-                                interaction.member.permissions.has(PermissionFlagsBits.ManageChannels) ||
-                                TICKET_CONFIG.allowedRoles.some(roleId => interaction.member.roles.cache.has(roleId));
-
-            if (!hasPermission) {
-                return await interaction.reply({
-                    content: '❌ شما دسترسی لازم برای مشاهده آمار تیکت‌ها را ندارید!',
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            const activeCount = activeTickets.size;
-            const totalTickets = ticketCounter - 1;
-
-            const statsEmbed = new EmbedBuilder()
-                .setColor(0x000000) // تغییر رنگ به مشکی
-                .setTitle('📊 آمار سیستم تیکت')
-                .addFields([
-                    { name: '🎫 تیکت‌های فعال', value: activeCount.toString(), inline: true },
-                    { name: '📈 کل تیکت‌ها', value: totalTickets.toString(), inline: true },
-                    { name: '🔒 تیکت‌های بسته', value: (totalTickets - activeCount).toString(), inline: true }
-                ])
-                .setTimestamp();
-
-            await interaction.reply({
-                embeds: [statsEmbed],
-                flags: MessageFlags.Ephemeral
-            });
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
             .setName('add')
             .setDescription('اضافه کردن کاربر یا رول به تیکت')
             .addUserOption(option =>

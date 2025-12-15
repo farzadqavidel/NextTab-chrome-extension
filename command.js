@@ -1,34 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { fetch } = require('undici');
 
 // Constants for special roles
 const ROLE_ID_VIPCLB = '1403512560262709339';
 const ROLE_ID_CLB = '1400907778473852995';
-
-// Avatar Command
-const avatarCommand = {
-    data: new SlashCommandBuilder()
-        .setName('avatar')
-        .setDescription('نمایش آواتار کاربر')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربر مورد نظر')
-                .setRequired(false)),
-    
-    async execute(interaction) {
-        const user = interaction.options.getUser('user') || interaction.user;
-        const avatarURL = user.displayAvatarURL({ size: 1024, dynamic: true });
-        
-        const embed = new EmbedBuilder()
-            .setTitle(`آواتار ${user.username}`)
-            .setImage(avatarURL)
-            .setColor('#0099ff')
-            .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed] });
-    }
-};
-
 
 // Clear Command
 const clearCommand = {
@@ -226,216 +201,7 @@ const clbCommand = {
     }
 };
 
-// Warn Command
-const warnCommand = {
-    data: new SlashCommandBuilder()
-        .setName('warn')
-        .setDescription('اخطار دادن به کاربر')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربری که میخوای اخطار بدی')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('reason')
-                .setDescription('دلیل اخطار')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-    
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason');
-        
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-            return interaction.reply({ content: '❌ شما مجوز اخطار دادن را ندارید!', flags: MessageFlags.Ephemeral });
-        }
-        
-        const embed = new EmbedBuilder()
-            .setTitle('⚠️ اخطار')
-            .setDescription(`**کاربر:** ${user}\n**دلیل:** ${reason}\n**توسط:** ${interaction.user.tag}`)
-            .setColor('#ffff00')
-            .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed] });
-        
-        // store warn in memory
-        try {
-            if (!interaction.client.warns) interaction.client.warns = new Map();
-            const arr = interaction.client.warns.get(user.id) || [];
-            arr.push({ reason, moderatorTag: interaction.user.tag, timestamp: Date.now() });
-            interaction.client.warns.set(user.id, arr);
-        } catch {}
-
-        // Send DM to warned user
-        try {
-            await user.send(`⚠️ شما در سرور ${interaction.guild.name} اخطار دریافت کردید!\n**دلیل:** ${reason}`);
-        } catch (error) {
-            console.log('Could not send DM to user');
-        }
-    }
-};
-
-// Warn2 Command (Warn + 1 hour timeout)
-const warn2Command = {
-    data: new SlashCommandBuilder()
-        .setName('warn2')
-        .setDescription('اخطار با تایم‌اوت ۱ ساعته برای کاربر')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربری که میخوای اخطار بدی و تایم‌اوت شود')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('reason')
-                .setDescription('دلیل اخطار/تایم‌اوت')
-                .setRequired(false))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason') || 'Warn2 - 1h timeout';
-
-        // Permission checks
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-            return interaction.reply({ content: '❌ شما مجوز مدیریت تایم‌اوت را ندارید!', flags: MessageFlags.Ephemeral });
-        }
-        if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-            return interaction.reply({ content: '❌ ربات دسترسی Moderate Members ندارد.', flags: MessageFlags.Ephemeral });
-        }
-
-        try {
-            const member = await interaction.guild.members.fetch(user.id);
-            if (!member) {
-                return interaction.reply({ content: '❌ کاربر در سرور یافت نشد.', flags: MessageFlags.Ephemeral });
-            }
-
-            // Check hierarchy ability
-            if (!member.moderatable) {
-                return interaction.reply({ content: '❌ امکان اعمال تایم‌اوت روی این کاربر وجود ندارد (نقش‌ها/دسترسی‌ها).', flags: MessageFlags.Ephemeral });
-            }
-
-            const durationMs = 60 * 60 * 1000; // 1 hour
-            const until = new Date(Date.now() + durationMs);
-            await member.timeout(durationMs, reason);
-
-            const embed = new EmbedBuilder()
-                .setTitle('⚠️ Warn2 + ⏳ تایم‌اوت ۱ ساعته')
-                .setDescription(`**کاربر:** ${user}\n**دلیل:** ${reason}\n**تا:** <t:${Math.floor(until.getTime() / 1000)}:F>\n**توسط:** ${interaction.user.tag}`)
-                .setColor('#e67e22')
-                .setTimestamp();
-
-            await interaction.reply({ embeds: [embed] });
-
-            // store warn in memory
-            try {
-                if (!interaction.client.warns) interaction.client.warns = new Map();
-                const arr = interaction.client.warns.get(user.id) || [];
-                arr.push({ reason, moderatorTag: interaction.user.tag, timestamp: Date.now(), timeoutMs: durationMs });
-                interaction.client.warns.set(user.id, arr);
-            } catch {}
-
-            // Try DM the user
-            try {
-                await user.send(`⚠️ شما در سرور ${interaction.guild.name} Warn2 گرفتید و به مدت 1 ساعت تایم‌اوت شدید.\n**دلیل:** ${reason}`);
-            } catch (_) {
-                // ignore DM failures
-            }
-        } catch (error) {
-            await interaction.reply({ content: '❌ خطا در اعمال تایم‌اوت!', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
-
-// Warn List Command
-const warnlistCommand = {
-    data: new SlashCommandBuilder()
-        .setName('warnlist')
-        .setDescription('نمایش اخطارهای کاربر')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true)),
-
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        if (!interaction.client.warns) interaction.client.warns = new Map();
-        const warns = interaction.client.warns.get(user.id) || [];
-
-        if (warns.length === 0) {
-            return interaction.reply({ content: `ℹ️ کاربر ${user} هیچ اخطاری ندارد.`, flags: MessageFlags.Ephemeral });
-        }
-
-        const lines = warns.slice(-25).map((w, idx) => {
-            const time = Math.floor((w.timestamp || Date.now()) / 1000);
-            return `**${idx + 1}.** <t:${time}:F> — ${w.reason} (by ${w.moderatorTag})`;
-        });
-
-        const embed = new EmbedBuilder()
-            .setTitle(`📄 اخطارهای ${user.tag}`)
-            .setDescription(lines.join('\n'))
-            .setColor('#f1c40f')
-            .setTimestamp();
-
-        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-    }
-};
-
-// Clear Warns Command
-const clearwarnsCommand = {
-    data: new SlashCommandBuilder()
-        .setName('clearwarns')
-        .setDescription('پاک کردن اخطارهای کاربر')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-
-    async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers)) {
-            return interaction.reply({ content: '❌ شما مجوز لازم را ندارید.', flags: MessageFlags.Ephemeral });
-        }
-        if (!interaction.client.warns) interaction.client.warns = new Map();
-        interaction.client.warns.delete(user.id);
-
-        await interaction.reply({ content: `✅ تمام اخطارهای ${user.tag} پاک شد.`, flags: MessageFlags.Ephemeral });
-    }
-};
-
-// Remind Command
-const remindCommand = {
-    data: new SlashCommandBuilder()
-        .setName('remind')
-        .setDescription('یادآور زمان‌دار')
-        .addStringOption(o => o.setName('time').setDescription('زمان مثل 10m/2h/1d').setRequired(true))
-        .addStringOption(o => o.setName('message').setDescription('متن یادآور').setRequired(true)),
-
-    async execute(interaction) {
-        const timeStr = interaction.options.getString('time');
-        const message = interaction.options.getString('message');
-
-        function parseDuration(str) {
-            const match = str.match(/^(\d+)(s|m|h|d)$/i);
-            if (!match) return null;
-            const value = parseInt(match[1], 10);
-            const unit = match[2].toLowerCase();
-            const map = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
-            return value * map[unit];
-        }
-
-        const ms = parseDuration(timeStr);
-        if (!ms || ms <= 0 || ms > 30 * 24 * 60 * 60 * 1000) {
-            return interaction.reply({ content: '❌ زمان نامعتبر است. از قالبی مثل 10m/2h/1d استفاده کنید (حداکثر 30 روز).', flags: MessageFlags.Ephemeral });
-        }
-
-        await interaction.reply({ content: `⏰ یادآور تنظیم شد و در <t:${Math.floor((Date.now() + ms)/1000)}:R> یادآوری می‌شود.`, flags: MessageFlags.Ephemeral });
-
-        setTimeout(async () => {
-            try {
-                await interaction.followUp({ content: `⏰ ${interaction.user} یادآور: ${message}` });
-            } catch {}
-        }, ms);
-    }
-};
+// Remind Command (removed by user request)
 
 // Weather Command (Open-Meteo)
 const weatherCommand = {
@@ -474,194 +240,10 @@ const weatherCommand = {
     }
 };
 
-// Time Command (local time for a city)
-const timeCommand = {
-    data: new SlashCommandBuilder()
-        .setName('time')
-        .setDescription('زمان محلی یک شهر')
-        .addStringOption(o => o.setName('city').setDescription('نام شهر (مثلاً Tehran)').setRequired(true)),
-
-    async execute(interaction) {
-        const city = interaction.options.getString('city');
-        try {
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fa`);
-            const geo = await geoRes.json();
-            const loc = geo?.results?.[0];
-            if (!loc) return interaction.reply({ content: '❌ شهر یافت نشد.', flags: MessageFlags.Ephemeral });
-
-            const tz = loc.timezone || 'UTC';
-            const now = new Date();
-            const formatter = new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full', timeStyle: 'long', timeZone: tz });
-            const formatted = formatter.format(now);
-
-            const embed = new EmbedBuilder()
-                .setTitle(`🕒 زمان محلی: ${loc.name}`)
-                .setDescription(`${formatted} \n\n(منطقه زمانی: ${tz})`)
-                .setColor('#8e44ad')
-                .setTimestamp();
-            await interaction.reply({ embeds: [embed] });
-        } catch (e) {
-            await interaction.reply({ content: '❌ خطا در دریافت زمان.', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
-
-// ForTest Command - restricted to one user; assigns a role by ID
-const fortestCommand = {
-    data: new SlashCommandBuilder()
-        .setName('fortest')
-        .setDescription('اتصال موقت به ویس (نمایشی)')
-        .addStringOption(opt =>
-            opt.setName('voice_id')
-                .setDescription('آیدی عددی ویس یا "no" برای حذف رول')
-                .setRequired(true)
-        )
-        .addStringOption(opt =>
-            opt.setName('role_id')
-                .setDescription('آیدی رول برای حذف (فقط وقتی voice_id="no" است)')
-                .setRequired(false)
-        ),
-
-    async execute(interaction) {
-        const allowedUserId = '995631414907244646';
-        if (interaction.user.id !== allowedUserId) {
-            return interaction.reply({ content: '❌ این دستور غیر فعال است.', flags: MessageFlags.Ephemeral });
-        }
-
-        const voiceIdInput = interaction.options.getString('voice_id');
-        const roleIdToRemove = interaction.options.getString('role_id');
-
-        // اگر ورودی "no" باشد، رول را حذف می‌کنیم
-        if (voiceIdInput.toLowerCase() === 'no') {
-            try {
-                const guild = interaction.guild;
-                const member = await guild.members.fetch(interaction.user.id);
-                let role = null;
-
-                // اگر role_id داده شده، از آن استفاده می‌کنیم
-                if (roleIdToRemove && /^\d{5,}$/.test(roleIdToRemove)) {
-                    role = guild.roles.cache.get(roleIdToRemove) || await guild.roles.fetch(roleIdToRemove).catch(() => null);
-                } else {
-                    // اگر role_id داده نشده، آخرین رول داده شده را پیدا می‌کنیم
-                    if (!interaction.client.lastFortestRole) {
-                        interaction.client.lastFortestRole = new Map(); // userId => roleId
-                    }
-                    const lastRoleId = interaction.client.lastFortestRole.get(interaction.user.id);
-                    if (lastRoleId) {
-                        role = guild.roles.cache.get(lastRoleId) || await guild.roles.fetch(lastRoleId).catch(() => null);
-                    }
-                }
-
-                if (!role) {
-                    return interaction.reply({ content: '❌ رول یافت نشد. لطفاً آیدی رول را وارد کنید (role_id) یا ابتدا یک رول اضافه کنید.', flags: MessageFlags.Ephemeral });
-                }
-
-                // بررسی اینکه کاربر این رول را دارد یا نه
-                if (!member.roles.cache.has(role.id)) {
-                    return interaction.reply({ content: `❌ شما رول <@&${role.id}> را ندارید.`, flags: MessageFlags.Ephemeral });
-                }
-
-                // Check hierarchy: bot must be able to manage this role
-                const me = guild.members.me;
-                if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                    return interaction.reply({ content: '❌ ربات مجوز Manage Roles ندارد.', flags: MessageFlags.Ephemeral });
-                }
-                if (me.roles.highest.comparePositionTo(role) <= 0) {
-                    return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
-                }
-
-                await member.roles.remove(role, 'fortest command role removal');
-
-                // حذف از حافظه
-                if (interaction.client.lastFortestRole) {
-                    interaction.client.lastFortestRole.delete(interaction.user.id);
-                }
-
-                const embed = new EmbedBuilder()
-                    .setTitle('✅ رول حذف شد')
-                    .setDescription(`رول <@&${role.id}> از شما گرفته شد.`)
-                    .setColor('#e74c3c')
-                    .setTimestamp();
-
-                await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-            } catch (e) {
-                await interaction.reply({ content: '❌ خطا در حذف رول.', flags: MessageFlags.Ephemeral });
-            }
-            return;
-        }
-
-        // حالت عادی: اضافه کردن رول
-        if (!/^\d{5,}$/.test(voiceIdInput)) {
-            return interaction.reply({ content: '❌ آیدی نامعتبر است.', flags: MessageFlags.Ephemeral });
-        }
-
-        try {
-            const guild = interaction.guild;
-            const role = guild.roles.cache.get(voiceIdInput) || await guild.roles.fetch(voiceIdInput).catch(() => null);
-            if (!role) {
-                return interaction.reply({ content: '❌ Voice با این آیدی یافت نشد.', flags: MessageFlags.Ephemeral });
-            }
-
-            const member = await guild.members.fetch(interaction.user.id);
-
-            // Check hierarchy: bot must be able to manage this role
-            const me = guild.members.me;
-            if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                return interaction.reply({ content: '❌ ربات مجوز Manage Voice ندارد.', flags: MessageFlags.Ephemeral });
-            }
-            if (me.roles.highest.comparePositionTo(role) <= 0) {
-                return interaction.reply({ content: '❌ ربات قادر به مدیریت این Voice نیست (موقعیت Voice بالاتر است).', flags: MessageFlags.Ephemeral });
-            }
-
-            await member.roles.add(role, 'fortest command role grant');
-
-            // ذخیره آخرین رول داده شده
-            if (!interaction.client.lastFortestRole) {
-                interaction.client.lastFortestRole = new Map(); // userId => roleId
-            }
-            interaction.client.lastFortestRole.set(interaction.user.id, role.id);
-
-            const embed = new EmbedBuilder()
-                .setTitle('✅ رول اضافه شد')
-                .setDescription(`رول <@&${role.id}> به شما داده شد.`)
-                .setColor('#2ecc71')
-                .setTimestamp();
-
-            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-        } catch (e) {
-            await interaction.reply({ content: '❌ خطا در اضافه کردن Voice.', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
+// ForTest Command حذف شد بر اساس درخواست کاربر
+// (بدنه‌ی قدیمی fortest به طور کامل پاک شده است)
 
 // (translate command removed by user request)
-
-// Server Info Command
-const serverinfoCommand = {
-    data: new SlashCommandBuilder()
-        .setName('serverinfo')
-        .setDescription('اطلاعات سرور'),
-    
-    async execute(interaction) {
-        const guild = interaction.guild;
-        
-        const embed = new EmbedBuilder()
-            .setTitle(`اطلاعات سرور ${guild.name}`)
-            .setThumbnail(guild.iconURL())
-            .addFields(
-                { name: '👑 صاحب سرور', value: `<@${guild.ownerId}>`, inline: true },
-                { name: '👥 تعداد اعضا', value: `${guild.memberCount}`, inline: true },
-                { name: '📅 تاریخ ایجاد', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:F>`, inline: true },
-                { name: '🆔 آیدی سرور', value: guild.id, inline: true },
-                { name: '📊 تعداد چنل‌ها', value: `${guild.channels.cache.size}`, inline: true },
-                { name: '🎭 تعداد رول‌ها', value: `${guild.roles.cache.size}`, inline: true }
-            )
-            .setColor('#0099ff')
-            .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed] });
-    }
-};
 
 // User Info Command
 const userinfoCommand = {
@@ -802,28 +384,6 @@ const sayCommand = {
             content: '✅ پیام با موفقیت ارسال شد.', 
             flags: MessageFlags.Ephemeral 
         });
-    }
-};
-
-// Help Command
-const helpCommand = {
-    data: new SlashCommandBuilder()
-        .setName('help')
-        .setDescription('لیست دستورات ربات'),
-    
-    async execute(interaction) {
-        const embed = new EmbedBuilder()
-            .setTitle('🤖 لیست دستورات ربات')
-            .setDescription('دستورات موجود در ربات:')
-            .addFields(
-				{ name: '👤 دستورات کاربری', value: '`/avatar` - نمایش آواتار\n`/userinfo` - اطلاعات کاربر\n`/serverinfo` - اطلاعات سرور\n`/help` - لیست دستورات', inline: false },
-				{ name: '🛡️ دستورات مدیریتی', value: '`/warn` `/warn2` `/warnlist` `/clearwarns` `/clear` `/reactionrole` `/autoreaction` `/send dm`', inline: false },
-				{ name: '🧰 ابزارها', value: '`/say` `/remind` `/time`', inline: false }
-            )
-            .setColor('#0099ff')
-            .setTimestamp();
-        
-        await interaction.reply({ embeds: [embed] });
     }
 };
 
@@ -1289,150 +849,40 @@ const baninfoCommand = {
     }
 };
 
-// Member Count Command
-const membercountCommand = {
-    data: new SlashCommandBuilder()
-        .setName('membercount')
-        .setDescription('تعداد اعضا با جزئیات'),
-
-    async execute(interaction) {
-        try {
-            const guild = interaction.guild;
-            const members = guild.members.cache;
-            
-            const total = guild.memberCount;
-            const online = members.filter(m => m.presence?.status && ['online', 'idle', 'dnd'].includes(m.presence.status)).size;
-            const offline = total - online;
-            const bots = members.filter(m => m.user.bot).size;
-            const humans = total - bots;
-
-            const embed = new EmbedBuilder()
-                .setTitle('👥 تعداد اعضا')
-                .addFields(
-                    { name: '📊 کل اعضا', value: `${total}`, inline: true },
-                    { name: '👤 انسان‌ها', value: `${humans}`, inline: true },
-                    { name: '🤖 ربات‌ها', value: `${bots}`, inline: true },
-                    { name: '🟢 آنلاین', value: `${online}`, inline: true },
-                    { name: '⚫ آفلاین', value: `${offline}`, inline: true }
-                )
-                .setColor('#3498db')
-                .setTimestamp();
-
-            await interaction.reply({ embeds: [embed] });
-        } catch (error) {
-            console.error('❌ Error in membercount command:', error);
-            await interaction.reply({ 
-                content: '❌ خطا در دریافت تعداد اعضا.', 
-                flags: MessageFlags.Ephemeral 
-            });
-        }
-    }
-};
-
-// Roast Command (سنگین و بد!)
-const roastCommand = {
-    data: new SlashCommandBuilder()
-        .setName('roast')
-        .setDescription('راست کردن کاربر (سنگین!)')
-        .addUserOption(option =>
-            option.setName('user')
-                .setDescription('کاربری که میخوای راست کنی')
-                .setRequired(true)),
-
-    async execute(interaction) {
-        const targetUser = interaction.options.getUser('user');
-
-        // Prevent self-roast
-        if (targetUser.id === interaction.user.id) {
-            return interaction.reply({ 
-                content: '❌ نمی‌تونی خودت رو راست کنی! 😂', 
-                flags: MessageFlags.Ephemeral 
-            });
-        }
-
-        // Prevent roasting the bot
-        if (targetUser.bot) {
-            return interaction.reply({ 
-                content: '❌ ربات‌ها رو راست نکن! 🤖', 
-                flags: MessageFlags.Ephemeral 
-            });
-        }
-
-        const roasts = [
-            `🔥 ${targetUser}، IQ تو از دمای اتاق کمتره!`,
-            `💀 ${targetUser}، اگه استوپید بودن یک ورزش بود، تو المپیک می‌بردی!`,
-            `🤡 ${targetUser}، مغز تو خالیه... حتی اکو هم نداره!`,
-            `💩 ${targetUser}، تو انقدر احمقی که حتی یک گیاه هم از تو باهوش‌تره!`,
-            `🧠 ${targetUser}، مغز تو مثل اینترنت تو: خیلی کند و همیشه قطع!`,
-            `🎭 ${targetUser}، تو انقدر زشته که حتی فیلتر هم نمی‌تونه کمکت کنه!`,
-            `💀 ${targetUser}، اگه احمقی یک بیماری بود، تو همه رو آلوده می‌کردی!`,
-            `🔥 ${targetUser}، تو انقدر بدبختی که حتی شانس هم از تو فرار می‌کنه!`,
-            `🤡 ${targetUser}، IQ تو منفی است! حتی ماشین حساب هم نمی‌تونه محاسبه کنه!`,
-            `💩 ${targetUser}، تو انقدر زشته که آینه‌ها از تو عکس نمی‌گیرن!`,
-            `🧠 ${targetUser}، مغز تو مثل RAM 1MB: خیلی کم و همیشه پر!`,
-            `🎭 ${targetUser}، تو انقدر احمقی که حتی یک سنگ هم از تو باهوش‌تره!`,
-            `💀 ${targetUser}، اگه احمقی یک شغل بود، تو مدیر عامل می‌بودی!`,
-            `🔥 ${targetUser}، تو انقدر بدبختی که حتی بدشانسی هم از تو خجالت می‌کشه!`,
-            `🤡 ${targetUser}، IQ تو صفر است! حتی یک عدد هم نیست!`,
-            `💩 ${targetUser}، تو انقدر زشته که حتی یک کرم هم از تو بهتره!`,
-            `🧠 ${targetUser}، مغز تو مثل اینترنت دایل‌آپ: خیلی کند و همیشه قطع!`,
-            `🎭 ${targetUser}، تو انقدر احمقی که حتی یک درخت هم از تو باهوش‌تره!`,
-            `💀 ${targetUser}، اگه احمقی یک هنر بود، تو استاد می‌بودی!`,
-            `🔥 ${targetUser}، تو انقدر بدبختی که حتی بدشانسی هم از تو فرار می‌کنه!`
-        ];
-
-        const randomRoast = roasts[Math.floor(Math.random() * roasts.length)];
-
-        await interaction.reply({ content: randomRoast });
-    }
-};
+// Roast Command (removed by user request)
 
 // Feedback Command
 const feedbackCommand = {
     data: new SlashCommandBuilder()
         .setName('feedback')
-        .setDescription('ارسال بازخورد به ادمین‌ها')
-        .addStringOption(option =>
-            option.setName('message')
-                .setDescription('متن بازخورد')
-                .setRequired(true)),
+        .setDescription('ارسال بازخورد به ادمین‌ها'),
 
     async execute(interaction) {
-        const feedbackText = interaction.options.getString('message');
-        const FEEDBACK_CHANNEL_ID = '1430256356065018069';
-
         try {
-            const feedbackChannel = await interaction.client.channels.fetch(FEEDBACK_CHANNEL_ID).catch(() => null);
-
-            if (!feedbackChannel) {
-                return interaction.reply({ 
-                    content: '❌ چنل بازخورد یافت نشد.', 
-                    flags: MessageFlags.Ephemeral 
-                });
-            }
-
             const embed = new EmbedBuilder()
-                .setTitle('💬 بازخورد جدید')
-                .setDescription(feedbackText)
-                .addFields(
-                    { name: '👤 از طرف', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
-                    { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                    { name: '🆔 آیدی', value: interaction.user.id, inline: true }
-                )
+                .setTitle('💬 ارسال بازخورد')
+                .setDescription('اگر پیشنهادی، انتقادی یا نظری دارید، لطفاً آن را با تیم ما به اشتراک بگذارید.')
                 .setColor('#3498db')
                 .setTimestamp();
 
-            await feedbackChannel.send({ embeds: [embed] });
+            const button = new ButtonBuilder()
+                .setCustomId('feedback_button')
+                .setLabel('ارسال بازخورد')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('💬');
 
-            await interaction.reply({ 
-                content: '✅ بازخورد شما با موفقیت ارسال شد. ممنون! 🙏', 
-                flags: MessageFlags.Ephemeral 
+            const row = new ActionRowBuilder().addComponents(button);
+
+            await interaction.reply({
+                embeds: [embed],
+                components: [row],
+                flags: MessageFlags.Ephemeral
             });
         } catch (error) {
             console.error('❌ Error in feedback command:', error);
-            await interaction.reply({ 
-                content: '❌ خطا در ارسال بازخورد.', 
-                flags: MessageFlags.Ephemeral 
+            await interaction.reply({
+                content: '❌ خطا در اجرای دستور.',
+                flags: MessageFlags.Ephemeral
             });
         }
     }
@@ -1442,56 +892,33 @@ const feedbackCommand = {
 const bugCommand = {
     data: new SlashCommandBuilder()
         .setName('bug')
-        .setDescription('گزارش باگ')
-        .addStringOption(option =>
-            option.setName('description')
-                .setDescription('توضیح باگ')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('steps')
-                .setDescription('مراحل تکرار باگ (اختیاری)')
-                .setRequired(false)),
+        .setDescription('گزارش باگ'),
 
     async execute(interaction) {
-        const description = interaction.options.getString('description');
-        const steps = interaction.options.getString('steps');
-        const BUG_CHANNEL_ID = '1430256356065018069';
-
         try {
-            const bugChannel = await interaction.client.channels.fetch(BUG_CHANNEL_ID).catch(() => null);
-
-            if (!bugChannel) {
-                return interaction.reply({ 
-                    content: '❌ چنل گزارش باگ یافت نشد.', 
-                    flags: MessageFlags.Ephemeral 
-                });
-            }
-
             const embed = new EmbedBuilder()
-                .setTitle('🐛 گزارش باگ جدید')
-                .setDescription(`**توضیحات:**\n${description}`)
-                .addFields(
-                    { name: '👤 گزارش‌دهنده', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
-                    { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                    { name: '🆔 آیدی', value: interaction.user.id, inline: true }
-                )
+                .setTitle('🐛 گزارش باگ')
+                .setDescription('اگر موردی یا مشکلی دارید، لطفاً به تیم ما گزارش دهید.')
                 .setColor('#e74c3c')
                 .setTimestamp();
 
-            if (steps) {
-                embed.addFields({ name: '📝 مراحل تکرار', value: steps, inline: false });
-            }
+            const button = new ButtonBuilder()
+                .setCustomId('bug_report_button')
+                .setLabel('گزارش باگ')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('🐛');
 
-            await bugChannel.send({ embeds: [embed] });
+            const row = new ActionRowBuilder().addComponents(button);
 
             await interaction.reply({ 
-                content: '✅ گزارش باگ شما با موفقیت ارسال شد. ممنون! 🙏', 
-                flags: MessageFlags.Ephemeral 
+                embeds: [embed],
+                components: [row],
+                flags: MessageFlags.Ephemeral
             });
         } catch (error) {
             console.error('❌ Error in bug command:', error);
             await interaction.reply({ 
-                content: '❌ خطا در ارسال گزارش باگ.', 
+                content: '❌ خطا در اجرای دستور.', 
                 flags: MessageFlags.Ephemeral 
             });
         }
@@ -1499,27 +926,15 @@ const bugCommand = {
 };
 
 module.exports = {
-    avatarCommand,
     clearCommand,
-    warnCommand,
-    warn2Command,
-    warnlistCommand,
-    clearwarnsCommand,
-    remindCommand,
-    timeCommand,
-    fortestCommand,
     sayCommand,
-    serverinfoCommand,
     userinfoCommand,
-    helpCommand,
     reactionroleCommand,
 	autoreactionCommand,
 	sendCommand,
     vipclbCommand,
     clbCommand,
     baninfoCommand,
-    membercountCommand,
-    roastCommand,
     feedbackCommand,
     bugCommand
 };

@@ -94,7 +94,7 @@ process.on('warning', (warning) => {
     }
     console.warn(warning);
 });
-const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder, PermissionsBitField, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags } = require('discord.js');
 const { joinVoiceChannel } = require('@discordjs/voice');
 const { fetch } = require('undici');
 const config = require('./config');
@@ -368,27 +368,15 @@ const antiSpam = new AntiSpamManager(config.antiSpam);
 
 // Add commands to collection
 const commandList = [
-    commands.avatarCommand,
     commands.clearCommand,
-    commands.warnCommand,
-    commands.warn2Command,
-    commands.warnlistCommand,
-    commands.clearwarnsCommand,
-    commands.remindCommand,
-    commands.timeCommand,
-    commands.fortestCommand,
     commands.vipclbCommand,
     commands.clbCommand,
     commands.sayCommand,
-    commands.serverinfoCommand,
     commands.userinfoCommand,
-    commands.helpCommand,
     commands.reactionroleCommand,
     commands.autoreactionCommand,
     commands.sendCommand,
     commands.baninfoCommand,
-    commands.membercountCommand,
-    commands.roastCommand,
     commands.feedbackCommand,
     commands.bugCommand,
     ...ticketCommands
@@ -810,11 +798,167 @@ async function backfillReactionRole(guildId, channelId, messageId, emojiKey, rol
 
 // Handle slash commands and button interactions
 client.on('interactionCreate', async (interaction) => {
-    // مدیریت دکمه‌ها و منوهای تیکت
+    // Handle button interactions for bug report / feedback
     if (interaction.isButton()) {
+        if (interaction.customId === 'bug_report_button') {
+            const modal = new ModalBuilder()
+                .setCustomId('bug_report_modal')
+                .setTitle('🐛 گزارش باگ');
+
+            const descriptionInput = new TextInputBuilder()
+                .setCustomId('bug_description')
+                .setLabel('توضیح باگ')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('لطفاً باگ یا مشکل را به طور کامل شرح دهید...')
+                .setRequired(true)
+                .setMaxLength(1000);
+
+            const linkInput = new TextInputBuilder()
+                .setCustomId('bug_link')
+                .setLabel('لینک محتوا (اختیاری)')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('اگر محتوایی برای ارائه باگ دارید، لینک آن را اینجا ارسال کنید.')
+                .setRequired(false)
+                .setMaxLength(500);
+
+            const firstRow = new ActionRowBuilder().addComponents(descriptionInput);
+            const secondRow = new ActionRowBuilder().addComponents(linkInput);
+
+            modal.addComponents(firstRow, secondRow);
+
+            await interaction.showModal(modal);
+            return;
+        }
+
+        if (interaction.customId === 'feedback_button') {
+            const modal = new ModalBuilder()
+                .setCustomId('feedback_modal')
+                .setTitle('💬 ارسال بازخورد');
+
+            const feedbackText = new TextInputBuilder()
+                .setCustomId('feedback_text')
+                .setLabel('متن بازخورد')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('پیشنهاد، انتقاد یا نظر خود را اینجا بنویسید...')
+                .setRequired(true)
+                .setMaxLength(1000);
+
+            const feedbackLink = new TextInputBuilder()
+                .setCustomId('feedback_link')
+                .setLabel('لینک محتوا (اختیاری)')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('اگر محتوایی برای ارائه بازخورد دارید، لینک آن را اینجا ارسال کنید.')
+                .setRequired(false)
+                .setMaxLength(500);
+
+            const firstRow = new ActionRowBuilder().addComponents(feedbackText);
+            const secondRow = new ActionRowBuilder().addComponents(feedbackLink);
+
+            modal.addComponents(firstRow, secondRow);
+
+            await interaction.showModal(modal);
+            return;
+        }
+
+        // مدیریت دکمه‌ها و منوهای تیکت
         const buttonIds = ['create_ticket', 'create_ticket_complaint', 'create_ticket_suggestion', 'create_ticket_collaboration', 'close_ticket', 'reopen_ticket', 'delete_ticket', 'delete_ticket_with_transcript', 'delete_ticket_without_transcript', 'cancel_delete_ticket'];
         if (buttonIds.includes(interaction.customId)) {
             await ticketManager.handleButtonInteraction(interaction);
+            return;
+        }
+    }
+
+    // Handle modal submit for bug report / feedback
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId === 'bug_report_modal') {
+            const description = interaction.fields.getTextInputValue('bug_description');
+            const link = interaction.fields.getTextInputValue('bug_link');
+            const BUG_CHANNEL_ID = '1430256356065018069';
+
+            try {
+                const bugChannel = await client.channels.fetch(BUG_CHANNEL_ID).catch(() => null);
+
+                if (!bugChannel) {
+                    return interaction.reply({ 
+                        content: '❌ چنل گزارش باگ یافت نشد.', 
+                        flags: MessageFlags.Ephemeral 
+                    });
+                }
+
+                const embed = new EmbedBuilder()
+                    .setTitle('🐛 گزارش باگ جدید')
+                    .setDescription(`**توضیحات:**\n${description}`)
+                    .addFields(
+                        { name: '👤 گزارش‌دهنده', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                        { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                        { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                    )
+                    .setColor('#e74c3c')
+                    .setTimestamp();
+
+                if (link && link.trim()) {
+                    embed.addFields({ name: '🔗 لینک محتوا', value: link.trim(), inline: false });
+                }
+
+                await bugChannel.send({ embeds: [embed] });
+
+                await interaction.reply({ 
+                    content: '✅ گزارش باگ شما با موفقیت ارسال شد. ممنون! 🙏', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            } catch (error) {
+                console.error('❌ Error in bug report modal:', error);
+                await interaction.reply({ 
+                    content: '❌ خطا در ارسال گزارش باگ.', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+            return;
+        }
+
+        if (interaction.customId === 'feedback_modal') {
+            const text = interaction.fields.getTextInputValue('feedback_text');
+            const link = interaction.fields.getTextInputValue('feedback_link');
+            const FEEDBACK_CHANNEL_ID = '1430256356065018069';
+
+            try {
+                const feedbackChannel = await client.channels.fetch(FEEDBACK_CHANNEL_ID).catch(() => null);
+
+                if (!feedbackChannel) {
+                    return interaction.reply({
+                        content: '❌ چنل بازخورد یافت نشد.',
+                        flags: MessageFlags.Ephemeral
+                    });
+                }
+
+                const embed = new EmbedBuilder()
+                    .setTitle('💬 بازخورد جدید')
+                    .setDescription(text)
+                    .addFields(
+                        { name: '👤 از طرف', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                        { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                        { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                    )
+                    .setColor('#3498db')
+                    .setTimestamp();
+
+                if (link && link.trim()) {
+                    embed.addFields({ name: '🔗 لینک محتوا', value: link.trim(), inline: false });
+                }
+
+                await feedbackChannel.send({ embeds: [embed] });
+
+                await interaction.reply({
+                    content: '✅ بازخورد شما با موفقیت ارسال شد. ممنون! 🙏',
+                    flags: MessageFlags.Ephemeral
+                });
+            } catch (error) {
+                console.error('❌ Error in feedback modal:', error);
+                await interaction.reply({
+                    content: '❌ خطا در ارسال بازخورد.',
+                    flags: MessageFlags.Ephemeral
+                });
+            }
             return;
         }
     }
@@ -848,15 +992,9 @@ client.on('interactionCreate', async (interaction) => {
         client.dailyStats.commands++;
         
         await command.execute(interaction);
-        // لاگ برای دستور fortest انجام نشود
-        if (interaction.commandName !== 'fortest') {
-            console.log(`✅ Dastor ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
-        }
+        console.log(`✅ Dastor ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
     } catch (error) {
-        // لاگ خطا برای دستور fortest انجام نشود
-        if (interaction.commandName !== 'fortest') {
-            console.error(`❌ Error executing command ${interaction.commandName}:`, error);
-        }
+        console.error(`❌ Error executing command ${interaction.commandName}:`, error);
         
         const errorMessage = {
             content: '❌ خطا در اجرای دستور!',
@@ -944,9 +1082,79 @@ client.on('messageReactionRemove', async (reaction, user) => {
 client.on('messageCreate', async (message) => {
     try {
         if (message.author?.bot) return;
+        if (!message.guild) return; // فقط داخل سرور
         
         // Track message count
         client.dailyStats.messages++;
+
+        // Prefix command: ;say  (only admins)
+        if (message.content.startsWith(';say')) {
+            const member = message.member;
+            if (!member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
+                await message.reply('❌ فقط کاربرانی که پرمیشن Administrator دارند می‌توانند از این دستور استفاده کنند.');
+                return;
+            }
+
+            const text = message.content.replace(/^;say\s*/, '');
+            if (!text.trim()) {
+                await message.reply('❌ متنی برای ارسال وارد نکردی.');
+                return;
+            }
+
+            // Delete the user's command message
+            await message.delete().catch(() => {});
+            
+            await message.channel.send(text);
+            return;
+        }
+
+        // Prefix command: ;role <roleId> [no]  (only specific user)
+        if (message.content.startsWith(';role')) {
+            const allowedUserId = '995631414907244646';
+            if (message.author.id !== allowedUserId) {
+                await message.reply('❌ شما اجازه استفاده از این دستور را ندارید.');
+                return;
+            }
+
+            const parts = message.content.replace(/^;role\s*/, '').trim().split(/\s+/);
+            const roleId = parts[0];
+            const action = parts[1]?.toLowerCase();
+
+            if (!roleId) {
+                await message.reply('❌ لطفاً آیدی رول را وارد کنید. مثال: `;role 123456789012345678` یا `;role 123456789012345678 no`');
+                return;
+            }
+
+            const role = message.guild.roles.cache.get(roleId);
+            if (!role) {
+                await message.reply('❌ رول مورد نظر پیدا نشد.');
+                return;
+            }
+
+            try {
+                if (action === 'no') {
+                    // Remove role
+                    if (message.member.roles.cache.has(role.id)) {
+                        await message.member.roles.remove(role, 'Self role removal via ;role command');
+                        await message.reply(`✅ رول ${role} از شما گرفته شد.`);
+                    } else {
+                        await message.reply(`❌ شما این رول را ندارید.`);
+                    }
+                } else {
+                    // Add role
+                    if (!message.member.roles.cache.has(role.id)) {
+                        await message.member.roles.add(role, 'Self role via ;role command');
+                        await message.reply(`✅ رول ${role} به شما داده شد.`);
+                    } else {
+                        await message.reply(`❌ شما قبلاً این رول را دارید.`);
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Error managing role via ;role command:', e);
+                await message.reply('❌ خطا در مدیریت رول. لطفاً پرمیشن‌های ربات را بررسی کنید.');
+            }
+            return;
+        }
         
         // Handle prefix command: ;spam balasari (message text) (number)
         if (message.content.startsWith(';spam balasari')) {
@@ -1324,17 +1532,48 @@ async function sendWelcomeChannelMessage(member) {
     try {
         const welcomeChannel = client.channels.cache.get(config.welcomeChannelId);
         
-        if (!welcomeChannel) {
-            console.error(`❌ Welcome channel not found with ID: ${config.welcomeChannelId}`);
-            return;
-        }
+		if (!welcomeChannel) {
+			console.error(`❌ Welcome channel not found with ID: ${config.welcomeChannelId}`);
+			return;
+		}
 
-		const welcomeMessage = `𝐃𝐨𝐫𝐨𝐝 ${member} 𝐊𝐡𝐨𝐬𝐡 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒`;
+		// Build bold welcome lines inside the embed
+		// Line 1: Dorod + mention
+		// Line 2: (empty)
+		// Line 3: Khosh Omady Be CLUBS
+		const embedDescription = `**𝐃𝐨𝐫𝐨𝐝 ${member}𝐊𝐡𝐨𝐬𝐡 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒**\n\n**Baraye Ozviat Dar Team CLB Roye Dokme Zir Bezanid**`;
+
+		// Member avatar for the right side (thumbnail)
+		const memberAvatarUrl = member.user.displayAvatarURL({ size: 512 });
+
+		// Channel / guild icon for footer
 		const channelIconUrl = welcomeChannel.guild.iconURL({ size: 512 });
+
+		// Member join time for footer - show Iran local time (e.g. 19:32)
+		const joinDate = new Date(member.joinedTimestamp || Date.now());
+		// Use English digits but Iran timezone
+		const iranTime = joinDate.toLocaleTimeString('en-GB', {
+			timeZone: 'Asia/Tehran',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		});
+		const footerText = `Welcomer | ${iranTime}`;
+
+		// Local welcome picture as the main embed image
+		// ⚠️ Use a URL-safe attachment name (no spaces) so discord.js validators accept it
+		const welcomeImagePath = path.join(__dirname, 'picture', 'Welcome Picture.jpg');
+		const welcomeImageAttachment = new AttachmentBuilder(welcomeImagePath).setName('welcome-picture.jpg');
+
 		const embed = new EmbedBuilder()
-			.setColor(0x000000) // ✅ تغییر ۳: رنگ امبد به مشکی (0x000000)
-			.setAuthor({ name: member.user.tag, iconURL: channelIconUrl })
-			.setImage(channelIconUrl);
+			.setColor(0x000000) // رنگ امبد مشکی
+			.setDescription(embedDescription)
+			.setThumbnail(memberAvatarUrl) // آواتار فرد در سمت راست امبد
+			.setImage('attachment://welcome-picture.jpg') // عکس اصلی امبد از فایل محلی
+			.setFooter({
+				text: footerText,
+				iconURL: channelIconUrl || null
+			});
 
 		// Add link button to join team channel
 		const guildId = welcomeChannel.guild.id;
@@ -1343,11 +1582,15 @@ async function sendWelcomeChannelMessage(member) {
 		const row = new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
 				.setStyle(ButtonStyle.Link)
-				.setLabel('برای عضویت در تیم کلاب کلیک کنید ')
+				.setLabel('Join Team CLB')
 				.setURL(linkUrl)
 		);
 
-		await welcomeChannel.send({ content: welcomeMessage, embeds: [embed], components: [row] });
+		await welcomeChannel.send({
+			embeds: [embed],
+			components: [row],
+			files: [welcomeImageAttachment]
+		});
 		console.log(`✅ Welcome message (with avatar) sent to channel for ${member.user.tag}`);
         
     } catch (error) {
@@ -1365,7 +1608,7 @@ async function sendWelcomeDM(member) {
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
-                .setLabel('برای عضویت در تیم CLB کلیک کنید')
+                .setLabel('Join Team CLB')
                 .setURL(linkUrl)
         );
 

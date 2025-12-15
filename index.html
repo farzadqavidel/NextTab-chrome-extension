@@ -941,10 +941,6 @@
                 <span class="discord-icon"><img src="https://img.icons8.com/?size=100&id=25627&format=png&color=000000" alt="discordicon"></span>
                 <span>به دیسکورد ما بپیوندید</span>
             </a>
-            <a href="/suggestion.html" class="discord-btn suggest interactive" target="_blank"> 
-                <span class="suggestion-icon">💬</span>
-                <span>پیشنهاد و انتقاد</span>
-            </a>
         </div>
 
         
@@ -979,15 +975,10 @@
             <span>عضو شدن</span>
         </button>
 
-        <button class="float-btn" id="goSuggest" title="پیشنهاد و انتقاد" aria-label="پیشنهاد و انتقاد">
-            <span class="icon" aria-hidden="true">
-                <img src="https://cdn-icons-png.flaticon.com/512/1380/1380338.png" alt="پیشنهاد"/>
-            </span>
-            <span>پیشنهاد</span>
-        </button>
     </div>
 
-    <a href="/channels.html" class="floating-lock" title="ورود به پنل چنل‌ها">🔒</a>
+    <!-- حذف لینک پنل چنل‌ها طبق درخواست -->
+    <!-- <a href="/channels.html" class="floating-lock" title="ورود به پنل چنل‌ها">🔒</a> -->
 
     <script>
         // Discord Bot Integration
@@ -1318,18 +1309,11 @@
             const goAdmin = document.getElementById('goAdmin');
             const goDev = document.getElementById('goDev');
             const goJoin = document.getElementById('goJoin');
-            const goSuggest = document.getElementById('goSuggest');
             const homeBtn = document.getElementById('homeBtn');
 
             if (goAdmin) goAdmin.addEventListener('click', ()=>{ const el = document.getElementById('adminSection'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
             if (goDev) goDev.addEventListener('click', ()=>{ const el = document.getElementById('developerSection'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
             if (goJoin) goJoin.addEventListener('click', ()=>{ const el = document.getElementById('joinForm'); if (el) el.scrollIntoView({behavior:'smooth', block:'center'}); });
-
-            // suggestion button: navigate to suggestion page
-            if (goSuggest) goSuggest.addEventListener('click', ()=>{
-                // direct navigation to suggestion page (page contains its own form)
-                window.location.href = '/suggestion.html';
-            });
 
             // home button: scroll to header (top of page)
             if (homeBtn) homeBtn.addEventListener('click', ()=>{
