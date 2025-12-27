@@ -2,12 +2,17 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 
 // تنظیمات تیکت
 const TICKET_CONFIG = {
-    openCategoryId: '1430265943879057408',    // کتگوری تیکت‌های باز
-    closeCategoryId: '1430265894839259136',   // کتگوری تیکت‌های بسته
-    transcriptChannelId: '1430265420035784775', // چنل ارسال ترنسکریپت
-    // رول‌هایی که به همه تیکت‌ها دسترسی دارند
+    openCategoryId: '1453000459307581440',    // کتگوری تیکت‌های باز
+    closeCategoryId: '1453003257369596044',   // کتگوری تیکت‌های بسته
+    transcriptChannelId: '1453106056292208662', // چنل ارسال ترنسکریپت
+    // رول‌هایی که به همه تیکت‌ها دسترسی دارند (می‌توانند پیام بفرستند و تیکت را ببندند، اما نمی‌توانند آن را حذف کنند)
     allowedRoles: [
-        '1432688893106458705' // دسترسی به همه تیکت‌ها (می‌تواند ببندد، نمی‌تواند حذف کند)
+        '1432688893106458705', // دسترسی به همه تیکت‌ها (می‌تواند ببندد، نمی‌تواند حذف کند)
+        '1452988034877362298'  // رول خاص: می‌تواند پیام بفرستد و تیکت را ببندد اما حذف نکند
+    ],
+    // رول‌هایی با دسترسی کامل (Full-permission roles) — اگر آیدی‌ای در اینجا قرار دهید، به تمام بخش‌های تیکت دسترسی کامل داده می‌شود
+    fullPermissionRoles: [
+        // مثال: '123456789012345678'
     ],
     // دسترسی مخصوص برای برخی انواع تیکت
     typeRoleAccess: {
@@ -16,12 +21,10 @@ const TICKET_CONFIG = {
         collaboration: ['1415440089047371897']    // رول فقط برای همکاری
     },
     ticketTypes: {
-        server_complaint: { name: 'شکایت از سرور', emoji: '🚨', prefix: 'complaint' },
-        membership: { name: 'درخواست عضویت', emoji: '🟢', prefix: 'membership' },
-        suggestions: { name: 'انتقادات و پیشنهادات', emoji: '💡', prefix: 'suggestion' },
-        collaboration: { name: 'همکاری', emoji: '🤝', prefix: 'collaboration' },
-        ban_review: { name: 'بررسی بن', emoji: '🛡️', prefix: 'banreview' },
-        vip_request: { name: 'درخواست VIP', emoji: '💎', prefix: 'vip' }
+        // فقط سه آپشن مورد نیاز نگه داشته شد
+        product_purchase: { name: 'خرید محصول | Product purchase', emoji: '🛍️', prefix: 'product' },
+        product_support: { name: 'پشتیبانی محصول | Product support', emoji: '💻', prefix: 'support' },
+        suggestions: { name: 'موارد دیگر | More', emoji: '➕', prefix: 'more' }
     }
 };
 
@@ -85,9 +88,9 @@ class TicketManager {
     }
 
     // ارسال لاگ اکشن تیکت
-    async sendTicketActionLog({ guild, actorUser, ticketNumber, action }) {
+    async sendTicketActionLog({ guild, actorUser, ticketNumber, action, channelName, ticketType }) {
         try {
-            const LOG_CHANNEL_ID = '1430267793793880247';
+            const LOG_CHANNEL_ID = '1453105371790180547';
             const channel = await this.client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
             if (!channel || !channel.send) return;
 
@@ -96,16 +99,35 @@ class TicketManager {
             let embedColor = 0x000000; // مشکی برای سایر اکشن‌ها
             if (action === 'Created') {
                 embedColor = 0x00ff00; // سبز برای ایجاد تیکت
+            } else if (action === 'Closed') {
+                embedColor = 0xffa500; // نارنجی برای بستن تیکت
             } else if (action === 'Deleted') {
                 embedColor = 0xff0000; // قرمز برای حذف تیکت
+            }
+            
+            // دریافت نام نوع تیکت
+            let ticketTypeName = 'نامشخص';
+            if (ticketType && TICKET_CONFIG.ticketTypes[ticketType]) {
+                ticketTypeName = TICKET_CONFIG.ticketTypes[ticketType].name;
+            }
+            
+            // تبدیل action به فرمت مورد نیاز
+            let actionText = 'Unknown';
+            if (action === 'Created') {
+                actionText = 'Create';
+            } else if (action === 'Closed') {
+                actionText = 'Close';
+            } else if (action === 'Deleted') {
+                actionText = 'Delete';
             }
             
             const embed = new EmbedBuilder()
                 .setColor(embedColor)
                 .setAuthor({ name: actor.tag, iconURL: actor.displayAvatarURL?.({ size: 128 }) })
                 .addFields(
-                    { name: 'Logged Info', value: `Ticket: Ticket-${String(ticketNumber).padStart(4, '0')}\nAction: ${action}`, inline: true },
-                    { name: 'Panel', value: 'CLUBS-Ticket 2', inline: true }
+                    { name: 'Channel', value: channelName || 'نامشخص', inline: true },
+                    { name: 'Panel', value: ticketTypeName, inline: true },
+                    { name: 'Action', value: actionText, inline: true }
                 )
                 .setTimestamp();
 
@@ -114,7 +136,7 @@ class TicketManager {
     }
 
     // ایجاد تیکت جدید
-    async createTicket(interaction, ticketType = 'server_complaint') {
+    async createTicket(interaction, ticketType = 'product_purchase') {
         try {
             const guild = interaction.guild;
             const user = interaction.user;
@@ -125,7 +147,7 @@ class TicketManager {
                 const existingChannel = guild.channels.cache.get(existingTicket.channelId);
                 if (existingChannel) {
                 return await interaction.reply({
-                    content: `❌ شما قبلاً یک تیکت باز دارید: ${existingChannel}`,
+                    content: `❌ Shoma Ghablan Yek Ticket Baz Darid: ${existingChannel}`,
                     flags: MessageFlags.Ephemeral
                 });
                 } else {
@@ -137,7 +159,7 @@ class TicketManager {
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             // دریافت اطلاعات نوع تیکت
-            const typeInfo = TICKET_CONFIG.ticketTypes[ticketType] || TICKET_CONFIG.ticketTypes['server_complaint'];
+            const typeInfo = TICKET_CONFIG.ticketTypes[ticketType] || TICKET_CONFIG.ticketTypes['product_purchase'];
             
             // ایجاد چنل تیکت با فرمت جدید: تیکت-شماره-موضوع-نام کاربر
             const ticketChannel = await guild.channels.create({
@@ -172,45 +194,144 @@ class TicketManager {
                 ]
             });
 
-            // اضافه کردن دسترسی برای رول‌های عمومی همه تیکت‌ها (1432688893106458705)
+            // اضافه کردن دسترسی برای رول‌های عمومی همه تیکت‌ها
             for (const roleId of TICKET_CONFIG.allowedRoles) {
-                await ticketChannel.permissionOverwrites.create(roleId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true,
-                    ManageMessages: true  // برای بستن تیکت
-                    // بدون ManageChannels - نمی‌توانند تیکت را حذف کنند
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await ticketChannel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true  // برای بستن تیکت
+                            // بدون ManageChannels - نمی‌توانند تیکت را حذف کنند
+                        });
+                    } else if (member) {
+                        await ticketChannel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying allowedRoles overwrite for ${roleId}:`, err);
+                }
+            }
+
+            // اضافه کردن دسترسی کامل برای رول‌های فول پرم (اگر تعریف شده باشد)
+            for (const roleId of (TICKET_CONFIG.fullPermissionRoles || [])) {
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await ticketChannel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true,
+                            ManageChannels: true
+                        });
+                    } else if (member) {
+                        await ticketChannel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true,
+                            ManageChannels: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying fullPermissionRoles overwrite for ${roleId}:`, err);
+                }
             }
 
             // اضافه کردن دسترسی مخصوص برای نوع تیکت جاری (فقط اگر تعریف شده باشد)
-            // رول 1415440089047371897 فقط برای vip_request, ban_review, collaboration
+            // رول‌های مخصوصی که برای انواع تعریف شده‌اند
             const typeSpecificRoles = (TICKET_CONFIG.typeRoleAccess && TICKET_CONFIG.typeRoleAccess[ticketType]) || [];
             for (const roleId of typeSpecificRoles) {
-                await ticketChannel.permissionOverwrites.create(roleId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true,
-                    ManageMessages: true  // برای بستن تیکت
-                    // بدون ManageChannels - نمی‌توانند تیکت را حذف کنند
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await ticketChannel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true  // برای بستن تیکت
+                        });
+                    } else if (member) {
+                        await ticketChannel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying type-specific overwrite for ${roleId}:`, err);
+                }
             }
 
             // صراحتاً عدم دسترسی برای همه رول‌های دیگر (به جز این دو رول و رول‌های Full Permission)
             // رول‌های خاص که باید بسته شوند:
             const denyRoles = ['1400919880017907797', '1400910230358851686'];
             for (const roleId of denyRoles) {
-                await ticketChannel.permissionOverwrites.create(roleId, {
-                    ViewChannel: false,
-                    SendMessages: false,
-                    ReadMessageHistory: false,
-                    AttachFiles: false,
-                    EmbedLinks: false
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    if (role) {
+                        await ticketChannel.permissionOverwrites.create(role, {
+                            ViewChannel: false,
+                            SendMessages: false,
+                            ReadMessageHistory: false,
+                            AttachFiles: false,
+                            EmbedLinks: false
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying denyRoles overwrite for ${roleId}:`, err);
+                }
             }
 
             // ذخیره اطلاعات تیکت (حافظه)
@@ -225,16 +346,24 @@ class TicketManager {
             const ticketNumber = String(ticketCounter - 1).padStart(4, '0');
             const creationTime = Math.floor(Date.now() / 1000);
             
+            const detailsText = (ticketType === 'suggestions') ? '```\n1.Name: \n2.Mozo Ticket Shoma?: \n3.Tozihat Shoma:\n```' : '```\n1.Name: \n2.Mahsol Entekhab Shode(Code Mahsol): \n3.Tozihat Shoma:\n```';
+            
             const welcomeEmbed = new EmbedBuilder()
-                .setColor(0x000000) // تغییر رنگ به مشکی
+                .setColor(0x2ECC71) // تغییر رنگ به سبز
                 .addFields([
                     { name: 'Ticket Number:', value: `#${ticketNumber}`, inline: true },
                     { name: 'Zaman Ijad:', value: `<t:${creationTime}:F>`, inline: true },
                     { name: 'Mozo Ticket:', value: '\u200b' + typeInfo.name, inline: true },
                     { name: 'Dorod Form Zir Ro Por Konid Va Montazer Pasokh Bashid !', value: '', inline: false },
-                    { name: '\u200b', value: '```\nName Shoma :\nTozihat Shoma :\n```', inline: false }
+                    { name: '\u200b', value: '```\n1.Name: \n2.Mahsol Entekhab Shode(Code Mahsol): \n3.Tozihat Shoma:\n```', inline: false }
                 ])
                 .setTimestamp();
+
+            // ensure last field uses detailsText (handles suggestions vs others)
+            try {
+                const idx = (welcomeEmbed.data?.fields?.length || 1) - 1;
+                welcomeEmbed.spliceFields(idx, 1, { name: '\u200b', value: detailsText, inline: false });
+            } catch (e) {}
 
             // دکمه بستن تیکت
             const closeButton = new ButtonBuilder()
@@ -246,10 +375,10 @@ class TicketManager {
 
             // ارسال پیام خوشامد در تیکت
             await ticketChannel.send({
-                content: `Ticket Shoma Ijad Shod ${user}\n||<@&1432688893106458705>||`,
+                content: `Ticket Shoma Ijad Shod ${user}\n||<@&1454091946946728080> <@&1452988034877362298> ||`,
                 embeds: [welcomeEmbed],
                 components: [row],
-                allowedMentions: { roles: ['1432688893106458705'], users: [user.id] }
+                allowedMentions: { roles: ['1454091946946728080'], users: [user.id] }
             });
 
             // Restrict visibility strictly to opener + allowed roles
@@ -264,20 +393,22 @@ class TicketManager {
                 guild,
                 actorUser: user,
                 ticketNumber: ticketCounter - 1,
-                action: 'Created'
+                action: 'Created',
+                channelName: ticketChannel.name,
+                ticketType: ticketType
             });
 
             // پاسخ به کاربر
             await interaction.editReply({
-                content: `✅Ticket Shoma: ${ticketChannel}`
+                content: `✔ Ticket Shoma: ${ticketChannel}`
             });
 
-            console.log(`✅ New ticket created: ${ticketChannel.name} by ${user.tag}`);
+            console.log(`✔  New ticket created: ${ticketChannel.name} by ${user.tag}`);
 
         } catch (error) {
             console.error('❌ Error creating ticket:', error);
             await interaction.editReply({
-                content: '❌ خطا در ایجاد تیکت! لطفاً دوباره تلاش کنید.'
+                content: '❌ Khata Dar Ijad Ticket! Lotfan Dobare Talash Konid.'
             });
         }
     }
@@ -289,21 +420,18 @@ class TicketManager {
             const channel = interaction.channel;
             
             // بررسی دسترسی برای بستن تیکت
-            // رول‌های Full Permissions (Administrator) دسترسی کامل دارند
             const hasAdminPermission = member.permissions.has(PermissionFlagsBits.Administrator);
-            const hasRole1 = member.roles.cache.has('1432688893106458705'); // دسترسی به همه تیکت‌ها
-            const hasRole2 = member.roles.cache.has('1415440089047371897'); // دسترسی فقط به vip, ban_review, collaboration
+            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member.roles.cache.has(roleId));
+            const hasFullPermRole = (TICKET_CONFIG.fullPermissionRoles || []).some(roleId => member.roles.cache.has(roleId));
+            // آیا کاربر نقش‌هایی دارد که مخصوص به نوع تیکت اجازه می‌دهند؟
+            const hasTypeSpecificRole = Object.keys(TICKET_CONFIG.typeRoleAccess).some(type => TICKET_CONFIG.typeRoleAccess[type].some(roleId => member.roles.cache.has(roleId)));
             
             let canClose = false;
             
-            if (hasAdminPermission) {
-                // رول‌های Full Permissions دسترسی کامل دارند
+            if (hasAdminPermission || hasFullPermRole || hasAllowedRole) {
                 canClose = true;
-            } else if (hasRole1) {
-                // رول اول می‌تواند همه تیکت‌ها را ببندد
-                canClose = true;
-            } else if (hasRole2) {
-                // رول دوم فقط می‌تواند تیکت‌های vip_request, ban_review, collaboration را ببندد
+            } else if (hasTypeSpecificRole) {
+                // اگر نقش اختصاصی برای نوع تیکت دارد، فقط آن نوع تیکت‌ها را می‌تواند ببندد
                 let ticketInfo = activeTickets.get(channel.id);
                 
                 // اگر در لیست فعال نیست، سعی کن از نام چنل اطلاعات را استخراج کنی
@@ -317,9 +445,9 @@ class TicketManager {
                 }
                 
                 const ticketType = ticketInfo?.ticketType || '';
-                const allowedTypesForRole2 = ['vip_request', 'ban_review', 'collaboration'];
+                const allowedTypesForMember = Object.keys(TICKET_CONFIG.typeRoleAccess).filter(type => TICKET_CONFIG.typeRoleAccess[type].some(roleId => member.roles.cache.has(roleId)));
                 
-                if (allowedTypesForRole2.includes(ticketType)) {
+                if (allowedTypesForMember.includes(ticketType)) {
                     canClose = true;
                 }
             }
@@ -452,7 +580,7 @@ class TicketManager {
             // نام‌گذاری مجدد چنل با فرمت جدید
             try {
                 if (ticketInfo.ticketType && ticketInfo.userId && ticketInfo.ticketNumber) {
-                    const typeInfo = TICKET_CONFIG.ticketTypes[ticketInfo.ticketType] || TICKET_CONFIG.ticketTypes['server_complaint'];
+                    const typeInfo = TICKET_CONFIG.ticketTypes[ticketInfo.ticketType] || TICKET_CONFIG.ticketTypes['product_purchase'];
                     // پیدا کردن نام کاربری از آیدی
                     let username = 'unknown';
                     try {
@@ -473,10 +601,14 @@ class TicketManager {
 
             // حذف کامل دسترسی کاربر اصلی (انگار تیکت حذف شده)
             let originalUser = null;
-            try {
-                originalUser = await this.client.users.fetch(ticketInfo.userId);
-            } catch (error) {
-                console.error('Error fetching original user:', error);
+            if (ticketInfo && ticketInfo.userId) {
+                try {
+                    originalUser = await this.client.users.fetch(ticketInfo.userId);
+                } catch (error) {
+                    console.error('Error fetching original user:', error);
+                }
+            } else {
+                console.log('No userId found on ticketInfo; skipping fetch for original user.');
             }
             
             if (originalUser) {
@@ -494,7 +626,7 @@ class TicketManager {
             }
 
             // پیام بستن تیکت (مطابق با تصویر)
-            const closeMessage = `**Ticket Closed by ${interaction.user}**\n\n` +
+            const closeMessage = `**Ticket Closed by ${interaction.user}**\n` +
                 `Entekhab Konid ❗\n` ;
 
             // دکمه‌های مدیریت تیکت بسته (مطابق با تصویر)
@@ -502,31 +634,46 @@ class TicketManager {
                 .setCustomId('delete_ticket_with_transcript')
                 .setLabel('Transcript Ticket')
                 .setStyle(ButtonStyle.Primary)
-                .setEmoji('☑️');
+                .setEmoji({ name: '☑️' });
 
             const reopenButton = new ButtonBuilder()
                 .setCustomId('reopen_ticket')
                 .setLabel('Open Ticket')
                 .setStyle(ButtonStyle.Success)
-                .setEmoji('✅');
+                .setEmoji({ name: '✔' });
 
             const deleteButton = new ButtonBuilder()
                 .setCustomId('delete_ticket')
                 .setLabel('Delete Ticket')
                 .setStyle(ButtonStyle.Danger)
-                .setEmoji('➖');
+                .setEmoji({ name: '➖' });
 
             const row = new ActionRowBuilder().addComponents(transcriptButton, reopenButton, deleteButton);
 
             // ارسال پیام در چنل تیکت
-            await channel.send({
-                content: closeMessage,
-                components: [row]
-            });
+            try {
+                await channel.send({
+                    content: closeMessage,
+                    components: [row]
+                });
+            } catch (error) {
+                console.error('Error sending close message with components:', error);
+                try {
+                    console.error('Components payload:', JSON.stringify([row.toJSON()], null, 2));
+                } catch (e) {
+                    console.error('Could not stringify components payload:', e);
+                }
+                // Fallback: try to send without components to avoid breaking the flow
+                try {
+                    await channel.send({ content: closeMessage });
+                } catch (err2) {
+                    console.error('Also failed to send fallback message:', err2);
+                }
+            }
 
             // پاسخ به interaction
             await interaction.editReply({
-                content: '✅ تیکت با موفقیت بسته شد.',
+                content: '✔  Ticekt Closed Succesfully',
                 components: []
             });
 
@@ -543,8 +690,8 @@ class TicketManager {
                         .addFields([
                             { name: 'Zaman Baste Shodan Ticket:', value: `<t:${closeTime}:F>`, inline: false }
                         ])
-                        .setFooter({ text: 'Clubs _Ticket' })
-                        .setColor(0x000000)
+                        .setFooter({ text: 'Shadow _Ticket' })
+                        .setColor(0x0000FF)
                         .setTimestamp();
 
                     await originalUser.send({ embeds: [userNotificationEmbed] });
@@ -558,17 +705,27 @@ class TicketManager {
             // حذف از لیست تیکت‌های فعال
             activeTickets.delete(channel.id);
 
-            console.log(`✅ Ticket closed: ${channel.name} by ${interaction.user.tag}`);
+            // ارسال لاگ بستن تیکت
+            await this.sendTicketActionLog({
+                guild: interaction.guild,
+                actorUser: interaction.user,
+                ticketNumber: ticketInfo?.ticketNumber || 0,
+                action: 'Closed',
+                channelName: channel.name,
+                ticketType: ticketInfo?.ticketType
+            });
+
+            console.log(`✔  Ticket closed: ${channel.name} by ${interaction.user.tag}`);
 
         } catch (error) {
             console.error('❌ Error closing ticket:', error);
             
             // بررسی نوع خطا و پاسخ مناسب
-            let errorMessage = '❌ خطا در بستن تیکت!';
+            let errorMessage = '❌ Khata Dar Close Ticekt';
             if (error.code === 10003) {
-                errorMessage = '❌ چنل مورد نظر یافت نشد! ممکن است قبلاً حذف شده باشد.';
+                errorMessage = '❌ Channel Mored Nazar Yaft Nashod (Shayad Ghadim Pak Shode Ast.)';
             } else if (error.code === 50013) {
-                errorMessage = '❌ دسترسی لازم برای این عملیات وجود ندارد!';
+                errorMessage = '❌ Permision Kafi Vojod Nadarad.';
             }
             
             try {
@@ -580,6 +737,267 @@ class TicketManager {
             } catch (replyError) {
                 console.error('Error sending error message:', replyError);
             }
+        }
+    }
+
+    // بستن تیکت از طریق message (برای prefix commands)
+    async closeTicketFromMessage(message) {
+        try {
+            const member = message.member;
+            const channel = message.channel;
+            
+            // بررسی دسترسی برای بستن تیکت
+            const hasAdminPermission = member?.permissions.has(PermissionFlagsBits.Administrator);
+            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member?.roles.cache.has(roleId));
+            const hasFullPermRole = (TICKET_CONFIG.fullPermissionRoles || []).some(roleId => member?.roles.cache.has(roleId));
+            const hasManageMessages = channel.permissionsFor(member)?.has(PermissionFlagsBits.ManageMessages);
+            
+            let canClose = false;
+            
+            if (hasAdminPermission || hasFullPermRole || hasAllowedRole || hasManageMessages) {
+                canClose = true;
+            }
+
+            if (!canClose) {
+                await message.reply('❌ شما نمیتوانید این تیکت را ببندید.');
+                return;
+            }
+
+            // بررسی وجود چنل
+            if (!channel || !channel.guild) {
+                await message.reply('❌ چنل مورد نظر یافت نشد!');
+                return;
+            }
+
+            // بررسی اینکه در تیکت باز هستیم
+            if (!channel.parentId || channel.parentId !== TICKET_CONFIG.openCategoryId) {
+                await message.reply('❌ این دستور فقط در تیکت‌های باز قابل استفاده است!');
+                return;
+            }
+
+            let ticketInfo = activeTickets.get(channel.id);
+
+            // اگر در لیست فعال نیست، سعی کن از نام چنل اطلاعات را استخراج کنی
+            if (!ticketInfo) {
+                const channelName = channel.name;
+                let ticketMatch = channelName.match(/^ticket-(\d+)-(\w+)-(.+)$/);
+                
+                if (ticketMatch) {
+                    const ticketNumber = parseInt(ticketMatch[1]);
+                    const ticketType = ticketMatch[2];
+                    const username = ticketMatch[3];
+                    
+                    // پیدا کردن آیدی کاربر از نام کاربری
+                    let userId = null;
+                    try {
+                        const guild = message.guild;
+                        const user = guild.members.cache.find(member => member.user.username === username)?.user;
+                        if (user) {
+                            userId = user.id;
+                        } else {
+                            try {
+                                const members = await Promise.race([
+                                    guild.members.fetch(),
+                                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                                ]);
+                                const foundUser = members.find(member => member.user.username === username)?.user;
+                                userId = foundUser?.id || null;
+                            } catch (fetchError) {
+                                console.log(`⚠️ Could not fetch members for username ${username}, using cache only`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error finding user by username:', error);
+                    }
+                    
+                    ticketInfo = {
+                        ticketNumber: ticketNumber,
+                        userId: userId,
+                        channelId: channel.id,
+                        createdAt: Date.now(),
+                        ticketType: ticketType
+                    };
+                } else {
+                    // فرمت‌های قدیمی برای سازگاری
+                    ticketMatch = channelName.match(/^(\d+)-(\w+)$/);
+                    if (ticketMatch) {
+                        const userId = ticketMatch[1];
+                        const ticketType = ticketMatch[2];
+                        ticketInfo = { ticketNumber: ticketCounter, userId, channelId: channel.id, createdAt: Date.now(), ticketType };
+                    } else {
+                        ticketMatch = channelName.match(/(\d+)-(\w+)-(\d+)/);
+                        if (ticketMatch) {
+                            const ticketNumber = parseInt(ticketMatch[1]);
+                            const ticketType = ticketMatch[2];
+                            const userId = ticketMatch[3];
+                            ticketInfo = { ticketNumber, userId, channelId: channel.id, createdAt: Date.now(), ticketType };
+                        } else {
+                            ticketMatch = channelName.match(/ticket-(\d+)-(.+)/);
+                            if (ticketMatch) {
+                                const ticketNumber = parseInt(ticketMatch[1]);
+                                const username = ticketMatch[2];
+                                
+                                let originalUserId = null;
+                                try {
+                                    const guild = message.guild;
+                                    const members = await guild.members.fetch();
+                                    const originalUser = members.find(member => member.user.username === username)?.user;
+                                    originalUserId = originalUser?.id;
+                                } catch (error) {
+                                    console.error('Error finding original user:', error);
+                                }
+
+                                ticketInfo = {
+                                    ticketNumber: ticketNumber,
+                                    userId: originalUserId,
+                                    channelId: channel.id,
+                                    createdAt: Date.now()
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!ticketInfo) {
+                await message.reply('❌ این چنل یک تیکت معتبر نیست!');
+                return;
+            }
+
+            // Delete the user's command message
+            await message.delete().catch(() => {});
+
+            // انتقال تیکت به کتگوری بسته
+            try {
+                await channel.setParent(TICKET_CONFIG.closeCategoryId);
+            } catch (error) {
+                console.error('Error setting parent category:', error);
+            }
+            
+            // نام‌گذاری مجدد چنل
+            try {
+                if (ticketInfo.ticketType && ticketInfo.userId && ticketInfo.ticketNumber) {
+                    const typeInfo = TICKET_CONFIG.ticketTypes[ticketInfo.ticketType] || TICKET_CONFIG.ticketTypes['product_purchase'];
+                    let username = 'unknown';
+                    try {
+                        const user = await this.client.users.fetch(ticketInfo.userId);
+                        username = user.username;
+                    } catch (error) {
+                        console.error('Error fetching user for username:', error);
+                    }
+                    await channel.setName(`closed-ticket-${String(ticketInfo.ticketNumber).padStart(4, '0')}-${typeInfo.prefix}-${username}`);
+                } else {
+                    await channel.setName(`closed-${channel.name}`);
+                }
+            } catch (error) {
+                console.error('Error renaming channel:', error);
+            }
+
+            // حذف کامل دسترسی کاربر اصلی
+            let originalUser = null;
+            if (ticketInfo && ticketInfo.userId) {
+                try {
+                    originalUser = await this.client.users.fetch(ticketInfo.userId);
+                } catch (error) {
+                    console.error('Error fetching original user:', error);
+                }
+            }
+            
+            if (originalUser) {
+                try {
+                    await channel.permissionOverwrites.edit(originalUser.id, {
+                        ViewChannel: false,
+                        SendMessages: false,
+                        ReadMessageHistory: false,
+                        AttachFiles: false,
+                        EmbedLinks: false
+                    });
+                } catch (error) {
+                    console.error('Error updating user permissions:', error);
+                }
+            }
+
+            // پیام بستن تیکت
+            const closeMessage = `**Ticket Closed by ${message.author}**\n` +
+                `Entekhab Konid ❗\n` ;
+
+            // دکمه‌های مدیریت تیکت بسته
+            const transcriptButton = new ButtonBuilder()
+                .setCustomId('delete_ticket_with_transcript')
+                .setLabel('Transcript Ticket')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji({ name: '☑️' });
+
+            const reopenButton = new ButtonBuilder()
+                .setCustomId('reopen_ticket')
+                .setLabel('Open Ticket')
+                .setStyle(ButtonStyle.Success)
+                .setEmoji({ name: '✔' });
+
+            const deleteButton = new ButtonBuilder()
+                .setCustomId('delete_ticket')
+                .setLabel('Delete Ticket')
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji({ name: '➖' });
+
+            const row = new ActionRowBuilder().addComponents(transcriptButton, reopenButton, deleteButton);
+
+            // ارسال پیام در چنل تیکت
+            try {
+                await channel.send({
+                    content: closeMessage,
+                    components: [row]
+                });
+            } catch (error) {
+                console.error('Error sending close message with components:', error);
+                try {
+                    await channel.send({ content: closeMessage });
+                } catch (err2) {
+                    console.error('Also failed to send fallback message:', err2);
+                }
+            }
+
+            // ارسال اطلاع‌رسانی به کاربر اصلی
+            if (originalUser) {
+                try {
+                    const ticketNumber = ticketInfo.ticketNumber || 0;
+                    const closeTime = Math.floor(Date.now() / 1000);
+                    const ticketNumberFormatted = String(ticketNumber).padStart(4, '0');
+                    
+                    const userNotificationEmbed = new EmbedBuilder()
+                        .setTitle('Ticket Shoma Baste Shod ❗')
+                        .setDescription(`Ticket Shoma Ba shomare #${ticketNumberFormatted} Tavasot ${message.author} Baste Shod !`)
+                        .addFields([
+                            { name: 'Zaman Baste Shodan Ticket:', value: `<t:${closeTime}:F>`, inline: false }
+                        ])
+                        .setFooter({ text: 'Shadow _Ticket' })
+                        .setColor(0x0000FF)
+                        .setTimestamp();
+
+                    await originalUser.send({ embeds: [userNotificationEmbed] });
+                    console.log(`📩 Closure notification sent to ${originalUser.tag}`);
+                } catch (dmError) {
+                    console.error('Error sending closure notification to user:', dmError);
+                }
+            }
+
+            // حذف از لیست تیکت‌های فعال
+            activeTickets.delete(channel.id);
+
+            // ارسال لاگ بستن تیکت
+            await this.sendTicketActionLog({
+                guild: message.guild,
+                actorUser: message.author,
+                ticketNumber: ticketInfo?.ticketNumber || 0,
+                action: 'Closed',
+                channelName: channel.name,
+                ticketType: ticketInfo?.ticketType
+            });
+
+            console.log(`✔  Ticket closed: ${channel.name} by ${message.author.tag}`);
+        } catch (error) {
+            console.error('❌ Error closing ticket from message:', error);
+            await message.channel.send('❌ خطا در بستن تیکت!').catch(() => {});
         }
     }
 
@@ -595,7 +1013,7 @@ class TicketManager {
 
             if (!hasAdminPermission && !hasAllowedRole && !hasManageChannels) {
                 return await interaction.reply({
-                    content: '❌ شما دسترسی لازم برای باز کردن تیکت را ندارید!',
+                    content: '❌ Shoma Permision Baz Kardan Ticket Ra Nadarid ',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -603,12 +1021,13 @@ class TicketManager {
             // بررسی اینکه در کتگوری بسته است
             if (channel.parentId !== TICKET_CONFIG.closeCategoryId) {
                 return await interaction.reply({
-                    content: '❌ فقط تیکت‌های بسته شده قابل باز کردن مجدد هستند!',
+                    content: '❌ Faghat Ticket Haye Baste Shode Ghabel Baz Shodan Hastan!',
                     flags: MessageFlags.Ephemeral
                 });
             }
 
-            await interaction.deferReply();
+            // پاسخ به کاربر به صورت خصوصی (ephemeral) تا از ارسال دو پیام مشابه در چنل جلوگیری شود
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             // استخراج اطلاعات از نام چنل
             const channelName = channel.name;
@@ -693,7 +1112,7 @@ class TicketManager {
             
             // نام‌گذاری مجدد چنل با فرمت جدید
             if (ticketType && ticketNumber && userId) {
-                const typeInfo = TICKET_CONFIG.ticketTypes[ticketType] || TICKET_CONFIG.ticketTypes['server_complaint'];
+                const typeInfo = TICKET_CONFIG.ticketTypes[ticketType] || TICKET_CONFIG.ticketTypes['product_purchase'];
                 const username = originalUser?.username || 'unknown';
                 await channel.setName(`ticket-${String(ticketNumber).padStart(4, '0')}-${typeInfo.prefix}-${username}`);
             } else {
@@ -723,39 +1142,139 @@ class TicketManager {
 
             // بازگرداندن دسترسی رول‌های مجاز همگانی
             for (const roleId of TICKET_CONFIG.allowedRoles) {
-                await channel.permissionOverwrites.create(roleId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true,
-                    ManageMessages: true
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await channel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    } else if (member) {
+                        await channel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error restoring allowedRoles overwrite for ${roleId}:`, err);
+                }
+            }
+
+            // بازگرداندن دسترسی کامل برای رول‌های فول پرم (در صورت تعریف)
+            for (const roleId of (TICKET_CONFIG.fullPermissionRoles || [])) {
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await channel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true,
+                            ManageChannels: true
+                        });
+                    } else if (member) {
+                        await channel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true,
+                            ManageChannels: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error restoring fullPermissionRoles overwrite for ${roleId}:`, err);
+                }
             }
 
             // صراحتاً عدم دسترسی برای این دو رول در حالت بازگشایی
             const denyRoles2 = ['1400919880017907797', '1400910230358851686'];
             for (const roleId of denyRoles2) {
-                await channel.permissionOverwrites.create(roleId, {
-                    ViewChannel: false,
-                    SendMessages: false,
-                    ReadMessageHistory: false,
-                    AttachFiles: false,
-                    EmbedLinks: false
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    if (role) {
+                        await channel.permissionOverwrites.create(role, {
+                            ViewChannel: false,
+                            SendMessages: false,
+                            ReadMessageHistory: false,
+                            AttachFiles: false,
+                            EmbedLinks: false
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying denyRoles2 overwrite for ${roleId}:`, err);
+                }
             }
 
             // اضافه کردن دسترسی رول‌های مخصوص به نوع تیکت (اگر وجود داشته باشد)
             const typeSpecificRoles = (TICKET_CONFIG.typeRoleAccess && TICKET_CONFIG.typeRoleAccess[ticketType]) || [];
             for (const roleId of typeSpecificRoles) {
-                await channel.permissionOverwrites.create(roleId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true,
-                    ManageMessages: true
-                });
+                try {
+                    let role = interaction.guild.roles.cache.get(roleId);
+                    // اگر رول در cache نبود، سعی کن fetch کنی
+                    if (!role) {
+                        try {
+                            role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+                        } catch {}
+                    }
+                    const member = interaction.guild.members.cache.get(roleId);
+                    if (role) {
+                        await channel.permissionOverwrites.create(role, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    } else if (member) {
+                        await channel.permissionOverwrites.create(member.user.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true,
+                            ManageMessages: true
+                        });
+                    }
+                    // اگر رول واقعاً وجود ندارد، بدون هشدار skip کن (ممکن است رول حذف شده باشد)
+                } catch (err) {
+                    console.error(`❌ Error applying type-specific overwrite on reopen for ${roleId}:`, err);
+                }
             }
 
             // ساخت embed پیام باز کردن مجدد تیکت
@@ -766,36 +1285,26 @@ class TicketManager {
             
             const reopenEmbed = new EmbedBuilder()
                 .setDescription(reopenDescription)
-                .setFooter({ text: `<t:${reopenTime}:F>` })
                 .setColor(0x000000)
                 .setTimestamp();
 
-            // ارسال پیام موقت که حذف می‌شود
-            const tempMessage = await interaction.editReply({
+            // ارسال پیام خصوصی برای درخواست‌دهنده (ephemeral) و سپس یک پیام عمومی در کانال تیکت
+            await interaction.editReply({
                 embeds: [reopenEmbed],
                 components: []  // بدون دکمه
             });
 
-            // حذف پیام بعد از 8 ثانیه
-            setTimeout(async () => {
-                try {
-                    await tempMessage.delete();
-                } catch (error) {
-                    // اگر پیام قبلاً حذف شده، خطا نادیده گرفته می‌شود
-                }
-            }, 8000);
-
-            // ارسال پیام در چنل تیکت
+            // ارسال پیام تنها یک بار در چنل تیکت
             await channel.send({
                 embeds: [reopenEmbed]
             });
 
-            console.log(`✅ Ticket reopened: ${channel.name} by ${interaction.user.tag}`);
+            console.log(`✔  Ticket reopened: ${channel.name} by ${interaction.user.tag}`);
 
         } catch (error) {
             console.error('❌ Error reopening ticket:', error);
             await interaction.editReply({
-                content: '❌ خطا در باز کردن مجدد تیکت!'
+                content: '❌ Khata Dar Baz Kardan Dobare Ticket'
             });
         }
     }
@@ -810,7 +1319,7 @@ class TicketManager {
 
             if (!hasAdminPermission) {
                 return await interaction.reply({
-                    content: '❌ شما دسترسی لازم برای حذف تیکت را ندارید!',
+                    content: '❌ Shoma Nemitavanid Ticket Ra Hazf Konid !',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -818,7 +1327,7 @@ class TicketManager {
             // بررسی اینکه در کتگوری بسته است
             if (channel.parentId !== TICKET_CONFIG.closeCategoryId) {
                 return await interaction.reply({
-                    content: '❌ فقط تیکت‌های بسته شده قابل حذف هستند!',
+                    content: '❌ Aval Ticket Ra Close Konid !',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -886,15 +1395,19 @@ class TicketManager {
                         return;
                     }
                     
+                    // ذخیره نام چنل قبل از حذف
+                    const channelName = channel.name;
                     await channel.delete();
-                    console.log(`✅ Ticket deleted without transcript: ${channel.name} by ${interaction.user.tag}`);
+                    console.log(`✔  Ticket deleted without transcript: ${channelName} by ${interaction.user.tag}`);
                     // ارسال لاگ حذف تیکت
                     if (ticketInfo) {
                         await this.sendTicketActionLog({
                             guild: interaction.guild,
                             actorUser: interaction.user,
                             ticketNumber: ticketInfo?.ticketNumber || 0,
-                            action: 'Deleted'
+                            action: 'Deleted',
+                            channelName: channelName,
+                            ticketType: ticketInfo?.ticketType
                         });
                     }
                 } catch (error) {
@@ -908,16 +1421,16 @@ class TicketManager {
             }, 3000);
 
             // بررسی اینکه آیا interaction هنوز معتبر است
-            await this.safeEditReply(interaction, '✅ تیکت در حال حذف...');
+            await this.safeEditReply(interaction, '✔  Ticket Dar Hale Delete Shodan');
 
         } catch (error) {
             console.error('❌ Error deleting ticket:', error);
             try {
                 if (interaction.replied || interaction.deferred) {
-                    await this.safeEditReply(interaction, '❌ خطا در حذف تیکت!');
+                    await this.safeEditReply(interaction, '❌ Khata Dar Delete Dadan Ticekt');
                 } else {
                     await interaction.reply({
-                        content: '❌ خطا در حذف تیکت!',
+                        content: '❌ Khata Dar Delete Dadan Ticekt',
                         flags: MessageFlags.Ephemeral
                     });
                 }
@@ -948,7 +1461,7 @@ class TicketManager {
                 // بررسی اینکه آیا در کتگوری تیکت بسته است
                 if (channel.parentId !== TICKET_CONFIG.closeCategoryId) {
                     return await interaction.editReply({
-                        content: '❌ این چنل یک تیکت بسته نیست!'
+                        content: '❌ In Channel Yek Ticket Baste Nist '
                     });
                 }
 
@@ -1011,14 +1524,18 @@ class TicketManager {
                         return;
                     }
                     
+                    // ذخیره نام چنل قبل از حذف
+                    const channelName = channel.name;
                     await channel.delete();
-                    console.log(`✅ Ticket deleted with transcript: ${channel.name} by ${interaction.user.tag}`);
+                    console.log(`✔  Ticket deleted with transcript: ${channelName} by ${interaction.user.tag}`);
                     // ارسال لاگ حذف تیکت
                     await this.sendTicketActionLog({
                         guild: interaction.guild,
                         actorUser: interaction.user,
                         ticketNumber: ticketInfo?.ticketNumber || 0,
-                        action: 'Deleted'
+                        action: 'Deleted',
+                        channelName: channelName,
+                        ticketType: ticketInfo?.ticketType
                     });
                 } catch (error) {
                     // اگر خطای Unknown Channel بود، فقط لاگ کن (چنل قبلاً حذف شده)
@@ -1030,7 +1547,7 @@ class TicketManager {
                 }
             }, 3000);
 
-            await this.safeEditReply(interaction, '✅ تیکت با ترنسکریپت در حال حذف...');
+            await this.safeEditReply(interaction, '✔  Ticket Whith Transcript Was Deleted');
 
         } catch (error) {
             console.error('❌ Error deleting ticket with transcript:', error);
@@ -1076,14 +1593,18 @@ class TicketManager {
                         return;
                     }
                     
+                    // ذخیره نام چنل قبل از حذف
+                    const channelName = channel.name;
                     await channel.delete();
-                    console.log(`✅ Ticket deleted without transcript: ${channel.name} by ${interaction.user.tag}`);
+                    console.log(`✔  Ticket deleted without transcript: ${channelName} by ${interaction.user.tag}`);
                     // ارسال لاگ حذف تیکت
                     await this.sendTicketActionLog({
                         guild: interaction.guild,
                         actorUser: interaction.user,
                         ticketNumber: ticketInfo?.ticketNumber || 0,
-                        action: 'Deleted'
+                        action: 'Deleted',
+                        channelName: channelName,
+                        ticketType: ticketInfo?.ticketType
                     });
                 } catch (error) {
                     // اگر خطای Unknown Channel بود، فقط لاگ کن (چنل قبلاً حذف شده)
@@ -1098,7 +1619,7 @@ class TicketManager {
             // حذف از لیست انتظار
             this.pendingDeletions.delete(interaction.user.id);
 
-            await this.safeEditReply(interaction, '✅ تیکت بدون ترنسکریپت در حال حذف...');
+            await this.safeEditReply(interaction, '✔  تیکت بدون ترنسکریپت در حال حذف...');
 
         } catch (error) {
             console.error('❌ Error deleting ticket without transcript:', error);
@@ -1139,7 +1660,10 @@ class TicketManager {
         try {
             const messages = await channel.messages.fetch({ limit: 100 });
             const sortedMessages = Array.from(messages.values()).reverse();
-            const openerTag = await this.client.users.fetch(ticketInfo.userId).then(u => u.tag).catch(() => 'نامشخص');
+            let openerTag = 'نامشخص';
+            if (ticketInfo && ticketInfo.userId) {
+                openerTag = await this.client.users.fetch(ticketInfo.userId).then(u => u.tag).catch(() => 'نامشخص');
+            }
 
             function escapeHtml(value) {
                 try {
@@ -1218,7 +1742,16 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
     async sendTranscript(transcript, ticketInfo) {
         try {
             const transcriptChannel = await this.client.channels.fetch(TICKET_CONFIG.transcriptChannelId);
-            const originalUser = await this.client.users.fetch(ticketInfo.userId);
+            let originalUser = null;
+            if (ticketInfo && ticketInfo.userId) {
+                try {
+                    originalUser = await this.client.users.fetch(ticketInfo.userId);
+                } catch (error) {
+                    console.error('Error fetching original user for transcript:', error);
+                }
+            } else {
+                console.log('No userId on ticketInfo; transcript will not be sent to user.');
+            }
 
             if (transcriptChannel) {
                 const transcriptEmbed = new EmbedBuilder()
@@ -1242,7 +1775,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                     }]
                 });
 
-                console.log(`✅ Transcript sent to channel ${transcriptChannel.name}`);
+                console.log(`✔  Transcript sent to channel ${transcriptChannel.name}`);
             } else {
                 console.error('❌ Transcript channel not found');
             }
@@ -1258,19 +1791,19 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
 
         switch (customId) {
             case 'create_ticket':
-                await this.createTicket(interaction, 'server_complaint');
+                await this.createTicket(interaction, 'product_purchase');
                 break;
             case 'create_ticket_membership':
-                await this.createTicket(interaction, 'membership');
+                await this.createTicket(interaction, 'suggestions');
                 break;
             case 'create_ticket_complaint':
-                await this.createTicket(interaction, 'server_complaint');
+                await this.createTicket(interaction, 'suggestions');
                 break;
             case 'create_ticket_suggestion':
                 await this.createTicket(interaction, 'suggestions');
                 break;
             case 'create_ticket_collaboration':
-                await this.createTicket(interaction, 'collaboration');
+                await this.createTicket(interaction, 'suggestions');
                 break;
             case 'ticket_select':
                 // select menus send their customId but values contain the chosen option
@@ -1309,7 +1842,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
 
             // Map values directly to ticket types defined in TICKET_CONFIG
             const allowed = Object.keys(TICKET_CONFIG.ticketTypes);
-            const ticketType = allowed.includes(value) ? value : 'server_complaint';
+            const ticketType = allowed.includes(value) ? value : (value === 'more' ? 'suggestions' : 'product_purchase');
 
             // Create the ticket
             await this.createTicket(interaction, ticketType);
@@ -1326,14 +1859,10 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
         try {
             // A richer, darker purple-styled embed to match the requested design
             const panelEmbed = new EmbedBuilder()
-                .setColor(0x000000) 
-                    .setAuthor({ name: 'CLUBS', iconURL: this.client.user?.displayAvatarURL?.({ size: 64 }) })
-                    .setTitle('📩 CLUBS Ticket Panel')
-                .setDescription('Salam Dost Aziz Lotfan Mozo Ticket Ro Entekhab Konid.')
-                .addFields([
-                    { name: 'Nokte :', value: '• Har Karbar Mitavanad 1 Ticket Fa`al Dashte Bashad.\n• Be Sorat Kamel Va Ba Madrak Sohbat Konid', inline: false }
-                ])
-                    .setFooter({ text: 'Roye Menu Zir Bezanid Va Entekhab Konid.' });
+                .setColor(0x008000) 
+                    .setAuthor({ name: 'Shadow Support', iconURL: this.client.user?.displayAvatarURL?.({ size: 64 }) })
+                    .setTitle('Ticket Khod Ra Entekhab Konid !👇🏻')
+                    .setFooter({ text: 'Shadow Support Is Here | Choose one.' });
 
                 // use guild icon as thumbnail if available
                 try {
@@ -1342,16 +1871,14 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                     if (icon) panelEmbed.setThumbnail(icon);
                 } catch (e) {}
 
-            // Create a select menu (drop-down) with the requested ticket types
+            // Create a select menu (drop-down) with the requested ticket types (matching requested design)
             const select = new StringSelectMenuBuilder()
                 .setCustomId('ticket_select')
                 .setPlaceholder('Entekhab Ticket')
                 .addOptions([
-                    { label: 'Hamkari', description: 'Darkhast Hamkari', value: 'collaboration', emoji: '🤝' },
-                    { label: 'Shekayat', description: 'Gozaresh Az Player Ya Server', value: 'server_complaint', emoji: '😡' },
-                    { label: 'Pishnahadat', description: 'Pishnahadat Va Enteghadat', value: 'suggestions', emoji: '🫴' },
-                    { label: 'Barresi Ban', description: 'Barresi Ban Va Raf Ban', value: 'ban_review', emoji: '⛔' },
-                    { label: 'Darkhast Vip', description: 'Darkhast Va Kharid Vip', value: 'vip_request', emoji: '💎' }
+                    { label: 'خرید محصول | Product purchase', description: 'برای خرید محصولات (اسکریپت / سورس و ...)', value: 'product_purchase', emoji: '🛍️' },
+                    { label: 'پشتیبانی محصول | Product support', description: 'پشتیبانی محصولات توسط تیم', value: 'product_support', emoji: '💻' },
+                    { label: 'موارد دیگر | More ...', description: 'موارد دیگر و پشتیبانی عمومی', value: 'more', emoji: '➕' }
                 ]);
 
             const row = new ActionRowBuilder().addComponents(select);
@@ -1361,7 +1888,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                 components: [row]
             });
 
-            console.log('✅ Ticket panel created (select menu)');
+            console.log('✔  Ticket panel created (select menu)');
 
         } catch (error) {
             console.error('❌ Error creating ticket panel:', error);
@@ -1417,15 +1944,20 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                     });
                 }
 
-                await channel.permissionOverwrites.create(user.id, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true
-                });
+                try {
+                    await channel.permissionOverwrites.create(user.id, {
+                        ViewChannel: true,
+                        SendMessages: true,
+                        ReadMessageHistory: true,
+                        AttachFiles: true,
+                        EmbedLinks: true
+                    });
 
-                addedItems.push(`👤 ${user.toString()}`);
+                    addedItems.push(`👤 ${user.toString()}`);
+                } catch (err) {
+                    console.error('❌ Error adding user overwrite:', err);
+                    return await interaction.editReply({ content: '❌ خطا در اضافه کردن کاربر به تیکت.' });
+                }
             }
 
             // اضافه کردن رول
@@ -1436,32 +1968,37 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
                     });
                 }
 
-                await channel.permissionOverwrites.create(role.id, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    AttachFiles: true,
-                    EmbedLinks: true
-                });
+                try {
+                    await channel.permissionOverwrites.create(role.id, {
+                        ViewChannel: true,
+                        SendMessages: true,
+                        ReadMessageHistory: true,
+                        AttachFiles: true,
+                        EmbedLinks: true
+                    });
 
-                addedItems.push(`🎭 ${role.toString()}`);
+                    addedItems.push(`🎭 ${role.toString()}`);
+                } catch (err) {
+                    console.error('❌ Error adding role overwrite:', err);
+                    return await interaction.editReply({ content: '❌ خطا در اضافه کردن رول به تیکت.' });
+                }
             }
 
             // پیام تأیید
             await interaction.editReply({
-                content: `✅ با موفقیت اضافه شد:\n${addedItems.join('\n')}`
+                content: `✔  با موفقیت اضافه شد:\n${addedItems.join('\n')}`
             });
 
             // اطلاع‌رسانی در تیکت
             const embed = new EmbedBuilder()
                 .setColor(0x000000) // تغییر رنگ به مشکی
-                .setDescription(`➕ **${interaction.user.toString()} اضافه کرد:**\n${addedItems.join('\n')}`)
-                .setFooter({ text: 'CLUBS_ticket' })
+                .setDescription(`➕ **${interaction.user.toString()} Add Kard:**\n${addedItems.join('\n')}`)
+                .setFooter({ text: 'Shadow_ticket' })
                 .setTimestamp();
 
             await channel.send({ embeds: [embed] });
 
-            console.log(`✅ Added to ticket ${channel.name}: ${addedItems.join(', ')} by ${interaction.user.tag}`);
+            console.log(`✔  Added to ticket ${channel.name}: ${addedItems.join(', ')} by ${interaction.user.tag}`);
 
         } catch (error) {
             console.error('❌ Error adding to ticket:', error);
@@ -1474,28 +2011,6 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,IRANSans;background:#1e
 
 // دستورات تیکت
 const ticketCommands = [
-    {
-        data: new SlashCommandBuilder()
-            .setName('ticket-panel')
-            .setDescription('ایجاد پنل تیکت در چنل فعلی'),
-        async execute(interaction) {
-            // بررسی دسترسی ادمین
-            if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-                return await interaction.reply({
-                    content: '❌ شما دسترسی لازم برای استفاده از این دستور را ندارید!',
-                    flags: MessageFlags.Ephemeral
-                });
-            }
-
-            const ticketManager = new TicketManager(interaction.client);
-            await ticketManager.createTicketPanel(interaction.channel);
-            
-            await interaction.reply({
-                content: '✅ پنل تیکت با موفقیت ایجاد شد!',
-                flags: MessageFlags.Ephemeral
-            });
-        }
-    },
     {
         data: new SlashCommandBuilder()
             .setName('add')

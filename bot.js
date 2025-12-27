@@ -128,7 +128,7 @@ const client = new Client({
 
 
 // --- Console Logging to Discord ---
-const CONSOLE_LOG_CHANNEL_ID = '1430256356065018069';
+const CONSOLE_LOG_CHANNEL_ID = '1453101042148315269';
 // Use the original console methods (stored before dotenv filter) for Discord logging
 const ORIGINAL_CONSOLE = { log: originalLog, error: originalError, warn: originalWarn, info: originalInfo, debug: console.debug };
 
@@ -325,13 +325,13 @@ class AntiSpamManager {
         try {
             switch (step.type) {
                 case 'warn':
-                    await message.reply({ content: '⚠️ لطفاً از ارسال پیام‌های پشت‌سرهم یا تکراری خودداری کنید.' }).catch(() => {});
+                    await message.reply({ content: '⚠️ Lotfan Az Ersal Payam Haye Posht Sar Ham Ya Takrari Khoddari Konid.' }).catch(() => {});
                     break;
                 case 'timeout': {
                     const ms = step.durationMs || 10 * 60 * 1000;
                     if (message.member?.moderatable) {
                         await message.member.timeout(ms, reason).catch(() => {});
-                        await message.reply({ content: `⏳ شما برای ${(ms/60000)|0} دقیقه میوت شدید.` }).catch(() => {});
+                        await message.reply({ content: `⏳ Shoma Baraye ${(ms/60000)|0} Daghigh Mut Shodid.` }).catch(() => {});
                     }
                     break;
                 }
@@ -369,16 +369,15 @@ const antiSpam = new AntiSpamManager(config.antiSpam);
 // Add commands to collection
 const commandList = [
     commands.clearCommand,
-    commands.vipclbCommand,
-    commands.clbCommand,
     commands.sayCommand,
     commands.userinfoCommand,
     commands.reactionroleCommand,
     commands.autoreactionCommand,
     commands.sendCommand,
-    commands.baninfoCommand,
     commands.feedbackCommand,
     commands.bugCommand,
+    commands.setstaffCommand,
+    commands.archiveCommand,
     ...ticketCommands
 ];
 
@@ -390,13 +389,13 @@ commandList.forEach(command => {
 const ticketManager = new TicketManager(client);
 
 // Voice channel the bot should always sit in (by ID)
-const VOICE_CHANNEL_ID = '1414724634900824291';
+const VOICE_CHANNEL_ID = '1453077225308950701';
 
 
 // Helper to update online member count channel name (updates every 5 minutes, no logs)
 async function updateOnlineMemberCountChannel() {
     try {
-        const ONLINE_MEMBER_CHANNEL_ID = '1430248540088700989';
+        const ONLINE_MEMBER_CHANNEL_ID = '1453107984891646144';
         let channel = client.channels.cache.get(ONLINE_MEMBER_CHANNEL_ID);
         if (!channel) {
             try { 
@@ -419,7 +418,7 @@ async function updateOnlineMemberCountChannel() {
             }
         });
         
-        const desiredName = `「⚫」𝐎𝐧𝐥𝐢𝐧𝐞 :  ${onlineCount}`;
+        const desiredName = `「🟢」𝐎𝐧𝐥𝐢𝐧𝐞 𝐂𝐨𝐮𝐧𝐭𝐞𝐫 :  ${onlineCount}`;
         if (channel.name !== desiredName) {
             try {
                 await channel.setName(desiredName).catch(() => {});
@@ -430,7 +429,7 @@ async function updateOnlineMemberCountChannel() {
     }
 }
 
-const SOLAR_DATE_CHANNEL_ID = '1440705278994550885';
+const SOLAR_DATE_CHANNEL_ID = '1453108213208580136';
 function gregorianToJalali(date) {
     const gDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const jDaysInMonth = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
@@ -803,21 +802,21 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'bug_report_button') {
             const modal = new ModalBuilder()
                 .setCustomId('bug_report_modal')
-                .setTitle('🐛 گزارش باگ');
+                .setTitle('🐛 Gozaresh Bagh');
 
             const descriptionInput = new TextInputBuilder()
                 .setCustomId('bug_description')
-                .setLabel('توضیح باگ')
+                .setLabel('Tozih Bagh')
                 .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('لطفاً باگ یا مشکل را به طور کامل شرح دهید...')
+                .setPlaceholder('Lotfan Bagh Ya Moshkel Ra Be Tor Kamel Sharh Dahid...')
                 .setRequired(true)
                 .setMaxLength(1000);
 
             const linkInput = new TextInputBuilder()
                 .setCustomId('bug_link')
-                .setLabel('لینک محتوا (اختیاری)')
+                .setLabel('Link Mohtava (Ekhtiari)')
                 .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('اگر محتوایی برای ارائه باگ دارید، لینک آن را اینجا ارسال کنید.')
+                .setPlaceholder('Agar Mohtavayi Baraye Erza Bagh Darid, Link An Ra Inja Ersal Konid.')
                 .setRequired(false)
                 .setMaxLength(500);
 
@@ -833,21 +832,21 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'feedback_button') {
             const modal = new ModalBuilder()
                 .setCustomId('feedback_modal')
-                .setTitle('💬 ارسال بازخورد');
+                .setTitle('FeedBack');
 
             const feedbackText = new TextInputBuilder()
                 .setCustomId('feedback_text')
-                .setLabel('متن بازخورد')
+                .setLabel('Discription')
                 .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('پیشنهاد، انتقاد یا نظر خود را اینجا بنویسید...')
+                .setPlaceholder('Pishnahad Va Enteghad Shoma ...')
                 .setRequired(true)
                 .setMaxLength(1000);
 
             const feedbackLink = new TextInputBuilder()
                 .setCustomId('feedback_link')
-                .setLabel('لینک محتوا (اختیاری)')
+                .setLabel('Link Address (Optional)')
                 .setStyle(TextInputStyle.Paragraph)
-                .setPlaceholder('اگر محتوایی برای ارائه بازخورد دارید، لینک آن را اینجا ارسال کنید.')
+                .setPlaceholder('Dar Inja Link Mohtavae Ke Dar Nazar Darid Ro Gharar Bedid')
                 .setRequired(false)
                 .setMaxLength(500);
 
@@ -873,43 +872,43 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'bug_report_modal') {
             const description = interaction.fields.getTextInputValue('bug_description');
             const link = interaction.fields.getTextInputValue('bug_link');
-            const BUG_CHANNEL_ID = '1430256356065018069';
+            const BUG_CHANNEL_ID = '1453101042148315269';
 
             try {
                 const bugChannel = await client.channels.fetch(BUG_CHANNEL_ID).catch(() => null);
 
                 if (!bugChannel) {
                     return interaction.reply({ 
-                        content: '❌ چنل گزارش باگ یافت نشد.', 
+                        content: '❌Bug Report Channel Peyda Nashod', 
                         flags: MessageFlags.Ephemeral 
                     });
                 }
 
                 const embed = new EmbedBuilder()
-                    .setTitle('🐛 گزارش باگ جدید')
-                    .setDescription(`**توضیحات:**\n${description}`)
+                    .setTitle('🐛 New Bug Report')
+                    .setDescription(`**Discription**\n${description}`)
                     .addFields(
-                        { name: '👤 گزارش‌دهنده', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
-                        { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                        { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                        { name: '👤 Reporter', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                        { name: '📅 Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                        { name: '🆔 Id', value: interaction.user.id, inline: true }
                     )
                     .setColor('#e74c3c')
                     .setTimestamp();
 
                 if (link && link.trim()) {
-                    embed.addFields({ name: '🔗 لینک محتوا', value: link.trim(), inline: false });
+                    embed.addFields({ name: '🔗 Link Address', value: link.trim(), inline: false });
                 }
 
                 await bugChannel.send({ embeds: [embed] });
 
                 await interaction.reply({ 
-                    content: '✅ گزارش باگ شما با موفقیت ارسال شد. ممنون! 🙏', 
+                    content: '✅Report Shoma Ersal Shod  🙏', 
                     flags: MessageFlags.Ephemeral 
                 });
             } catch (error) {
                 console.error('❌ Error in bug report modal:', error);
                 await interaction.reply({ 
-                    content: '❌ خطا در ارسال گزارش باگ.', 
+                    content: '❌ Khata Dar Ersal Report', 
                     flags: MessageFlags.Ephemeral 
                 });
             }
@@ -919,43 +918,43 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.customId === 'feedback_modal') {
             const text = interaction.fields.getTextInputValue('feedback_text');
             const link = interaction.fields.getTextInputValue('feedback_link');
-            const FEEDBACK_CHANNEL_ID = '1430256356065018069';
+            const FEEDBACK_CHANNEL_ID = '1453101042148315269';
 
             try {
                 const feedbackChannel = await client.channels.fetch(FEEDBACK_CHANNEL_ID).catch(() => null);
 
                 if (!feedbackChannel) {
                     return interaction.reply({
-                        content: '❌ چنل بازخورد یافت نشد.',
+                        content: '❌ Feedback Channel  Peyda Nashod',
                         flags: MessageFlags.Ephemeral
                     });
                 }
 
                 const embed = new EmbedBuilder()
-                    .setTitle('💬 بازخورد جدید')
+                    .setTitle('💬 New FeedBack')
                     .setDescription(text)
                     .addFields(
-                        { name: '👤 از طرف', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
-                        { name: '📅 تاریخ', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
-                        { name: '🆔 آیدی', value: interaction.user.id, inline: true }
+                        { name: '👤 Feedbacker', value: `${interaction.user} (${interaction.user.tag})`, inline: false },
+                        { name: '📅 Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+                        { name: '🆔 Id', value: interaction.user.id, inline: true }
                     )
                     .setColor('#3498db')
                     .setTimestamp();
 
                 if (link && link.trim()) {
-                    embed.addFields({ name: '🔗 لینک محتوا', value: link.trim(), inline: false });
+                    embed.addFields({ name: '🔗 Link Address', value: link.trim(), inline: false });
                 }
 
                 await feedbackChannel.send({ embeds: [embed] });
 
                 await interaction.reply({
-                    content: '✅ بازخورد شما با موفقیت ارسال شد. ممنون! 🙏',
+                    content: '✅Feed Back Shoma Ersal Shod! 🙏',
                     flags: MessageFlags.Ephemeral
                 });
             } catch (error) {
                 console.error('❌ Error in feedback modal:', error);
                 await interaction.reply({
-                    content: '❌ خطا در ارسال بازخورد.',
+                    content: '❌ Khata Dar Ersal FeedBack',
                     flags: MessageFlags.Ephemeral
                 });
             }
@@ -992,12 +991,12 @@ client.on('interactionCreate', async (interaction) => {
         client.dailyStats.commands++;
         
         await command.execute(interaction);
-        console.log(`✅ Dastor ${interaction.commandName} Estefade Shod Tavasot ${interaction.user.tag}`);
+        console.log(`✅ Karbar ${interaction.user.tag} Dastor ${interaction.commandName} Ra Estefade Kard `);
     } catch (error) {
         console.error(`❌ Error executing command ${interaction.commandName}:`, error);
         
         const errorMessage = {
-            content: '❌ خطا در اجرای دستور!',
+            content: '❌ Khata Dar Ejraye Dastor',
             flags: MessageFlags.Ephemeral
         };
 
@@ -1091,13 +1090,13 @@ client.on('messageCreate', async (message) => {
         if (message.content.startsWith(';say')) {
             const member = message.member;
             if (!member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
-                await message.reply('❌ فقط کاربرانی که پرمیشن Administrator دارند می‌توانند از این دستور استفاده کنند.');
+                await message.reply('❌ Faghat Role Haye Full Perm Mojaz Be Estefade Hastan Az In Dastor ');
                 return;
             }
 
             const text = message.content.replace(/^;say\s*/, '');
             if (!text.trim()) {
-                await message.reply('❌ متنی برای ارسال وارد نکردی.');
+                await message.reply('❌  Chizi Vared Nakardi !');
                 return;
             }
 
@@ -1112,7 +1111,7 @@ client.on('messageCreate', async (message) => {
         if (message.content.startsWith(';role')) {
             const allowedUserId = '995631414907244646';
             if (message.author.id !== allowedUserId) {
-                await message.reply('❌ شما اجازه استفاده از این دستور را ندارید.');
+                await message.reply('❌ Shoma Nemitavanid Az In Dastor Estefade Konid ');
                 return;
             }
 
@@ -1121,13 +1120,13 @@ client.on('messageCreate', async (message) => {
             const action = parts[1]?.toLowerCase();
 
             if (!roleId) {
-                await message.reply('❌ لطفاً آیدی رول را وارد کنید. مثال: `;role 123456789012345678` یا `;role 123456789012345678 no`');
+                await message.reply('❌ Id Role Ra Vared Konid !`');
                 return;
             }
 
             const role = message.guild.roles.cache.get(roleId);
             if (!role) {
-                await message.reply('❌ رول مورد نظر پیدا نشد.');
+                await message.reply('❌ In Role Peyda Nashod ');
                 return;
             }
 
@@ -1136,22 +1135,22 @@ client.on('messageCreate', async (message) => {
                     // Remove role
                     if (message.member.roles.cache.has(role.id)) {
                         await message.member.roles.remove(role, 'Self role removal via ;role command');
-                        await message.reply(`✅ رول ${role} از شما گرفته شد.`);
+                        await message.reply(`✅ Role ${role} Azat Gerefte Shod  `);
                     } else {
-                        await message.reply(`❌ شما این رول را ندارید.`);
+                        await message.reply(`❌ To In Role Ro Nadari !`);
                     }
                 } else {
                     // Add role
                     if (!message.member.roles.cache.has(role.id)) {
                         await message.member.roles.add(role, 'Self role via ;role command');
-                        await message.reply(`✅ رول ${role} به شما داده شد.`);
+                        await message.reply(`✅ Role ${role} Be Shoma Dade Shod `);
                     } else {
-                        await message.reply(`❌ شما قبلاً این رول را دارید.`);
+                        await message.reply(`❌ Shoma In Role Ro Darid `);
                     }
                 }
             } catch (e) {
                 console.error('❌ Error managing role via ;role command:', e);
-                await message.reply('❌ خطا در مدیریت رول. لطفاً پرمیشن‌های ربات را بررسی کنید.');
+                await message.reply('❌ Eror Permision (Role Mored Nazar Bala Tar Az Role Bot)');
             }
             return;
         }
@@ -1167,20 +1166,20 @@ client.on('messageCreate', async (message) => {
                 // Find the last number in the string (the count)
                 const numberMatch = parts.match(/(\d+)\s*$/);
                 if (!numberMatch) {
-                    await message.reply('❌ فرمت دستور اشتباه است. استفاده: `;spam balasari (متن پیام) (تعداد)`');
+                    await message.reply('❌ Format Dastor Eshtebah Ast. Estefade: `;spam balasari (Matn Payam) (Tedad)`');
                     return;
                 }
                 
                 const count = parseInt(numberMatch[1], 10);
                 if (count <= 0 || count > 50) {
-                    await message.reply('❌ تعداد باید بین 1 تا 50 باشد.');
+                    await message.reply('❌ Tedad Bayad Beyn 1 Ta 50 Bashad.');
                     return;
                 }
                 
                 // Extract message text (everything before the last number)
                 const messageText = parts.substring(0, numberMatch.index).trim();
                 if (!messageText) {
-                    await message.reply('❌ متن پیام نمی‌تواند خالی باشد.');
+                    await message.reply('❌ Matn Payam Nemitanad Khali Bashad.');
                     return;
                 }
                 
@@ -1195,7 +1194,7 @@ client.on('messageCreate', async (message) => {
                     await message.delete().catch(() => {});
                     
                     // Send error message
-                    const errorMsg = await message.channel.send('❌ این کاربر جزو کاربرهای حساس هست و تگ کردن آن ممنوع می‌باشد.').catch(() => null);
+                    const errorMsg = await message.channel.send('❌ In Karbar Jozo Karbar Haye Hassas Hast Va Tag Kardan An Mamnoo Miyabad.').catch(() => null);
                     
                     // Delete both messages after 10 seconds
                     setTimeout(async () => {
@@ -1212,7 +1211,7 @@ client.on('messageCreate', async (message) => {
                 const targetChannel = await client.channels.fetch(targetChannelId).catch(() => null);
                 
                 if (!targetChannel) {
-                    await message.reply('❌ چنل مورد نظر یافت نشد.');
+                    await message.reply('❌ Channel Mored Nazar Yaft Nashod.');
                     return;
                 }
                 
@@ -1221,7 +1220,7 @@ client.on('messageCreate', async (message) => {
                 if (botMember) {
                     const permissions = targetChannel.permissionsFor(botMember);
                     if (!permissions || !permissions.has('SendMessages')) {
-                        await message.reply('❌ ربات دسترسی ارسال پیام به این چنل را ندارد.');
+                        await message.reply('❌ Robot Dastrasi Ersal Payam Be In Channel Ra Nadarad.');
                         return;
                     }
                 }
@@ -1230,7 +1229,7 @@ client.on('messageCreate', async (message) => {
                 await message.delete().catch(() => {});
                 
                 // Send confirmation
-                const confirmMsg = await message.channel.send(`✅ در حال ارسال ${count} پیام به چنل <#${targetChannelId}>...`).catch(() => null);
+                const confirmMsg = await message.channel.send(`✅ Dar Hale Ersal ${count} Payam Be Channel <#${targetChannelId}>...`).catch(() => null);
                 
                 // Send messages with delay to avoid rate limits (100ms between each)
                 let successCount = 0;
@@ -1249,7 +1248,7 @@ client.on('messageCreate', async (message) => {
                 
                 // Update confirmation message
                 if (confirmMsg) {
-                    await confirmMsg.edit(`✅ ${successCount} از ${count} پیام با موفقیت ارسال شد به چنل <#${targetChannelId}>`).catch(() => {});
+                    await confirmMsg.edit(`✅ ${successCount} Az ${count} Payam Ba Movafaghiyat Ersal Shod Be Channel <#${targetChannelId}>`).catch(() => {});
                     // Delete confirmation after 5 seconds
                     setTimeout(async () => {
                         try {
@@ -1261,14 +1260,184 @@ client.on('messageCreate', async (message) => {
                 return; // Don't process further
             } catch (error) {
                 console.error('❌ Error in spam balasari command:', error);
-                await message.reply('❌ خطا در اجرای دستور.').catch(() => {});
+                await message.reply('❌ Khata Dar Ejraye Dastor.').catch(() => {});
                 return;
             }
+        }
+
+        // Prefix command: ;ticketpanel
+        if (message.content.startsWith(';ticketpanel')) {
+            const member = message.member;
+            if (!member?.permissions.has(PermissionsBitField.Flags.Administrator)) {
+                await message.reply('❌ Faghat Role Haye Full Perm Mojaz Be Estefade Hastan Az In Dastor');
+                return;
+            }
+
+            // Delete the user's command message
+            await message.delete().catch(() => {});
+
+            try {
+                await ticketManager.createTicketPanel(message.channel);
+                const confirmMsg = await message.channel.send('✔  Ticket Panel Created!').catch(() => null);
+                if (confirmMsg) {
+                    setTimeout(async () => {
+                        try {
+                            await confirmMsg.delete();
+                        } catch {}
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('❌ Error creating ticket panel:', error);
+                await message.channel.send('❌ Khata Dar Ijad Panel Ticket!').catch(() => {});
+            }
+            return;
+        }
+
+        // Prefix command: ;add <user mention or role mention>
+        if (message.content.startsWith(';add')) {
+            const member = message.member;
+            const channel = message.channel;
+            
+            // بررسی دسترسی
+            const hasAdminPermission = member?.permissions.has(PermissionsBitField.Flags.Administrator);
+            const TICKET_CONFIG = require('./ticket').TICKET_CONFIG;
+            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member?.roles.cache.has(roleId));
+            const hasManageChannels = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels);
+
+            if (!hasAdminPermission && !hasAllowedRole && !hasManageChannels) {
+                await message.reply('❌ Shoma Dastrasi Lazem Baraye Ezafe Kardan Be Ticket Ra Nadarid!');
+                return;
+            }
+
+            // بررسی اینکه در تیکت هستیم
+            if (!channel.parentId || 
+                (channel.parentId !== TICKET_CONFIG.openCategoryId && 
+                 channel.parentId !== TICKET_CONFIG.closeCategoryId)) {
+                await message.reply('❌ In Dastor Faghat Dar Ticket Ha Ghabel Estefade Ast!');
+                return;
+            }
+
+            // استخراج کاربر یا رول از mentions
+            const mentionedUser = message.mentions.users.first();
+            const mentionedRole = message.mentions.roles.first();
+
+            if (!mentionedUser && !mentionedRole) {
+                await message.reply('❌ Lotfan Yek Karbar Ya Role Ra Tag Konid! Mesal: `;add @user` Ya `;add @role`');
+                return;
+            }
+
+            // Delete the user's command message
+            await message.delete().catch(() => {});
+
+            try {
+                let addedItems = [];
+
+                // اضافه کردن کاربر
+                if (mentionedUser) {
+                    if (mentionedUser.bot) {
+                        await message.channel.send('❌ Nemitanid Robot Ra Be Ticket Ezafe Konid!');
+                        return;
+                    }
+
+                    try {
+                        await channel.permissionOverwrites.create(mentionedUser.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true
+                        });
+
+                        addedItems.push(`👤 ${mentionedUser.toString()}`);
+                    } catch (err) {
+                        console.error('❌ Error adding user overwrite:', err);
+                        await message.channel.send('❌ Khata Dar Ezafe Kardan Karbar Be Ticket.');
+                        return;
+                    }
+                }
+
+                // اضافه کردن رول
+                if (mentionedRole) {
+                    if (mentionedRole.id === message.guild.roles.everyone.id) {
+                        await message.channel.send('❌ Nemitanid Role @everyone Ra Ezafe Konid!');
+                        return;
+                    }
+
+                    try {
+                        await channel.permissionOverwrites.create(mentionedRole.id, {
+                            ViewChannel: true,
+                            SendMessages: true,
+                            ReadMessageHistory: true,
+                            AttachFiles: true,
+                            EmbedLinks: true
+                        });
+
+                        addedItems.push(`🎭 ${mentionedRole.toString()}`);
+                    } catch (err) {
+                        console.error('❌ Error adding role overwrite:', err);
+                        await message.channel.send('❌ Khata Dar Ezafe Kardan Role Be Ticket.');
+                        return;
+                    }
+                }
+
+                // اطلاع‌رسانی در تیکت
+                const embed = new EmbedBuilder()
+                    .setColor(0x000000)
+                    .setDescription(`➕ **${message.author.toString()} Add Kard:**\n${addedItems.join('\n')}`)
+                    .setFooter({ text: 'Shadow_ticket' })
+                    .setTimestamp();
+
+                await channel.send({ embeds: [embed] });
+                console.log(`✔  Added to ticket ${channel.name}: ${addedItems.join(', ')} by ${message.author.tag}`);
+            } catch (error) {
+                console.error('❌ Error adding to ticket:', error);
+                await message.channel.send('❌ Khata Dar Ezafe Kardan Be Ticket!').catch(() => {});
+            }
+            return;
+        }
+
+        // Prefix command: ;closeticket
+        if (message.content.startsWith(';closeticket')) {
+            const member = message.member;
+            const channel = message.channel;
+            const TICKET_CONFIG = require('./ticket').TICKET_CONFIG;
+
+            // بررسی دسترسی برای بستن تیکت
+            const hasAdminPermission = member?.permissions.has(PermissionsBitField.Flags.Administrator);
+            const hasAllowedRole = TICKET_CONFIG.allowedRoles.some(roleId => member?.roles.cache.has(roleId));
+            const hasFullPermRole = (TICKET_CONFIG.fullPermissionRoles || []).some(roleId => member?.roles.cache.has(roleId));
+            const hasManageMessages = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageMessages);
+
+            let canClose = false;
+            
+            if (hasAdminPermission || hasFullPermRole || hasAllowedRole || hasManageMessages) {
+                canClose = true;
+            }
+
+            if (!canClose) {
+                await message.reply('❌ Shoma Nemitanid In Ticket Ra Bebandid.');
+                return;
+            }
+
+            // بررسی اینکه در تیکت هستیم
+            if (!channel.parentId || channel.parentId !== TICKET_CONFIG.openCategoryId) {
+                await message.reply('❌ In Dastor Faghat Dar Ticket Haye Baz Ghabel Estefade Ast!');
+                return;
+            }
+
+            // استفاده از متد جدید closeTicketFromMessage
+            try {
+                await ticketManager.closeTicketFromMessage(message);
+            } catch (error) {
+                console.error('❌ Error closing ticket:', error);
+                await message.channel.send('❌ Khata Dar Bastan Ticket!').catch(() => {});
+            }
+            return;
         }
         
         // بررسی تگ کردن کاربر محافظت شده در چنل‌های مشخص شده
         const protectedUserId = '995631414907244646';
-        const restrictedChannels = ['1401868465954099271', '1430208119891427368', '1428110246337056778'];
+        const restrictedChannels = ['1452985657868816527'];
         
         if (restrictedChannels.includes(message.channelId)) {
             // بررسی اینکه آیا پیام شامل تگ کاربر محافظت شده است
@@ -1283,7 +1452,7 @@ client.on('messageCreate', async (message) => {
                     
                     // ارسال پیام هشدار موقت در چنل (فقط برای چند ثانیه نمایش داده می‌شود)
                     const warningMessage = await message.channel.send({
-                        content: `${message.author} این شخص رو تگ نکن اینجا پسر خوب 😡🤣`
+                        content: `${message.author} In Kar Bar Ro Mention Nakon`
                     });
                     
                     // حذف پیام هشدار بعد از 3 ثانیه (فقط کاربر فرصت دیدن دارد)
@@ -1293,7 +1462,7 @@ client.on('messageCreate', async (message) => {
                         } catch (e) {
                             // ignore
                         }
-                    }, 3000);
+                    }, 5000);
                     
                     return; // از ادامه پردازش جلوگیری می‌کند
                 } catch (error) {
@@ -1360,7 +1529,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 // Voice state update handler
 client.on('voiceStateUpdate', async (oldState, newState) => {
     try {
-        const voiceChannelId = '1400945138171248812'; // ویس چنل مورد نظر
+        const voiceChannelId = '1453091697163632845'; // ویس چنل مورد نظر
         const targetUserId = '995631414907244646'; // کاربری که باید پیام بگیره
 
         // Allow logging for bots too (no early return)
@@ -1368,17 +1537,17 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
         // Check if someone joined the specific voice channel
         if (!newState.member?.user?.bot && newState.channelId === voiceChannelId && oldState.channelId !== voiceChannelId) {
-            console.log(`✅ ${newState.member.user.username} joined voice move me `);
+            console.log(`📥 Karbar ${newState.member.user.username} Dakhel Voice Contact Neshast  `);
             
             try {
                 // Send message to the person who joined
-                const welcomeMessage = `درود ${newState.member}\n` +
-                                     `به زودی به درخواست شما رسیدگی خواهد شد .\n` +
-                                     `ممنون از صبوری شما 🌹\n` +
-                                     `**زمان:** <t:${Math.floor(Date.now() / 1000)}:F>`;
+                const welcomeMessage = `Dorod ${newState.member}\n` +
+                                     `Be Zodi Be Darkhast Shoma Residegi Khahad Shod \n` +
+                                     `Merc Babat Sabori Shoma 🌹\n` +
+                                     `**Time:** <t:${Math.floor(Date.now() / 1000)}:F>`;
                 
                 await newState.member.send(welcomeMessage);
-                console.log(`📩 wait message sent to ${newState.member.user.username} `);
+                console.log(`📩 Payam Sabr (Wait Message) Be Karbar ${newState.member.user.username} Ersal Shod  `);
                 
             } catch (dmError) {
                 console.error(`❌ Error sending welcome DM to ${newState.member.user.tag}:`, dmError);
@@ -1387,7 +1556,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
             try {
                 // Send notification to all users with full permissions plus specific roles
                 const guild = newState.guild;
-                const specificRoleIds = ['1415440089047371897', '1400910230358851686', '1400919880017907797'];
+                const specificRoleIds = ['1453099115188719728', '1452986675348242442', '1452988034877362298'];
                 
                 // Get all members with Administrator permission
                 const adminMembers = guild.members.cache.filter(member => 
@@ -1402,9 +1571,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 // Combine and deduplicate members
                 const allTargetMembers = new Set([...adminMembers.values(), ...roleMembers.values()]);
                 
-                const notificationMessage = `یک درخواست از این چنل داری : <#${newState.channel.id}>\n` +
-                                          `**کاربر:** <@${newState.member.user.id}>\n` +
-                                          `زمان : <t:${Math.floor(Date.now() / 1000)}:F>`;
+                const notificationMessage = `**yek Karbar Dar Entezar Staff Hast:** <#${newState.channel.id}>\n\n` +
+                                          `**User:** <@${newState.member.user.id}>\n\n` +
+                                          `Time : <t:${Math.floor(Date.now() / 1000)}:F>`;
                 
                 let successCount = 0;
                 let failCount = 0;
@@ -1430,7 +1599,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         
         // Check if someone left the voice channel
         if (!oldState.member?.user?.bot && oldState.channelId === voiceChannelId && newState.channelId !== voiceChannelId) {
-            console.log(`🎤 ${oldState.member.user.tag} left target voice channel`);
+            console.log(`🎤 Karbar ${oldState.member.user.tag} Az Voice Contact Kharej Shod`);
         }
         
         // If the bot itself left a voice channel, try to reconnect to the target voice by ID
@@ -1467,14 +1636,14 @@ client.on('guildMemberAdd', async (member) => {
         client.dailyStats.joins++;
         
         if (isBotAccount) {
-            try { await member.setNickname('𝐂𝐋𝐔𝐁 𝐁𝐎𝐓', 'Rename bot on join as requested'); } catch (_) {}
+            try { await member.setNickname('ꜱʜᴀᴅᴏᴡ ʙᴏᴛ', 'Rename bot on join '); } catch (_) {}
         } else {
             // Prefix member nickname with '! ' keeping existing display name
             try {
                 const baseName = member.displayName || member.user.username;
                 const prefixed = baseName.startsWith('! ') ? baseName : `! ${baseName}`;
                 if (prefixed !== member.displayName) {
-                    await member.setNickname(prefixed, 'Prefix name with ! on join');
+                    await member.setNickname(prefixed, 'Fix Name On Join User !');
                 }
             } catch (_) {}
         }
@@ -1537,11 +1706,8 @@ async function sendWelcomeChannelMessage(member) {
 			return;
 		}
 
-		// Build bold welcome lines inside the embed
-		// Line 1: Dorod + mention
-		// Line 2: (empty)
-		// Line 3: Khosh Omady Be CLUBS
-		const embedDescription = `**𝐃𝐨𝐫𝐨𝐝 ${member}𝐊𝐡𝐨𝐬𝐡 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒**\n\n**Baraye Ozviat Dar Team CLB Roye Dokme Zir Bezanid**`;
+		// Build bold welcome lines inside the embed (بدون منشن کاربر)
+		const embedDescription = `**𝐃𝐨𝐫𝐨𝐝 𝐊𝐡𝐨𝐬𝐡 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐒𝐡𝐚𝐝𝐨𝐰**\n **Dar Inja Ba Etminan Kharid Konid** ✅`;
 
 		// Member avatar for the right side (thumbnail)
 		const memberAvatarUrl = member.user.displayAvatarURL({ size: 512 });
@@ -1575,20 +1741,12 @@ async function sendWelcomeChannelMessage(member) {
 				iconURL: channelIconUrl || null
 			});
 
-		// Add link button to join team channel
-		const guildId = welcomeChannel.guild.id;
-		const targetChannelId = '1432696565247512618';
-		const linkUrl = `https://discord.com/channels/${guildId}/${targetChannelId}`;
-		const row = new ActionRowBuilder().addComponents(
-			new ButtonBuilder()
-				.setStyle(ButtonStyle.Link)
-				.setLabel('Join Team CLB')
-				.setURL(linkUrl)
-		);
+		// منشن کاربر با spoiler در content (خارج از embed)
+		const contentMessage = `||${member}||`;
 
 		await welcomeChannel.send({
+			content: contentMessage,
 			embeds: [embed],
-			components: [row],
 			files: [welcomeImageAttachment]
 		});
 		console.log(`✅ Welcome message (with avatar) sent to channel for ${member.user.tag}`);
@@ -1601,18 +1759,9 @@ async function sendWelcomeChannelMessage(member) {
 // Function to send DM to new member
 async function sendWelcomeDM(member) {
     try {
-		const dmMessage = `𝐃𝐨𝐫𝐨𝐝 𝐊𝐡𝐨𝐬h 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐂𝐋𝐔𝐁𝐒🌹 ${member}`
-        const guildId = member.guild.id;
-        const targetChannelId = '1432696565247512618';
-        const linkUrl = `https://discord.com/channels/${guildId}/${targetChannelId}`;
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel('Join Team CLB')
-                .setURL(linkUrl)
-        );
+		const dmMessage = `𝐃𝐨𝐫𝐨𝐝 𝐊𝐡𝐨𝐬h 𝐎𝐦𝐚𝐝𝐲 𝐁𝐞 𝐒𝐡𝐚𝐝𝐨𝐰🌹 ${member}`
 
-        await member.send({ content: dmMessage, components: [row] });
+        await member.send({ content: dmMessage});
         console.log(`✅ Welcome DM sent to ${member.user.tag}`);
         
     } catch (error) {
@@ -1624,7 +1773,7 @@ async function sendWelcomeDM(member) {
             );
             
             if (generalChannel) {
-                await generalChannel.send(`خوش اومدی ${member}! لطفاً پیام خصوصی خود را برای اطلاعات بیشتر بررسی کنید.`);
+                await generalChannel.send(`Welcom ${member}! Lotfan Dm Khod Ra Check Konid`);
                 console.log(`✅ Fallback welcome message sent to ${generalChannel.name} for ${member.user.tag}`);
             }
         } catch (fallbackError) {

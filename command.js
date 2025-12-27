@@ -1,18 +1,15 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { fetch } = require('undici');
 
-// Constants for special roles
-const ROLE_ID_VIPCLB = '1403512560262709339';
-const ROLE_ID_CLB = '1400907778473852995';
 
 // Clear Command
 const clearCommand = {
     data: new SlashCommandBuilder()
         .setName('clear')
-        .setDescription('پاک کردن پیام‌ها')
+        .setDescription('Pak Kardan Payam Ha')
         .addIntegerOption(option =>
             option.setName('amount')
-                .setDescription('تعداد پیام‌هایی که میخوای پاک کنی (1-100)')
+                .setDescription('Tedad Payam Hayi Ke Mikhai Pak Koni (1-100)')
                 .setRequired(true)
                 .setMinValue(1)
                 .setMaxValue(100))
@@ -22,7 +19,7 @@ const clearCommand = {
         const amount = interaction.options.getInteger('amount');
         
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
-            return interaction.reply({ content: '❌ شما مجوز مدیریت پیام‌ها را ندارید!', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Shoma Mojaz Modiriat Payam Ha Ra Nadarid!', flags: MessageFlags.Ephemeral });
         }
         
         try {
@@ -33,173 +30,24 @@ const clearCommand = {
 				const LOG_CHANNEL_ID = '1402073143354589296';
 				const logChannel = await interaction.client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
 				if (logChannel && logChannel.send) {
-					const text = `🧹 ${interaction.user.tag} تعداد ${deletedCount} پیام را در چنل <#${interaction.channel.id}> پاک کرد`;
+					const text = `🧹 ${interaction.user.tag} Tedad ${deletedCount} Payam Ra Dar Channel <#${interaction.channel.id}> Pak Kard`;
 					await logChannel.send({ content: text });
 				}
 			} catch (_) {}
             
             const embed = new EmbedBuilder()
-                .setTitle('✅ پیام‌ها پاک شدند')
-				.setDescription(`**تعداد پیام‌های پاک شده:** ${messages.size}\n**توسط:** ${interaction.user.tag}`)
+                .setTitle('✅ Payam Ha Pak Shodand')
+				.setDescription(`**Tedad Payam Haye Pak Shode:** ${messages.size}\n**Tavassot:** ${interaction.user.tag}`)
                 .setColor('#ff0000')
                 .setTimestamp();
             
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         } catch (error) {
-            await interaction.reply({ content: '❌ خطا در پاک کردن پیام‌ها!', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: '❌ Khata Dar Pak Kardan Payam Ha!', flags: MessageFlags.Ephemeral });
         }
     }
 };
 
-// VipCLB Command: add role and set nickname "𝐕 | 𝐂𝐋𝐁 | {name}"
-const vipclbCommand = {
-    data: new SlashCommandBuilder()
-        .setName('vipclb')
-        .setDescription('دادن رول VIP CLB و تغییر نام کاربر')
-        .addUserOption(opt =>
-            opt.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .addStringOption(opt =>
-            opt.setName('name')
-                .setDescription('نام دلخواه برای نمایش')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles | PermissionFlagsBits.ManageNicknames),
-
-    async execute(interaction) {
-        const targetUser = interaction.options.getUser('user');
-        const nameInput = (interaction.options.getString('name') || '').trim();
-
-        // Permissions check for invoker
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles) ||
-            !interaction.member.permissions.has(PermissionFlagsBits.ManageNicknames)) {
-            return interaction.reply({ content: '❌ شما مجوز لازم (Manage Roles/Nicknames) را ندارید.', flags: MessageFlags.Ephemeral });
-        }
-        // Bot permissions
-        const me = interaction.guild.members.me;
-        if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles) || !me.permissions.has(PermissionFlagsBits.ManageNicknames)) {
-            return interaction.reply({ content: '❌ ربات مجوز Manage Roles/Nicknames ندارد.', flags: MessageFlags.Ephemeral });
-        }
-
-        // Validate name and compose nickname
-        const prefix = '𝐕 | 𝐂𝐋𝐁 | ';
-        const desired = `${prefix}${nameInput}`;
-        if (!nameInput) {
-            return interaction.reply({ content: '❌ لطفاً یک نام معتبر وارد کنید.', flags: MessageFlags.Ephemeral });
-        }
-        if (desired.length > 32) {
-            return interaction.reply({ content: `❌ نام خیلی طولانی است. حداکثر 32 کاراکتر. (فعلی: ${desired.length})`, flags: MessageFlags.Ephemeral });
-        }
-
-        try {
-            const member = await interaction.guild.members.fetch(targetUser.id);
-            if (!member) return interaction.reply({ content: '❌ کاربر در سرور یافت نشد.', flags: MessageFlags.Ephemeral });
-
-            // Check hierarchy for role and member
-            const role = interaction.guild.roles.cache.get(ROLE_ID_VIPCLB) || await interaction.guild.roles.fetch(ROLE_ID_VIPCLB).catch(() => null);
-            if (!role) return interaction.reply({ content: '❌ رول VIP CLB یافت نشد.', flags: MessageFlags.Ephemeral });
-            if (me.roles.highest.comparePositionTo(role) <= 0) {
-                return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
-            }
-            if (!member.manageable) {
-                return interaction.reply({ content: '❌ امکان تغییر نام این کاربر وجود ندارد (نقش/سلسله‌مراتب).', flags: MessageFlags.Ephemeral });
-            }
-
-            // Grant role if not present
-            if (!member.roles.cache.has(role.id)) {
-                await member.roles.add(role, 'VipCLB command: grant role');
-            }
-            // Set nickname
-            if (member.displayName !== desired) {
-                await member.setNickname(desired, 'VipCLB command: set nickname');
-            }
-
-            const embed = new EmbedBuilder()
-                .setTitle('Role Dade Shod Va Name Update Shod ❗')
-                .setDescription(`Be Karbar${member} Role <@&${role.id}> Dade Shod !\n\ 🆕New Name : ${desired} `)
-                .setColor('#000000')
-                .setTimestamp();
-            await interaction.reply({ embeds: [embed] });
-        } catch (e) {
-            await interaction.reply({ content: '❌ خطا در انجام عملیات (Role/Nick).', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
-
-// CLB Command: add role and set nickname "𝐂𝐋𝐁 | {name}"
-const clbCommand = {
-    data: new SlashCommandBuilder()
-        .setName('clb')
-        .setDescription('دادن رول CLB و تغییر نام کاربر')
-        .addUserOption(opt =>
-            opt.setName('user')
-                .setDescription('کاربر هدف')
-                .setRequired(true))
-        .addStringOption(opt =>
-            opt.setName('name')
-                .setDescription('نام دلخواه برای نمایش')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles | PermissionFlagsBits.ManageNicknames),
-
-    async execute(interaction) {
-        const targetUser = interaction.options.getUser('user');
-        const nameInput = (interaction.options.getString('name') || '').trim();
-
-        // Permissions check for invoker
-        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles) ||
-            !interaction.member.permissions.has(PermissionFlagsBits.ManageNicknames)) {
-            return interaction.reply({ content: '❌ شما مجوز لازم (Manage Roles/Nicknames) را ندارید.', flags: MessageFlags.Ephemeral });
-        }
-        // Bot permissions
-        const me = interaction.guild.members.me;
-        if (!me || !me.permissions.has(PermissionFlagsBits.ManageRoles) || !me.permissions.has(PermissionFlagsBits.ManageNicknames)) {
-            return interaction.reply({ content: '❌ ربات مجوز Manage Roles/Nicknames ندارد.', flags: MessageFlags.Ephemeral });
-        }
-
-        // Validate name and compose nickname
-        const prefix = '𝐂𝐋𝐁 | ';
-        const desired = `${prefix}${nameInput}`;
-        if (!nameInput) {
-            return interaction.reply({ content: '❌ لطفاً یک نام معتبر وارد کنید.', flags: MessageFlags.Ephemeral });
-        }
-        if (desired.length > 32) {
-            return interaction.reply({ content: `❌ نام خیلی طولانی است. حداکثر 32 کاراکتر. (فعلی: ${desired.length})`, flags: MessageFlags.Ephemeral });
-        }
-
-        try {
-            const member = await interaction.guild.members.fetch(targetUser.id);
-            if (!member) return interaction.reply({ content: '❌ کاربر در سرور یافت نشد.', flags: MessageFlags.Ephemeral });
-
-            // Check hierarchy for role and member
-            const role = interaction.guild.roles.cache.get(ROLE_ID_CLB) || await interaction.guild.roles.fetch(ROLE_ID_CLB).catch(() => null);
-            if (!role) return interaction.reply({ content: '❌ رول CLB یافت نشد.', flags: MessageFlags.Ephemeral });
-            if (me.roles.highest.comparePositionTo(role) <= 0) {
-                return interaction.reply({ content: '❌ ربات قادر به مدیریت این رول نیست (موقعیت رول بالاتر است).', flags: MessageFlags.Ephemeral });
-            }
-            if (!member.manageable) {
-                return interaction.reply({ content: '❌ امکان تغییر نام این کاربر وجود ندارد (نقش/سلسله‌مراتب).', flags: MessageFlags.Ephemeral });
-            }
-
-            // Grant role if not present
-            if (!member.roles.cache.has(role.id)) {
-                await member.roles.add(role, 'CLB command: grant role');
-            }
-            // Set nickname
-            if (member.displayName !== desired) {
-                await member.setNickname(desired, 'CLB command: set nickname');
-            }
-
-            const embed = new EmbedBuilder()
-                .setTitle('Role Dade Shod Va Name Update Shod ❗')
-                .setDescription(`Be Karbar${member} Role <@&${role.id}> Dade Shod !\n\ 🆕New Name : ${desired} `)
-                .setColor('#000000')
-                .setTimestamp();
-            await interaction.reply({ embeds: [embed] });
-        } catch (e) {
-            await interaction.reply({ content: '❌ خطا در انجام عملیات (Role/Nick).', flags: MessageFlags.Ephemeral });
-        }
-    }
-};
 
 // Remind Command (removed by user request)
 
@@ -207,8 +55,8 @@ const clbCommand = {
 const weatherCommand = {
     data: new SlashCommandBuilder()
         .setName('weather')
-        .setDescription('وضعیت آب‌وهوا برای یک شهر')
-        .addStringOption(o => o.setName('city').setDescription('نام شهر (مثلاً Tehran)').setRequired(true)),
+        .setDescription('Vaziyat Ab Va Hava Baraye Yek Shahr')
+                .addStringOption(o => o.setName('city').setDescription('Name Shahr (Masalan Tehran)').setRequired(true)),
 
     async execute(interaction) {
         const city = interaction.options.getString('city');
@@ -216,26 +64,26 @@ const weatherCommand = {
             const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fa`);
             const geo = await geoRes.json();
             const loc = geo?.results?.[0];
-            if (!loc) return interaction.reply({ content: '❌ شهر یافت نشد.', flags: MessageFlags.Ephemeral });
+            if (!loc) return interaction.reply({ content: '❌ Shahr Yaft Nashod.', flags: MessageFlags.Ephemeral });
 
             const lat = loc.latitude, lon = loc.longitude;
             const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`);
             const w = await wRes.json();
             const c = w?.current;
-            if (!c) return interaction.reply({ content: '❌ دریافت اطلاعات آب‌وهوا ممکن نشد.', flags: MessageFlags.Ephemeral });
+            if (!c) return interaction.reply({ content: '❌ Daryaft Etelaat Ab Va Hava Momken Nashod.', flags: MessageFlags.Ephemeral });
 
             const embed = new EmbedBuilder()
-                .setTitle(`🌤️ آب‌وهوا: ${loc.name}${loc.country ? ' - ' + loc.country : ''}`)
+                .setTitle(`🌤️ Ab Va Hava: ${loc.name}${loc.country ? ' - ' + loc.country : ''}`)
                 .addFields(
-                    { name: 'دما', value: `${c.temperature_2m}°C`, inline: true },
-                    { name: 'رطوبت', value: `${c.relative_humidity_2m}%`, inline: true },
-                    { name: 'سرعت باد', value: `${c.wind_speed_10m} m/s`, inline: true }
+                    { name: 'Dama', value: `${c.temperature_2m}°C`, inline: true },
+                    { name: 'Rotubat', value: `${c.relative_humidity_2m}%`, inline: true },
+                    { name: 'Sorat Bad', value: `${c.wind_speed_10m} m/s`, inline: true }
                 )
                 .setColor('#3498db')
                 .setTimestamp();
             await interaction.reply({ embeds: [embed] });
         } catch (e) {
-            await interaction.reply({ content: '❌ خطا در دریافت آب‌وهوا.', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: '❌ Khata Dar Daryaft Ab Va Hava.', flags: MessageFlags.Ephemeral });
         }
     }
 };
@@ -249,10 +97,10 @@ const weatherCommand = {
 const userinfoCommand = {
     data: new SlashCommandBuilder()
         .setName('userinfo')
-        .setDescription('اطلاعات کاربر')
+        .setDescription('Etelaat Karbar')
         .addUserOption(option =>
             option.setName('user')
-                .setDescription('کاربر مورد نظر')
+                .setDescription('Karbar Mored Nazar')
                 .setRequired(false)),
     
     async execute(interaction) {
@@ -260,24 +108,24 @@ const userinfoCommand = {
         const member = interaction.guild.members.cache.get(user.id);
         
         // Get roles as mentions, excluding @everyone
-        let rolesText = 'نامشخص';
+        let rolesText = 'Nam Nashas';
         if (member) {
             const roles = member.roles.cache
                 .filter(role => role.id !== interaction.guild.id) // Exclude @everyone
                 .map(role => role.toString()) // Convert to mention format
                 .join(' ');
-            rolesText = roles || 'بدون رول';
+            rolesText = roles || 'Bedoone Role';
         }
         
         const embed = new EmbedBuilder()
-            .setTitle(`اطلاعات ${user.username}`)
+            .setTitle(`Etelaat ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .addFields(
-                { name: '🏷️ نام کاربری', value: user.tag, inline: true },
-                { name: '🆔 آیدی', value: user.id, inline: true },
-                { name: '📅 تاریخ عضویت', value: member ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : 'نامشخص', inline: true },
-                { name: '📅 تاریخ ایجاد اکانت', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: true },
-                { name: '🎭 رول‌ها', value: rolesText, inline: false }
+                { name: '🏷️ Name Karbari', value: user.tag, inline: true },
+                { name: '🆔 ID', value: user.id, inline: true },
+                { name: '📅 Tarikh Ozviyat', value: member ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : 'Nam Nashas', inline: true },
+                { name: '📅 Tarikh Ijad Account', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: true },
+                { name: '🎭 Role Ha', value: rolesText, inline: false }
             )
             .setColor('#000000')
             .setTimestamp();
@@ -290,39 +138,39 @@ const userinfoCommand = {
 const sayCommand = {
     data: new SlashCommandBuilder()
         .setName('say')
-        .setDescription('ارسال پیام همراه با امبد سفارشی')
+        .setDescription('Ersal Payam Hamrah Ba Embed Safarshi')
         .addStringOption(option =>
             option.setName('embadout')
-                .setDescription('متن خارج از امباد (می‌تواند کاربر و everyone را تگ کند)')
+                .setDescription('Matn Kharej Az Embed (Mitavad Karbar Va Everyone Ra Tag Konad)')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('title')
-                .setDescription('تایتل امباد')
+                .setDescription('Title Embed')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('discription')
-                .setDescription('متن داخل امباد')
+                .setDescription('Matn Dakhel Embed')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('picture')
-                .setDescription('عکس داخل امباد (URL)')
+                .setDescription('Aks Dakhel Embed (URL)')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('foter')
-                .setDescription('فوتر امباد')
+                .setDescription('Footer Embed')
                 .setRequired(false))
         .addStringOption(option =>
             option.setName('color')
-                .setDescription('رنگ امبد (یک گزینه را انتخاب کنید)')
+                .setDescription('Rang Embed (Yek Gozine Ra Entekhab Konid)')
                 .setRequired(false)
                 .addChoices(
-                    { name: 'نئون سبز', value: '#00ff88' },
-                    { name: 'آبی روشن', value: '#00b8ff' },
-                    { name: 'بنفش', value: '#8c4bff' },
-                    { name: 'قرمز', value: '#ff4d6d' },
-                    { name: 'نارنجی', value: '#ffaa00' },
-                    { name: 'سفید', value: '#ffffff' },
-                    { name: 'تیره', value: '#2f3136' }
+                    { name: 'Neon Sabz', value: '#00ff88' },
+                    { name: 'Abi Roshan', value: '#00b8ff' },
+                    { name: 'Banafsh', value: '#8c4bff' },
+                    { name: 'Ghermez', value: '#ff4d6d' },
+                    { name: 'Naranji', value: '#ffaa00' },
+                    { name: 'Sefid', value: '#ffffff' },
+                    { name: 'Tireh', value: '#2f3136' }
                 )),
     
     async execute(interaction) {
@@ -334,7 +182,7 @@ const sayCommand = {
         const color = interaction.options.getString('color');
 
         if (!embadout && !title && !discription && !picture && !foter && !color) {
-            return interaction.reply({ content: '❌ حداقل یکی از فیلدها را وارد کنید.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Had Aghal Yeki Az Field Ha Ra Vared Konid.', flags: MessageFlags.Ephemeral });
         }
 
         // Validate image URL if provided
@@ -347,11 +195,11 @@ const sayCommand = {
                 if (url.protocol === 'http:' || url.protocol === 'https:') {
                     validImageUrl = picture;
                 } else {
-                    return interaction.reply({ content: '❌ آدرس عکس باید یک URL معتبر (http:// یا https://) باشد.', flags: MessageFlags.Ephemeral });
+                    return interaction.reply({ content: '❌ Address Aks Bayad Yek URL Motabar (http:// Ya https://) Bashad.', flags: MessageFlags.Ephemeral });
                 }
             } catch (e) {
                 // If URL parsing fails, it's not a valid URL
-                return interaction.reply({ content: '❌ آدرس عکس باید یک URL معتبر باشد (مثلاً https://example.com/image.png).', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Address Aks Bayad Yek URL Motabar Bashad (Masalan https://example.com/image.png).', flags: MessageFlags.Ephemeral });
             }
         }
 
@@ -381,7 +229,7 @@ const sayCommand = {
         
         // پاسخ به interaction
         await interaction.reply({ 
-            content: '✅ پیام با موفقیت ارسال شد.', 
+            content: '✅ Payam Ba Movafaghiyat Ersal Shod.', 
             flags: MessageFlags.Ephemeral 
         });
     }
@@ -391,18 +239,18 @@ const sayCommand = {
 const reactionroleCommand = {
     data: new SlashCommandBuilder()
         .setName('reactionrole')
-        .setDescription('تنظیم نقش‌دهی با ریاکشن روی یک پیام')
+        .setDescription('Tanzim Naghsh Dehi Ba Reaction Ruye Yek Payam')
         .addStringOption(option =>
             option.setName('emoji')
-                .setDescription('ایموجی/استیکر برای ریاکشن (مثلاً 😀 یا <:name:id>)')
+                .setDescription('Emoji/Sticker Baraye Reaction (Masalan 😀 Ya <:name:id>)')
                 .setRequired(true))
         .addRoleOption(option =>
             option.setName('role')
-                .setDescription('نقشی که با ریاکشن داده می‌شود')
+                .setDescription('Naghshey Ke Ba Reaction Dade Mishavad')
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('message_link')
-                .setDescription('لینک پیام هدف (Right click > Copy Link)')
+                .setDescription('Link Payam Hadaf (Right click > Copy Link)')
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles),
 
@@ -412,18 +260,18 @@ const reactionroleCommand = {
         const messageLink = interaction.options.getString('message_link');
 
         if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ManageRoles)) {
-            return interaction.reply({ content: '❌ ربات مجوز Manage Roles ندارد.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Robot Mojaz Manage Roles Nadarad.', flags: MessageFlags.Ephemeral });
         }
 
         // Parse message link: https://discord.com/channels/{guildId}/{channelId}/{messageId}
         const linkRegex = /https?:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
         const match = messageLink.match(linkRegex);
         if (!match) {
-            return interaction.reply({ content: '❌ لینک پیام نامعتبر است.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Link Payam Namotabar Ast.', flags: MessageFlags.Ephemeral });
         }
         const [, guildId, channelId, messageId] = match;
         if (guildId !== interaction.guild.id) {
-            return interaction.reply({ content: '❌ لینک مربوط به این سرور نیست.', flags: MessageFlags.Ephemeral });
+            return interaction.reply({ content: '❌ Link Marboot Be In Server Nist.', flags: MessageFlags.Ephemeral });
         }
 
         try {
@@ -456,15 +304,15 @@ const reactionroleCommand = {
             interaction.client.reactionRoles.set(mapKey, existing);
 
             const embed = new EmbedBuilder()
-                .setTitle('✅ ریاکشن رول تنظیم شد')
-                .setDescription(`به پیام [لینک](${messageLink}) ایموجی ${emojiInput} اضافه شد.
-با زدن این ریاکشن، نقش <@&${role.id}> داده می‌شود.`)
+                .setTitle('✅ Reaction Role Tanzim Shod')
+                .setDescription(`Be Payam [Link](${messageLink}) Emoji ${emojiInput} Ezafe Shod.
+Ba Zadan In Reaction, Naghs <@&${role.id}> Dade Mishavad.`)
                 .setColor('#2ecc71')
                 .setTimestamp();
 
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         } catch (err) {
-            await interaction.reply({ content: '❌ خطا در تنظیم ریاکشن رول یا دسترسی به پیام.', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: '❌ Khata Dar Tanzim Reaction Role Ya Dastrasi Be Payam.', flags: MessageFlags.Ephemeral });
         }
     }
 };
@@ -473,21 +321,21 @@ const reactionroleCommand = {
 const sendCommand = {
 	data: new SlashCommandBuilder()
 		.setName('send')
-		.setDescription('ارسال پیام خصوصی')
+		.setDescription('Ersal Payam Khosoosi')
 		.addSubcommand(sub =>
 			sub.setName('dm')
-				.setDescription('ارسال پیام به DM یک کاربر')
+				.setDescription('Ersal Payam Be DM Yek Karbar')
 				.addStringOption(opt =>
 					opt.setName('user_id')
-						.setDescription('آیدی عددی یا نام کاربری (مثلاً 123456789012345678 یا Farzad132)')
+						.setDescription('ID Adadi Ya Name Karbari (Masalan 123456789012345678 Ya Farzad132)')
 						.setRequired(true))
 				.addStringOption(opt =>
 					opt.setName('message')
-						.setDescription('متن پیام معمولی (اختیاری)')
+						.setDescription('Matn Payam Mamooli (Ekhtiari)')
 						.setRequired(false))
 				.addStringOption(opt =>
 					opt.setName('embed')
-						.setDescription('متن داخل امبد (اختیاری)')
+						.setDescription('Matn Dakhel Embed (Ekhtiari)')
 						.setRequired(false)))
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -538,13 +386,13 @@ const sendCommand = {
 					if (foundMember) {
 						user = foundMember.user;
 					} else {
-						return interaction.reply({ content: `❌ کاربر با نام "${username}" در سرور یافت نشد. لطفاً آیدی عددی را وارد کنید یا از نام کاربری دقیق استفاده کنید.`, flags: MessageFlags.Ephemeral });
+						return interaction.reply({ content: `❌ Karbar Ba Name "${username}" Dar Server Yaft Nashod. Lotfan ID Adadi Ra Vared Konid Ya Az Name Karbari Daghigh Estefade Konid.`, flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
 
 			if (!user) {
-				return interaction.reply({ content: '❌ کاربر یافت نشد.', flags: MessageFlags.Ephemeral });
+				return interaction.reply({ content: '❌ Karbar Yaft Nashod.', flags: MessageFlags.Ephemeral });
 			}
 
 			const payload = {};
@@ -558,16 +406,16 @@ const sendCommand = {
 			}
 
 			if (!payload.content && !payload.embeds) {
-				return interaction.reply({ content: 'ℹ️ لطفاً حداقل یکی از گزینه‌های "message" یا "embed" را وارد کنید.', flags: MessageFlags.Ephemeral });
+				return interaction.reply({ content: 'ℹ️ Lotfan Had Aghal Yeki Az Gozine Haye "message" Ya "embed" Ra Vared Konid.', flags: MessageFlags.Ephemeral });
 			}
 
 			await user.send(payload);
-			return interaction.reply({ content: `✅ پیام به DM کاربر ${user.tag} (<@${user.id}>) ارسال شد.`, flags: MessageFlags.Ephemeral });
+			return interaction.reply({ content: `✅ Payam Be DM Karbar ${user.tag} (<@${user.id}>) Ersal Shod.`, flags: MessageFlags.Ephemeral });
 		} catch (e) {
 			if (e.code === 50007) {
-				return interaction.reply({ content: '❌ ارسال پیام به DM ممکن نشد (کاربر DM را بسته است).', flags: MessageFlags.Ephemeral });
+				return interaction.reply({ content: '❌ Ersal Payam Be DM Momken Nashod (Karbar DM Ra Basteh Ast).', flags: MessageFlags.Ephemeral });
 			}
-			return interaction.reply({ content: `❌ خطا: ${e.message || 'ارسال پیام به DM ممکن نشد'}`, flags: MessageFlags.Ephemeral });
+			return interaction.reply({ content: `❌ Khata: ${e.message || 'Ersal Payam Be DM Momken Nashod'}`, flags: MessageFlags.Ephemeral });
 		}
 	}
 };
@@ -576,13 +424,13 @@ const sendCommand = {
 const autoreactionCommand = {
     data: new SlashCommandBuilder()
         .setName('autoreaction')
-        .setDescription('تنظیم اتو ریاکشن برای چنل یا یک پیام')
+        .setDescription('Tanzim Auto Reaction Baraye Channel Ya Yek Payam')
         .addSubcommand(sub =>
             sub.setName('channel')
-                .setDescription('اتو ریاکشن برای تمام پیام‌های یک چنل از این به بعد')
+                .setDescription('Auto Reaction Baraye Tamame Payam Haye Yek Channel Az In Be Bad')
                 .addStringOption(opt =>
                     opt.setName('emoji')
-                        .setDescription('ایموجی/استیکر برای ریاکشن خودکار')
+                        .setDescription('Emoji/Sticker Baraye Reaction Khodkar')
                         .setRequired(true))
                 .addChannelOption(opt =>
                     opt.setName('channel')
@@ -590,25 +438,25 @@ const autoreactionCommand = {
                         .setRequired(false)))
         .addSubcommand(sub =>
             sub.setName('message')
-                .setDescription('اتو ریاکشن فقط برای یک پیام مشخص')
+                .setDescription('Auto Reaction Faghat Baraye Yek Payam Moshakhas')
                 .addStringOption(opt =>
                     opt.setName('emoji')
                         .setDescription('ایموجی/استیکر')
                         .setRequired(true))
                 .addStringOption(opt =>
                     opt.setName('message_link')
-                        .setDescription('لینک پیام هدف')
+                        .setDescription('Link Payam Hadaf')
                         .setRequired(true)))
         .addSubcommand(sub =>
             sub.setName('disable')
-                .setDescription('حذف اتو ریاکشن‌ها از یک چنل')
+                .setDescription('Hazf Auto Reaction Ha Az Yek Channel')
                 .addChannelOption(opt =>
                     opt.setName('channel')
                         .setDescription('چنل هدف (اختیاری، پیش‌فرض همین چنل)')
                         .setRequired(false))
                 .addStringOption(opt =>
                     opt.setName('emoji')
-                        .setDescription('ایموجی خاص برای حذف (اختیاری)')
+                        .setDescription('Emoji Khass Baraye Hazf (Ekhtiari)')
                         .setRequired(false)))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
 
@@ -637,8 +485,8 @@ const autoreactionCommand = {
             interaction.client.autoReactions.set(targetChannel.id, set);
 
             const embed = new EmbedBuilder()
-                .setTitle('✅ اتو ریاکشن فعال شد')
-                .setDescription(`از این به بعد روی تمام پیام‌های چنل <#${targetChannel.id}> ایموجی ${emojiInput} به صورت خودکار اضافه می‌شود.`)
+                .setTitle('✅ Auto Reaction Faal Shod')
+                .setDescription(`Az In Be Bad Ruye Tamame Payam Haye Channel <#${targetChannel.id}> Emoji ${emojiInput} Be Sorat Khodkar Ezafe Mishavad.`)
                 .setColor('#2ecc71')
                 .setTimestamp();
 
@@ -652,11 +500,11 @@ const autoreactionCommand = {
             const linkRegex = /https?:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
             const match = messageLink.match(linkRegex);
             if (!match) {
-                return interaction.reply({ content: '❌ لینک پیام نامعتبر است.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Link Payam Namotabar Ast.', flags: MessageFlags.Ephemeral });
             }
             const [, guildId, channelId, messageId] = match;
             if (guildId !== interaction.guild.id) {
-                return interaction.reply({ content: '❌ لینک مربوط به این سرور نیست.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: '❌ Link Marboot Be In Server Nist.', flags: MessageFlags.Ephemeral });
             }
 
             try {
@@ -681,14 +529,14 @@ const autoreactionCommand = {
                 interaction.client.autoReactSingle.set(messageId, set);
 
                 const embed = new EmbedBuilder()
-                    .setTitle('✅ اتو ریاکشن برای یک پیام تنظیم شد')
-                    .setDescription(`روی پیام [لینک](${messageLink}) ایموجی ${emojiInput} اضافه شد و در صورت حذف، دوباره اعمال می‌شود.`)
+                .setTitle('✅ Auto Reaction Baraye Yek Payam Tanzim Shod')
+                .setDescription(`Ruye Payam [Link](${messageLink}) Emoji ${emojiInput} Ezafe Shod Va Dar Sorat Hazf, Dobare Emal Mishavad.`)
                     .setColor('#2ecc71')
                     .setTimestamp();
 
                 await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             } catch (e) {
-                await interaction.reply({ content: '❌ دسترسی به پیام یا ریاکت ممکن نشد.', flags: MessageFlags.Ephemeral });
+                await interaction.reply({ content: '❌ Dastrasi Be Payam Ya React Momken Nashod.', flags: MessageFlags.Ephemeral });
             }
         }
 
@@ -710,7 +558,7 @@ const autoreactionCommand = {
             });
 
             if (!foundId) {
-                return interaction.reply({ content: 'ℹ️ اتو ریاکشن فعالی برای این چنل وجود ندارد.', flags: MessageFlags.Ephemeral });
+                return interaction.reply({ content: 'ℹ️ Auto Reaction Faali Baraye In Channel Vojod Nadarad.', flags: MessageFlags.Ephemeral });
             }
 
             if (emojiInput) {
@@ -730,8 +578,8 @@ const autoreactionCommand = {
                 }
 
                 const embed = new EmbedBuilder()
-                    .setTitle('✅ اتو ریاکشن حذف شد')
-                    .setDescription(`ایموجی ${emojiInput} از فهرست اتو ریاکشن‌های چنل <#${foundId}> حذف شد.`)
+                    .setTitle('✅ Auto Reaction Hazf Shod')
+                    .setDescription(`Emoji ${emojiInput} Az Fehrest Auto Reaction Haye Channel <#${foundId}> Hazf Shod.`)
                     .setColor('#e67e22')
                     .setTimestamp();
                 return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -741,8 +589,8 @@ const autoreactionCommand = {
             interaction.client.autoReactions.delete(foundId);
 
             const embed = new EmbedBuilder()
-                .setTitle('✅ اتو ریاکشن‌های این چنل غیرفعال شد')
-                .setDescription(`تمام ایموجی‌های اتو ریاکشن برای چنل <#${foundId}> حذف شدند.`)
+                .setTitle('✅ Auto Reaction Haye In Channel Gheyr Faal Shod')
+                .setDescription(`Tamame Emoji Haye Auto Reaction Baraye Channel <#${foundId}> Hazf Shodand.`)
                 .setColor('#e74c3c')
                 .setTimestamp();
             return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
@@ -750,104 +598,6 @@ const autoreactionCommand = {
     }
 };
 
-// Ban Info Command
-const baninfoCommand = {
-    data: new SlashCommandBuilder()
-        .setName('baninfo')
-        .setDescription('جستجوی اطلاعات بن با شماره')
-        .addIntegerOption(option =>
-            option.setName('number')
-                .setDescription('شماره بن (مثلاً 14)')
-                .setRequired(true)
-                .setMinValue(1)),
-
-    async execute(interaction) {
-        const number = interaction.options.getInteger('number');
-        const BAN_CHANNEL_ID = '1431664611761061961';
-
-        try {
-            // Fetch the channel
-            let channel = interaction.client.channels.cache.get(BAN_CHANNEL_ID);
-            if (!channel) {
-                channel = await interaction.client.channels.fetch(BAN_CHANNEL_ID).catch(() => null);
-            }
-
-            if (!channel) {
-                return interaction.reply({ 
-                    content: '❌ چنل مورد نظر یافت نشد.' 
-                });
-            }
-
-            // Check if bot can read message history
-            const botMember = channel.guild?.members?.me;
-            if (botMember) {
-                const permissions = channel.permissionsFor(botMember);
-                if (!permissions || !permissions.has('ReadMessageHistory')) {
-                    return interaction.reply({ 
-                        content: '❌ ربات دسترسی خواندن تاریخچه پیام‌ها را ندارد.' 
-                    });
-                }
-            }
-
-            // Search for messages containing "Number={number}"
-            const searchPattern = new RegExp(`Number\\s*=\\s*${number}\\b`, 'i');
-            let foundMessage = null;
-            let lastId = undefined;
-            let searchedCount = 0;
-            const MAX_SEARCH = 5000; // Limit search to avoid rate limits
-
-            // Search through messages
-            while (!foundMessage && searchedCount < MAX_SEARCH) {
-                const batch = await channel.messages.fetch({ 
-                    limit: 100, 
-                    before: lastId 
-                }).catch(() => null);
-
-                if (!batch || batch.size === 0) break;
-
-                searchedCount += batch.size;
-
-                // Check each message for the pattern
-                for (const [, msg] of batch) {
-                    if (msg.content && searchPattern.test(msg.content)) {
-                        foundMessage = msg;
-                        break;
-                    }
-                }
-
-                if (foundMessage) break;
-
-                lastId = batch.last()?.id;
-                if (!lastId) break;
-            }
-
-            if (!foundMessage) {
-                return interaction.reply({ 
-                    content: `❌ فرمی با شماره ${number} یافت نشد.` 
-                });
-            }
-
-            // Extract and format the form content
-            const formContent = foundMessage.content;
-            const messageLink = `https://discord.com/channels/${channel.guild.id}/${channel.id}/${foundMessage.id}`;
-
-            // Reply with the form content and link
-            const replyContent = formContent.length > 1900 
-                ? formContent.slice(0, 1897) + '...' 
-                : formContent;
-            
-            await interaction.reply({ 
-                content: `${replyContent}\n\n🔗 [Link Payam](${messageLink})`
-            });
-
-        } catch (error) {
-            console.error('❌ Error in baninfo command:', error);
-            await interaction.reply({ 
-                content: '❌ خطا در جستجوی اطلاعات بن.' 
-            });
-        }
-    }
-};
 
 // Roast Command (removed by user request)
 
@@ -855,19 +605,19 @@ const baninfoCommand = {
 const feedbackCommand = {
     data: new SlashCommandBuilder()
         .setName('feedback')
-        .setDescription('ارسال بازخورد به ادمین‌ها'),
+        .setDescription('Ersal Bazkhord Be Admin Ha'),
 
     async execute(interaction) {
         try {
             const embed = new EmbedBuilder()
-                .setTitle('💬 ارسال بازخورد')
-                .setDescription('اگر پیشنهادی، انتقادی یا نظری دارید، لطفاً آن را با تیم ما به اشتراک بگذارید.')
+                .setTitle('💬 Ersal Bazkhord')
+                .setDescription('Agar Pishnahadi, Enteghadi Ya Nazari Darid, Lotfan An Ra Ba Team Ma Be Eshtrak Begzarid.')
                 .setColor('#3498db')
                 .setTimestamp();
 
             const button = new ButtonBuilder()
                 .setCustomId('feedback_button')
-                .setLabel('ارسال بازخورد')
+                .setLabel('Ersal Bazkhord')
                 .setStyle(ButtonStyle.Primary)
                 .setEmoji('💬');
 
@@ -881,7 +631,7 @@ const feedbackCommand = {
         } catch (error) {
             console.error('❌ Error in feedback command:', error);
             await interaction.reply({
-                content: '❌ خطا در اجرای دستور.',
+                content: '❌ Khata Dar Ejraye Dastor.',
                 flags: MessageFlags.Ephemeral
             });
         }
@@ -892,19 +642,19 @@ const feedbackCommand = {
 const bugCommand = {
     data: new SlashCommandBuilder()
         .setName('bug')
-        .setDescription('گزارش باگ'),
+        .setDescription('Gozaresh Bagh'),
 
     async execute(interaction) {
         try {
             const embed = new EmbedBuilder()
-                .setTitle('🐛 گزارش باگ')
-                .setDescription('اگر موردی یا مشکلی دارید، لطفاً به تیم ما گزارش دهید.')
+                .setTitle('🐛 Gozaresh Bagh')
+                .setDescription('Agar Moredi Ya Moshkeli Darid, Lotfan Be Team Ma Gozaresh Dahid.')
                 .setColor('#e74c3c')
                 .setTimestamp();
 
             const button = new ButtonBuilder()
                 .setCustomId('bug_report_button')
-                .setLabel('گزارش باگ')
+                .setLabel('Gozaresh Bagh')
                 .setStyle(ButtonStyle.Primary)
                 .setEmoji('🐛');
 
@@ -918,7 +668,170 @@ const bugCommand = {
         } catch (error) {
             console.error('❌ Error in bug command:', error);
             await interaction.reply({ 
-                content: '❌ خطا در اجرای دستور.', 
+                content: '❌ Khata Dar Ejraye Dastor.', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+    }
+};
+
+// Set Staff Command
+const setstaffCommand = {
+    data: new SlashCommandBuilder()
+        .setName('setstaff')
+        .setDescription('Tanzim Staff: Taghir Name Va Ezafe Kardan Role')
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('Karbar Mored Nazar')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('nickname')
+                .setDescription('Name Jadid Baraye Karbar')
+                .setRequired(true))
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    
+    async execute(interaction) {
+        // بررسی دسترسی ادمین
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+            return interaction.reply({ 
+                content: '❌ Shoma Mojaz Estefade Az In Dastor Ra Nadarid!', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        const targetUser = interaction.options.getUser('user');
+        const newNickname = interaction.options.getString('nickname');
+
+        try {
+            // دریافت member از guild
+            const member = await interaction.guild.members.fetch(targetUser.id);
+            
+            // بررسی اینکه bot می‌تواند nickname را تغییر دهد
+            if (!member.manageable) {
+                return interaction.reply({ 
+                    content: '❌ Nemitanam Name In Karbar Ra Taghir Daham (Role Bot Bala Tar Ast).', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+
+            // تغییر نام کاربر
+            await member.setNickname(newNickname, `Set staff by ${interaction.user.tag}`);
+
+            // اضافه کردن رول
+            const staffRoleId = '1452988034877362298';
+            const staffRole = interaction.guild.roles.cache.get(staffRoleId);
+            
+            if (!staffRole) {
+                return interaction.reply({ 
+                    content: '❌ Role Staff Peyda Nashod!', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+
+            // بررسی اینکه کاربر قبلاً این رول را دارد یا نه
+            if (!member.roles.cache.has(staffRoleId)) {
+                await member.roles.add(staffRole, `Set staff by ${interaction.user.tag}`);
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('✅ Staff Tanzim Shod')
+                .setDescription(`**Karbar:** ${targetUser}\n**Name Jadid:** ${newNickname}\n**Role:** ${staffRole}`)
+                .setColor('#2ecc71')
+                .setTimestamp();
+
+            await interaction.reply({ embeds: [embed] });
+        } catch (error) {
+            console.error('❌ Error in setstaff command:', error);
+            await interaction.reply({ 
+                content: `❌ Khata Dar Tanzim Staff: ${error.message || 'Khata Noshakhas'}`,
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+    }
+};
+
+// Archive Command
+const archiveCommand = {
+    data: new SlashCommandBuilder()
+        .setName('archive')
+        .setDescription('Archive Kardan Yek Payam')
+        .addStringOption(option =>
+            option.setName('message_link')
+                .setDescription('Link Payam (Right click > Copy Link)')
+                .setRequired(true)),
+    async execute(interaction) {
+        const messageLink = interaction.options.getString('message_link');
+        
+        if (!messageLink) {
+            return interaction.reply({ 
+                content: '❌ Lotfan Link Payam Ra Vared Konid!', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        // Parse message link: https://discord.com/channels/{guildId}/{channelId}/{messageId}
+        const linkRegex = /https?:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
+        const match = messageLink.match(linkRegex);
+        
+        if (!match) {
+            return interaction.reply({ 
+                content: '❌ Link Payam Namotabar Ast. Lotfan Link Motabar Vared Konid.', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        const [, guildId, channelId, messageId] = match;
+        
+        // بررسی اینکه لینک مربوط به همین سرور است
+        if (guildId !== interaction.guild.id) {
+            return interaction.reply({ 
+                content: '❌ Link Payam Marboot Be In Server Nist!', 
+                flags: MessageFlags.Ephemeral 
+            });
+        }
+
+        try {
+            // دریافت چنل و پیام
+            const channel = await interaction.client.channels.fetch(channelId);
+            const message = await channel.messages.fetch(messageId);
+
+            // دریافت متن پیام
+            const messageContent = message.content || '(Payam Faghat Attachment Darad)';
+            
+            // چنل مقصد برای ارسال فرم
+            const archiveChannelId = '1454447751923499181';
+            const archiveChannel = await interaction.client.channels.fetch(archiveChannelId).catch(() => null);
+            
+            if (!archiveChannel) {
+                return interaction.reply({ 
+                    content: '❌ Channel Archive Peyda Nashod!', 
+                    flags: MessageFlags.Ephemeral 
+                });
+            }
+
+            // ساخت پیام با فرمت درخواستی (فقط یکبار منشن کاربر)
+            const archiveContent = `\`\`\`\n${messageContent}\n\`\`\`\n${message.author}`;
+
+            // ارسال پیام به چنل مشخص شده
+            await archiveChannel.send(archiveContent);
+
+            // پاسخ به کاربر
+            await interaction.reply({ 
+                content: 'Form Archive Shod ✅', 
+                flags: MessageFlags.Ephemeral 
+            });
+        } catch (error) {
+            console.error('❌ Error in archive command:', error);
+            
+            let errorMessage = '❌ Khata Dar Archive Kardan Payam!';
+            if (error.code === 10008) {
+                errorMessage = '❌ Payam Peyda Nashod (Shayad Pak Shode Ast).';
+            } else if (error.code === 50001) {
+                errorMessage = '❌ Dastrasi Be Channel Mored Nazar Nadaram.';
+            }
+            
+            await interaction.reply({ 
+                content: errorMessage, 
                 flags: MessageFlags.Ephemeral 
             });
         }
@@ -932,9 +845,8 @@ module.exports = {
     reactionroleCommand,
 	autoreactionCommand,
 	sendCommand,
-    vipclbCommand,
-    clbCommand,
-    baninfoCommand,
     feedbackCommand,
-    bugCommand
+    bugCommand,
+    setstaffCommand,
+    archiveCommand
 };

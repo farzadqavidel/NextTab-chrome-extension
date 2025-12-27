@@ -138,9 +138,9 @@ async function updateGuildData() {
 
         // Roles that should be considered as admin-like for display
         const ADMIN_ROLE_IDS = [
-            '1415440089047371897',
-            '1400919880017907797',
-            '1400910230358851686'
+            '1454092104035991743',
+            '1454091946946728080',
+            '1452988034877362298'
         ];
 
         guild.members.cache.forEach(member => {
