@@ -1,4 +1,89 @@
 const path = require('path');
+const fs = require('fs');
+const readline = require('readline');
+
+// Environment Setup Function
+function setupEnvironment() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    function askQuestion(question) {
+        return new Promise((resolve) => {
+            rl.question(question, (answer) => {
+                resolve(answer);
+            });
+        });
+    }
+
+    return new Promise(async (resolve) => {
+        try {
+            console.log('🎮 Shadow Bot Environment Setup\n');
+
+            const envPath = path.join(__dirname, '.env');
+            if (fs.existsSync(envPath)) {
+                const overwrite = await askQuestion('⚠️  .env file already exists. Do you want to overwrite it? (y/N): ');
+                if (overwrite.toLowerCase() !== 'y' && overwrite.toLowerCase() !== 'yes') {
+                    console.log('❌ Setup cancelled.');
+                    rl.close();
+                    resolve(false);
+                    return;
+                }
+            }
+
+            console.log('📝 Please provide the following information:\n');
+
+            const discordToken = await askQuestion('🤖 Discord Bot Token: ');
+            const guildId = await askQuestion('🏠 Discord Guild ID: ');
+
+            if (!discordToken || discordToken === 'your_discord_bot_token_here') {
+                console.log('❌ Please provide a valid Discord Bot Token.');
+                rl.close();
+                resolve(false);
+                return;
+            }
+
+            if (!guildId || guildId === 'your_discord_guild_id_here') {
+                console.log('❌ Please provide a valid Discord Guild ID.');
+                rl.close();
+                resolve(false);
+                return;
+            }
+
+            const envContent = `# Discord Bot Configuration
+DISCORD_BOT_TOKEN=${discordToken}
+GUILD_ID=${guildId}
+`;
+
+            fs.writeFileSync(envPath, envContent);
+            
+            console.log('\n✅ .env file created successfully!');
+            console.log('🚀 You can now run: npm start');
+            console.log('\n📋 Your configuration:');
+            console.log(`   Bot Token: ${discordToken.substring(0, 10)}...`);
+            console.log(`   Guild ID: ${guildId}`);
+
+            rl.close();
+            resolve(true);
+        } catch (error) {
+            console.error('❌ Error setting up environment:', error.message);
+            rl.close();
+            resolve(false);
+        }
+    });
+}
+
+// Check if setup is requested via command line argument
+let isSetupMode = false;
+if (process.argv.includes('--setup') || process.argv.includes('-s')) {
+    isSetupMode = true;
+    setupEnvironment().then(() => {
+        process.exit(0);
+    }).catch(() => {
+        process.exit(1);
+    });
+}
 
 // Set environment variable to suppress dotenv logs
 process.env.DOTENV_CONFIG_QUIET = 'true';
@@ -511,7 +596,7 @@ async function updateBotActivity() {
         // اطمینان از اینکه memberCount یک عدد است
         memberCount = typeof memberCount === 'number' ? memberCount : 0;
         
-        const activityMessage = `CLUBS : ${memberCount} Member`;
+        const activityMessage = `Shadow Collection : ${memberCount} Member`;
 
         // Type 3 = Watching
         client.user.setActivity(activityMessage, { type: 3 }); 
@@ -1827,5 +1912,8 @@ if (typeof botToken !== 'string' || botToken.split('.').length !== 3 || /\s/.tes
     process.exit(1);
 }
 
-console.log('🔑 Bot token loaded successfully');
-client.login(botToken);
+// Only start bot if not in setup mode
+if (!isSetupMode) {
+    console.log('🔑 Bot token loaded successfully');
+    client.login(botToken);
+}
