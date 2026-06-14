@@ -1,16 +1,4 @@
 ﻿node_modules/
 .env
-.env.*
-.DS_Store
-npm-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-dist/
-build/
-coverage/
-.tmp/
-.vercel/
-.next/
-.vscode/
 *.log
-*.tmp
+
