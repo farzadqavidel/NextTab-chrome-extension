@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="background-layer"></div>
+
+  <div class="top-fab-group">
+    <button id="btn-lang" class="lang-fab" type="button" title="زبان">EN</button>
+    <button id="btn-settings" class="settings-fab" data-i18n-title="settings" data-i18n-aria="settings" title="تنظیمات" aria-label="تنظیمات">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    </button>
+  </div>
+
+  <div class="page-shell">
+    <div class="dashboard" id="dashboard">
+
+      <!-- Left Column -->
+      <aside class="col-left">
+        <div class="card day-info-card">
+          <div class="day-info-top">
+            <div class="weather-block">
+              <button type="button" class="weather-widget" id="weather-widget" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
+                <span class="weather-icon" id="weather-icon" aria-hidden="true">🌡️</span>
+                <span class="weather-temp" id="weather-temp">—°</span>
+                <span class="weather-desc" id="weather-desc">...</span>
+              </button>
+            </div>
+            <div class="day-info-meta">
+              <span id="day-clock" class="day-clock">۰۰:۰۰</span>
+              <span id="day-date" class="day-date"></span>
+              <span id="day-weekday" class="day-weekday"></span>
+            </div>
+          </div>
+          <div class="day-events">
+            <h3 class="section-label" data-i18n="occasions">مناسبت‌ها</h3>
+            <ul id="day-events-list" class="day-events-list"></ul>
+          </div>
+        </div>
+
+        <div class="card calendar-card">
+          <div class="calendar-header">
+            <button id="cal-prev" class="cal-nav" data-i18n-aria="calPrev" aria-label="ماه قبل">‹</button>
+            <div class="cal-title">
+              <span id="cal-month-name"></span>
+              <span id="cal-year"></span>
+            </div>
+            <button id="cal-next" class="cal-nav" data-i18n-aria="calNext" aria-label="ماه بعد">›</button>
+          </div>
+          <div class="cal-weekdays">
+            <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+          <div class="cal-other-dates" id="cal-other-dates"></div>
+          <button id="cal-go-today" class="cal-today-btn" data-i18n="calGoToday">برو به امروز</button>
+        </div>
+      </aside>
+
+      <!-- Center Column -->
+      <main class="col-center">
+        <div class="search-wrapper">
+          <form id="search-form" class="search-form" action="https://www.google.com/search" method="GET" target="_self">
+            <div class="search-box">
+              <button type="submit" class="search-google-btn" data-i18n-aria="searchGoogle" aria-label="جستجو در گوگل">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+              </button>
+              <input type="text" name="q" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجو در گوگل..." autocomplete="off">
+            </div>
+          </form>
+        </div>
+
+        <section class="card bookmarks-card">
+          <div class="bookmarks-header">
+            <div class="folder-tabs" id="folder-tabs"></div>
+            <div class="bookmarks-header-actions">
+              <button id="btn-add-bookmark" class="btn-soft btn-add-bm" type="button" data-i18n-title="addBookmarkBtn" title="افزودن بوکمارک">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                <span data-i18n="add">افزودن</span>
+              </button>
+              <button id="btn-import-all" class="btn-soft btn-import" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span data-i18n="import">ایمپورت</span>
+              </button>
+            </div>
+          </div>
+          <div class="bookmarks-grid" id="bookmarks-grid"></div>
+          <div class="empty-state hidden" id="empty-bookmarks">
+            <div class="empty-icon">📑</div>
+            <p data-i18n="emptyBookmarks">هنوز بوکمارکی اضافه نکرده‌اید</p>
+            <button id="btn-empty-add" class="btn-soft" type="button" data-i18n="firstBookmark">اولین بوکمارک</button>
+          </div>
+        </section>
+      </main>
+
+      <!-- Right Column: Notes -->
+      <aside class="col-right">
+        <div class="card notes-card" id="notes-card">
+          <div class="notes-header">
+            <h3 class="notes-title" data-i18n="notes">یادداشت</h3>
+            <button id="btn-notes-blur" class="toolbar-btn" data-i18n-title="hideNotes" title="مخفی کردن یادداشت‌ها" data-i18n-aria="hideNotes" aria-label="مخفی کردن">
+              <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-hide hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <div class="notes-content" id="notes-content">
+            <div class="notes-list" id="notes-list"></div>
+          </div>
+          <form id="form-note" class="note-form">
+            <input type="text" id="note-input" data-i18n-placeholder="notePlaceholder" placeholder="نوشتن یادداشت جدید..." autocomplete="off">
+            <button type="submit" class="note-add-btn" data-i18n-aria="addNote" aria-label="افزودن یادداشت">+</button>
+          </form>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Modal: Add Choice -->
+  <div class="modal-overlay hidden" id="modal-add-choice">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 data-i18n="addNew">افزودن جدید</h2>
+        <button class="modal-close" data-close="modal-add-choice" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <div class="add-choice-body">
+        <p class="add-choice-desc" data-i18n="addChoiceDesc">چه چیزی می‌خواهید اضافه کنید؟</p>
+        <div class="add-choice-grid">
+          <button type="button" id="btn-choice-link" class="choice-card">
+            <span class="choice-icon">🔗</span>
+            <span class="choice-title" data-i18n="link">لینک</span>
+            <span class="choice-hint" data-i18n="addBookmarkHint">افزودن بوکمارک</span>
+          </button>
+          <button type="button" id="btn-choice-group" class="choice-card">
+            <span class="choice-icon">📁</span>
+            <span class="choice-title" data-i18n="group">گروه</span>
+            <span class="choice-hint" data-i18n="addGroupHint">ساخت پوشه جدید</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add/Edit Bookmark -->
+  <div class="modal-overlay hidden" id="modal-bookmark">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-bookmark-title" data-i18n="addBookmark">افزودن بوکمارک</h2>
+        <button class="modal-close" data-close="modal-bookmark" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <form id="form-bookmark">
+        <input type="hidden" id="bookmark-id">
+        <div class="form-group">
+          <label for="bookmark-title" data-i18n="title">عنوان</label>
+          <input type="text" id="bookmark-title" class="field-input" required data-i18n-placeholder="titlePlaceholder" placeholder="مثلاً: گیت‌هاب">
+        </div>
+        <div class="form-group">
+          <label for="bookmark-url" data-i18n="url">آدرس (URL)</label>
+          <input type="url" id="bookmark-url" class="field-input" required placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label for="bookmark-folder" data-i18n="folder">پوشه</label>
+          <div class="select-wrap">
+            <select id="bookmark-folder" class="field-input field-select"></select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" data-close="modal-bookmark" data-i18n="cancel">انصراف</button>
+          <button type="submit" class="btn-primary" data-i18n="save">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Folder -->
+  <div class="modal-overlay hidden" id="modal-folder">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="newGroup">گروه جدید</h2>
+        <button class="modal-close" data-close="modal-folder" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <form id="form-folder">
+        <div class="form-group">
+          <label for="folder-name" data-i18n="groupName">نام گروه</label>
+          <input type="text" id="folder-name" class="field-input" required data-i18n-placeholder="groupNamePlaceholder" placeholder="مثلاً: کاری">
+        </div>
+        <div class="form-group">
+          <label data-i18n="color">رنگ</label>
+          <div class="color-picker" id="folder-color-picker">
+            <button type="button" class="color-swatch active" data-color="#6366f1" style="background:#6366f1"></button>
+            <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899"></button>
+            <button type="button" class="color-swatch" data-color="#14b8a6" style="background:#14b8a6"></button>
+            <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
+            <button type="button" class="color-swatch" data-color="#ef4444" style="background:#ef4444"></button>
+            <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+          </div>
+          <input type="hidden" id="folder-color" value="#6366f1">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" data-close="modal-folder" data-i18n="cancel">انصراف</button>
+          <button type="submit" class="btn-primary" data-i18n="createGroup">ساخت گروه</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Settings -->
+  <div class="modal-overlay hidden" id="modal-settings">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 data-i18n="settings">تنظیمات</h2>
+        <button class="modal-close" data-close="modal-settings" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="appearance" data-i18n="tabAppearance">ظاهر</button>
+        <button class="settings-tab" data-tab="background" data-i18n="tabBackground">پس‌زمینه</button>
+        <button class="settings-tab" data-tab="backup" data-i18n="tabBackup">ذخیره</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-panel active" id="panel-appearance">
+          <h3 data-i18n="displayMode">حالت نمایش</h3>
+          <div class="mode-toggle">
+            <button class="mode-btn" data-mode="dark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <span data-i18n="darkMode">دارک مود</span>
+            </button>
+            <button class="mode-btn" data-mode="light">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <span data-i18n="lightMode">لایت مود</span>
+            </button>
+          </div>
+          <h3 data-i18n="colorTheme">تم رنگی</h3>
+          <div class="theme-grid" id="theme-grid"></div>
+        </div>
+        <div class="settings-panel" id="panel-background">
+          <h3 data-i18n="bgType">نوع پس‌زمینه</h3>
+          <div class="bg-type-selector">
+            <label class="radio-card">
+              <input type="radio" name="bg-type" value="gradient" checked>
+              <span data-i18n="gradient">گرادیانت</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="bg-type" value="color">
+              <span data-i18n="solidColor">رنگ ساده</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="bg-type" value="image">
+              <span data-i18n="image">تصویر</span>
+            </label>
+          </div>
+          <div id="bg-gradient-options" class="bg-options">
+            <h4 data-i18n="readyGradients">گرادیانت‌های آماده</h4>
+            <div class="gradient-grid" id="gradient-grid"></div>
+          </div>
+          <div id="bg-color-options" class="bg-options hidden">
+            <h4 data-i18n="bgColor">رنگ پس‌زمینه</h4>
+            <input type="color" id="bg-color-picker" value="#C7E2F7">
+          </div>
+          <div id="bg-image-options" class="bg-options hidden">
+            <h4 data-i18n="bgImage">تصویر پس‌زمینه</h4>
+            <div class="form-group">
+              <label for="bg-image-url" data-i18n="imageUrl">آدرس تصویر (URL)</label>
+              <div class="input-row">
+                <input type="url" id="bg-image-url" class="field-input" placeholder="https://example.com/image.jpg">
+                <button type="button" id="btn-bg-url-apply" class="btn-primary btn-compact" data-i18n="apply">ثبت</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label data-i18n="orUpload">یا آپلود تصویر</label>
+              <div class="file-upload-wrap">
+                <label class="file-upload-btn" for="bg-image-upload">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span data-i18n="chooseFile">انتخاب فایل</span>
+                </label>
+                <input type="file" id="bg-image-upload" accept="image/*" class="file-upload-input">
+                <span class="file-upload-name" id="bg-file-name" data-i18n="noFile">فایلی انتخاب نشده</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bg-blur" data-i18n="blurAmount">میزان بلور</label>
+              <input type="range" id="bg-blur" min="0" max="20" value="0">
+              <span id="bg-blur-value">0px</span>
+            </div>
+            <div class="form-group">
+              <label for="bg-overlay" data-i18n="imageOverlay">تیرگی روی تصویر</label>
+              <input type="range" id="bg-overlay" min="0" max="80" value="20">
+              <span id="bg-overlay-value">20%</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-panel" id="panel-backup">
+          <h3 data-i18n="backupTitle">پشتیبان‌گیری و بازیابی</h3>
+          <p class="settings-desc" data-i18n="backupDesc">تم، یادداشت‌ها، بوکمارک‌ها، پوشه‌ها و همه تنظیمات صفحه ذخیره می‌شود.</p>
+          <div class="backup-actions">
+            <button type="button" id="btn-export-data" class="btn-primary" data-i18n="exportFile">ذخیره در فایل</button>
+            <button type="button" id="btn-import-data" class="btn-soft" data-i18n="importFile">بارگذاری از فایل</button>
+            <input type="file" id="import-data-file" accept=".json" class="file-upload-input">
+          </div>
+          <p class="settings-hint" data-i18n="backupHint">با «ذخیره در فایل» محل ذخیره را خودتان انتخاب می‌کنید.</p>
+          <hr class="settings-divider">
+          <button type="button" id="btn-reset-data" class="btn-danger" data-i18n="resetAll">بازنشانی همه داده‌ها</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Weather -->
+  <div class="modal-overlay hidden" id="modal-weather">
+    <div class="modal modal-weather">
+      <div class="modal-header">
+        <h2 data-i18n="weatherForecast">پیش‌بینی آب‌وهوا</h2>
+        <button class="modal-close" data-close="modal-weather" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <div id="weather-modal-body" class="weather-modal-body"></div>
+    </div>
+  </div>
+
+  <div class="context-menu hidden" id="context-menu">
+    <button data-action="edit" data-i18n="edit">ویرایش</button>
+    <button data-action="delete" data-i18n="delete">حذف</button>
+  </div>
+
+  <script src="js/jalali.js"></script>
+  <script src="js/hijri.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/bookmarks.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
