@@ -3,6 +3,7 @@ const WeatherUI = (() => {
   let forecastData = null;
   let isOpen = false;
   let cityLabel = '';
+  const DEFAULT_COORDS = { lat: 35.6892, lon: 51.3890 };
 
   function init() {
     els.widget = document.getElementById('weather-widget');
@@ -41,23 +42,41 @@ const WeatherUI = (() => {
 
   async function loadWeather() {
     if (els.desc) els.desc.textContent = I18n.t('weatherLoading');
+    const coords = await resolveCoords();
+    cityLabel = coords.useDefault ? I18n.t('tehran') : '';
+    await fetchWeather(coords.lat, coords.lon);
+  }
+
+  async function resolveCoords() {
+    if (!navigator.geolocation) {
+      return { ...DEFAULT_COORDS, useDefault: true };
+    }
+
+    if (navigator.permissions?.query) {
+      try {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        if (status.state === 'denied') {
+          return { ...DEFAULT_COORDS, useDefault: true };
+        }
+      } catch {
+        /* Permissions API unavailable */
+      }
+    }
+
     try {
       const pos = await getPosition();
-      await fetchWeather(pos.lat, pos.lon);
-      cityLabel = '';
+      return { lat: pos.lat, lon: pos.lon, useDefault: false };
     } catch {
-      await fetchWeather(35.6892, 51.3890);
-      cityLabel = I18n.t('tehran');
+      return { ...DEFAULT_COORDS, useDefault: true };
     }
   }
 
   function getPosition() {
     return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) return reject();
       navigator.geolocation.getCurrentPosition(
         (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }),
         reject,
-        { timeout: 8000, maximumAge: 600000 }
+        { timeout: 8000, maximumAge: 600000, enableHighAccuracy: false }
       );
     });
   }

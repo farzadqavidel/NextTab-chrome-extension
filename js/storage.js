@@ -5,14 +5,15 @@ const Storage = (() => {
       { id: 'default', name: 'بدون دسته‌بندی', color: '#94a3b8', order: 0, isDefault: true }
     ],
     notes: [],
+    trashedNotes: [],
     activeFolderId: 'default',
     selectedDay: null,
     settings: {
       theme: 'light',
       colorMode: 'light',
-      bgType: 'color',
-      bgGradient: 'sky',
-      bgColor: '#C7E2F7',
+      bgType: 'gradient',
+      bgGradient: 'ocean',
+      bgColor: '#000000',
       bgImage: '',
       bgBlur: 0,
       bgOverlay: 20,
@@ -52,9 +53,13 @@ const Storage = (() => {
       if (def && def.name === 'همه') def.name = 'بدون دسته‌بندی';
     }
     if (data.notes) merged.notes = data.notes;
+    if (data.trashedNotes) merged.trashedNotes = data.trashedNotes;
     if (data.activeFolderId) merged.activeFolderId = data.activeFolderId;
     if (data.selectedDay) merged.selectedDay = data.selectedDay;
-    if (data.settings) merged.settings = { ...merged.settings, ...data.settings };
+    if (data.settings) {
+      merged.settings = { ...merged.settings, ...data.settings };
+      if (merged.settings.colorMode !== 'dark') merged.settings.colorMode = 'light';
+    }
     return merged;
   }
 
@@ -73,7 +78,9 @@ const Storage = (() => {
   }
 
   async function updateSettings(partial) {
-    cache.settings = { ...cache.settings, ...partial };
+    Object.entries(partial).forEach(([key, value]) => {
+      if (value !== undefined) cache.settings[key] = value;
+    });
     await save();
   }
 
@@ -115,10 +122,15 @@ const Storage = (() => {
     return cache.notes.sort((a, b) => b.createdAt - a.createdAt);
   }
 
+  function getTrashedNotes() {
+    return cache.trashedNotes.sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+  }
+
   async function addNote(text) {
     const note = {
       id: generateId(),
       text,
+      done: false,
       createdAt: Date.now()
     };
     cache.notes.unshift(note);
@@ -126,9 +138,55 @@ const Storage = (() => {
     return note;
   }
 
-  async function deleteNote(id) {
-    cache.notes = cache.notes.filter((n) => n.id !== id);
+  async function updateNote(id, updates) {
+    const idx = cache.notes.findIndex((n) => n.id === id);
+    if (idx === -1) return null;
+    cache.notes[idx] = { ...cache.notes[idx], ...updates };
     await save();
+    return cache.notes[idx];
+  }
+
+  async function moveNoteToTrash(id) {
+    const idx = cache.notes.findIndex((n) => n.id === id);
+    if (idx === -1) return false;
+    const note = { ...cache.notes[idx], deletedAt: Date.now() };
+    cache.notes.splice(idx, 1);
+    cache.trashedNotes.unshift(note);
+    await save();
+    return true;
+  }
+
+  async function restoreNote(id) {
+    const idx = cache.trashedNotes.findIndex((n) => n.id === id);
+    if (idx === -1) return false;
+    const note = { ...cache.trashedNotes[idx] };
+    delete note.deletedAt;
+    cache.trashedNotes.splice(idx, 1);
+    cache.notes.unshift(note);
+    await save();
+    return true;
+  }
+
+  async function permanentlyDeleteNote(id) {
+    cache.trashedNotes = cache.trashedNotes.filter((n) => n.id !== id);
+    await save();
+  }
+
+  async function moveAllNotesToTrash() {
+    if (cache.notes.length === 0) return;
+    const now = Date.now();
+    cache.trashedNotes.unshift(...cache.notes.map((n) => ({ ...n, deletedAt: now })));
+    cache.notes = [];
+    await save();
+  }
+
+  async function emptyTrash() {
+    cache.trashedNotes = [];
+    await save();
+  }
+
+  async function deleteNote(id) {
+    await moveNoteToTrash(id);
   }
 
   async function addBookmark({ title, url, folderId }) {
@@ -182,12 +240,16 @@ const Storage = (() => {
     return cache.folders[idx];
   }
 
-  async function deleteFolder(id) {
+  async function deleteFolder(id, deleteBookmarks = false) {
     const folder = cache.folders.find((f) => f.id === id);
     if (!folder || folder.isDefault) return false;
-    cache.bookmarks.forEach((b) => {
-      if (b.folderId === id) b.folderId = 'default';
-    });
+    if (deleteBookmarks) {
+      cache.bookmarks = cache.bookmarks.filter((b) => b.folderId !== id);
+    } else {
+      cache.bookmarks.forEach((b) => {
+        if (b.folderId === id) b.folderId = 'default';
+      });
+    }
     cache.folders = cache.folders.filter((f) => f.id !== id);
     if (cache.activeFolderId === id) cache.activeFolderId = 'default';
     await save();
@@ -314,8 +376,15 @@ const Storage = (() => {
     getVisibleFolders,
     getEffectiveActiveFolderId,
     getNotes,
+    getTrashedNotes,
     addNote,
+    updateNote,
     deleteNote,
+    moveNoteToTrash,
+    restoreNote,
+    permanentlyDeleteNote,
+    moveAllNotesToTrash,
+    emptyTrash,
     addBookmark,
     updateBookmark,
     deleteBookmark,

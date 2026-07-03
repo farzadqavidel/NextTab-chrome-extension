@@ -9,12 +9,17 @@
 <body>
   <div id="background-layer"></div>
 
+  <a id="btn-github" class="github-fab" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
+  </a>
+
   <div class="top-fab-group">
-    <button id="btn-lang" class="lang-fab" type="button" title="زبان">EN</button>
     <button id="btn-settings" class="settings-fab" data-i18n-title="settings" data-i18n-aria="settings" title="تنظیمات" aria-label="تنظیمات">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
       <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
     </button>
   </div>
@@ -77,8 +82,30 @@
                 </svg>
               </button>
               <input type="text" name="q" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجو در گوگل..." autocomplete="off">
+              <div class="search-actions">
+                <button type="submit" class="search-action-btn" data-i18n-aria="searchSubmit" aria-label="جستجو">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                </button>
+                <button type="button" id="btn-search-image" class="search-action-btn" data-i18n-aria="searchImage" aria-label="جستجوی تصویر">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </button>
+                <button type="button" id="btn-search-voice" class="search-action-btn" data-i18n-aria="searchVoice" aria-label="جستجوی صوتی">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </form>
+          <input type="file" id="search-image-input" accept="image/*" capture="environment" class="hidden">
         </div>
 
         <section class="card bookmarks-card">
@@ -99,11 +126,13 @@
               </button>
             </div>
           </div>
-          <div class="bookmarks-grid" id="bookmarks-grid"></div>
-          <div class="empty-state hidden" id="empty-bookmarks">
-            <div class="empty-icon">📑</div>
-            <p data-i18n="emptyBookmarks">هنوز بوکمارکی اضافه نکرده‌اید</p>
-            <button id="btn-empty-add" class="btn-soft" type="button" data-i18n="firstBookmark">اولین بوکمارک</button>
+          <div class="bookmarks-body">
+            <div class="bookmarks-grid" id="bookmarks-grid"></div>
+            <div class="empty-state hidden" id="empty-bookmarks">
+              <div class="empty-icon">📑</div>
+              <p data-i18n="emptyBookmarks">هنوز بوکمارکی اضافه نکرده‌اید</p>
+              <button id="btn-empty-add" class="btn-soft" type="button" data-i18n="firstBookmark">اولین بوکمارک</button>
+            </div>
           </div>
         </section>
       </main>
@@ -112,8 +141,21 @@
       <aside class="col-right">
         <div class="card notes-card" id="notes-card">
           <div class="notes-header">
-            <h3 class="notes-title" data-i18n="notes">یادداشت</h3>
-            <button id="btn-notes-blur" class="toolbar-btn" data-i18n-title="hideNotes" title="مخفی کردن یادداشت‌ها" data-i18n-aria="hideNotes" aria-label="مخفی کردن">
+            <h3 class="notes-title" id="notes-title">یادداشت</h3>
+            <div class="notes-toolbar">
+              <button id="btn-notes-trash" class="toolbar-btn" data-i18n-title="notesTrash" title="سطل زباله" data-i18n-aria="notesTrash" aria-label="سطل زباله">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+                <span class="trash-badge hidden"></span>
+              </button>
+              <button id="btn-notes-expand" class="toolbar-btn" data-i18n-title="expandNotes" title="نمایش بزرگ‌تر" data-i18n-aria="expandNotes" aria-label="نمایش بزرگ‌تر">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
+                </svg>
+              </button>
+              <button id="btn-notes-blur" class="toolbar-btn" data-i18n-title="hideNotes" title="مخفی کردن یادداشت‌ها" data-i18n-aria="hideNotes" aria-label="مخفی کردن">
               <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
@@ -124,6 +166,7 @@
                 <line x1="1" y1="1" x2="23" y2="23"/>
               </svg>
             </button>
+            </div>
           </div>
           <div class="notes-content" id="notes-content">
             <div class="notes-list" id="notes-list"></div>
@@ -194,14 +237,15 @@
     </div>
   </div>
 
-  <!-- Modal: Add Folder -->
+  <!-- Modal: Add/Edit Folder -->
   <div class="modal-overlay hidden" id="modal-folder">
     <div class="modal">
       <div class="modal-header">
-        <h2 data-i18n="newGroup">گروه جدید</h2>
+        <h2 id="modal-folder-title" data-i18n="newGroup">گروه جدید</h2>
         <button class="modal-close" data-close="modal-folder" data-i18n-aria="close" aria-label="بستن">&times;</button>
       </div>
       <form id="form-folder">
+        <input type="hidden" id="folder-id">
         <div class="form-group">
           <label for="folder-name" data-i18n="groupName">نام گروه</label>
           <input type="text" id="folder-name" class="field-input" required data-i18n-placeholder="groupNamePlaceholder" placeholder="مثلاً: کاری">
@@ -220,7 +264,7 @@
         </div>
         <div class="form-actions">
           <button type="button" class="btn-cancel" data-close="modal-folder" data-i18n="cancel">انصراف</button>
-          <button type="submit" class="btn-primary" data-i18n="createGroup">ساخت گروه</button>
+          <button type="submit" class="btn-primary" id="btn-folder-submit" data-i18n="createGroup">ساخت گروه</button>
         </div>
       </form>
     </div>
@@ -240,6 +284,11 @@
       </div>
       <div class="settings-content">
         <div class="settings-panel active" id="panel-appearance">
+          <h3 data-i18n="language">زبان</h3>
+          <div class="lang-toggle mode-toggle">
+            <button type="button" class="lang-btn" data-lang="fa">فارسی</button>
+            <button type="button" class="lang-btn" data-lang="en">English</button>
+          </div>
           <h3 data-i18n="displayMode">حالت نمایش</h3>
           <div class="mode-toggle">
             <button class="mode-btn" data-mode="dark">
@@ -276,7 +325,27 @@
           </div>
           <div id="bg-color-options" class="bg-options hidden">
             <h4 data-i18n="bgColor">رنگ پس‌زمینه</h4>
-            <input type="color" id="bg-color-picker" value="#C7E2F7">
+            <div class="color-picker-pro">
+              <label class="color-picker-card" for="bg-color-picker">
+                <span class="color-picker-swatch" id="bg-color-preview" style="background:#000000" aria-hidden="true"></span>
+                <span class="color-picker-details">
+                  <span class="color-picker-hex" id="bg-color-hex">#000000</span>
+                  <span class="color-picker-hint" data-i18n="clickToPick">برای تغییر رنگ کلیک کنید</span>
+                </span>
+                <span class="color-picker-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </span>
+                <input type="color" id="bg-color-picker" value="#000000" class="color-picker-native" data-i18n-aria="bgColor">
+              </label>
+              <div class="color-presets" id="bg-color-presets" role="group" aria-label="رنگ‌های آماده">
+                <button type="button" class="color-preset" data-color="#000000" title="#000000" style="--preset-color:#000000"></button>
+                <button type="button" class="color-preset" data-color="#1a1a2e" title="#1A1A2E" style="--preset-color:#1a1a2e"></button>
+                <button type="button" class="color-preset" data-color="#0f172a" title="#0F172A" style="--preset-color:#0f172a"></button>
+                <button type="button" class="color-preset" data-color="#1e3a5f" title="#1E3A5F" style="--preset-color:#1e3a5f"></button>
+                <button type="button" class="color-preset" data-color="#134e4a" title="#134E4A" style="--preset-color:#134e4a"></button>
+                <button type="button" class="color-preset" data-color="#ffffff" title="#FFFFFF" style="--preset-color:#ffffff"></button>
+              </div>
+            </div>
           </div>
           <div id="bg-image-options" class="bg-options hidden">
             <h4 data-i18n="bgImage">تصویر پس‌زمینه</h4>
@@ -337,8 +406,44 @@
     </div>
   </div>
 
+  <!-- Modal: Notes Expanded -->
+  <div class="modal-overlay hidden" id="modal-notes">
+    <div class="modal modal-notes">
+      <div class="modal-header">
+        <h2 data-i18n="allNotes">همه یادداشت‌ها</h2>
+        <button class="modal-close" data-close="modal-notes" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <div id="notes-modal-body" class="notes-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Note -->
+  <div class="modal-overlay hidden" id="modal-note-edit">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 data-i18n="editNote">ویرایش یادداشت</h2>
+        <button class="modal-close" data-close="modal-note-edit" data-i18n-aria="close" aria-label="بستن">&times;</button>
+      </div>
+      <form id="form-note-edit">
+        <input type="hidden" id="note-edit-id">
+        <div class="form-group">
+          <textarea id="note-edit-text" class="field-input field-textarea" rows="4" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" data-close="modal-note-edit" data-i18n="cancel">انصراف</button>
+          <button type="submit" class="btn-primary" data-i18n="save">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="context-menu hidden" id="context-menu">
-    <button data-action="edit" data-i18n="edit">ویرایش</button>
+    <button data-action="open-new-tab" data-i18n="openNewTab" class="ctx-bookmark-only">باز کردن در تب جدید</button>
+    <button data-action="toggle-done" data-i18n="markDone" class="ctx-note-only hidden">تیک زدن</button>
+    <button data-action="restore" data-i18n="restoreNote" class="ctx-trash-only hidden">بازیابی</button>
+    <button data-action="delete-all-notes" data-i18n="deleteAllNotes" class="ctx-note-only hidden">حذف همه یادداشت‌ها</button>
+    <button data-action="empty-trash" data-i18n="emptyTrash" class="ctx-trash-only hidden">خالی کردن سطل</button>
+    <button data-action="edit" data-i18n="edit" class="ctx-note-only">ویرایش</button>
     <button data-action="delete" data-i18n="delete">حذف</button>
   </div>
 
