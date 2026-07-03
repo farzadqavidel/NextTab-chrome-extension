@@ -3,10 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Tab</title>
+  <title>Tabyar</title>
+  <link rel="icon" type="image/png" href="icons/icon48.png">
+  <style>
+    :root {
+      --bg-card: rgba(255, 255, 255, 0.1);
+      --bg-card-hover: rgba(255, 255, 255, 0.16);
+      --surface-muted: rgba(255, 255, 255, 0.07);
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(248, 250, 252, 0.7);
+      --accent: #38bdf8;
+      --accent-hover: #7dd3fc;
+      --border: rgba(255, 255, 255, 0.2);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+      --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.32);
+      --search-bg: rgba(255, 255, 255, 0.12);
+      --cal-today: #38bdf8;
+      --cal-friday: #fb7185;
+      --tile-bg: rgba(255, 255, 255, 0.12);
+      --input-bg: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      color: #f8fafc;
+    }
+    #background-layer {
+      background: linear-gradient(180deg, #020617 0%, #0f172a 40%, #1e293b 100%);
+    }
+  </style>
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body class="dark-mode glass-theme">
   <div id="background-layer"></div>
 
   <a id="btn-github" class="github-fab" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
@@ -289,17 +315,6 @@
             <button type="button" class="lang-btn" data-lang="fa">فارسی</button>
             <button type="button" class="lang-btn" data-lang="en">English</button>
           </div>
-          <h3 data-i18n="displayMode">حالت نمایش</h3>
-          <div class="mode-toggle">
-            <button class="mode-btn" data-mode="dark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-              <span data-i18n="darkMode">دارک مود</span>
-            </button>
-            <button class="mode-btn" data-mode="light">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-              <span data-i18n="lightMode">لایت مود</span>
-            </button>
-          </div>
           <h3 data-i18n="colorTheme">تم رنگی</h3>
           <div class="theme-grid" id="theme-grid"></div>
         </div>
@@ -343,11 +358,12 @@
                 <button type="button" class="color-preset" data-color="#0f172a" title="#0F172A" style="--preset-color:#0f172a"></button>
                 <button type="button" class="color-preset" data-color="#1e3a5f" title="#1E3A5F" style="--preset-color:#1e3a5f"></button>
                 <button type="button" class="color-preset" data-color="#134e4a" title="#134E4A" style="--preset-color:#134e4a"></button>
-                <button type="button" class="color-preset" data-color="#ffffff" title="#FFFFFF" style="--preset-color:#ffffff"></button>
               </div>
             </div>
           </div>
           <div id="bg-image-options" class="bg-options hidden">
+            <h4 data-i18n="readyWallpapers">والپیپرهای آماده</h4>
+            <div id="wallpaper-gallery" class="wallpaper-gallery"></div>
             <h4 data-i18n="bgImage">تصویر پس‌زمینه</h4>
             <div class="form-group">
               <label for="bg-image-url" data-i18n="imageUrl">آدرس تصویر (URL)</label>
@@ -456,6 +472,7 @@
   <script src="js/weather.js"></script>
   <script src="js/notes.js"></script>
   <script src="js/bookmarks.js"></script>
+  <script src="js/wallpaper.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>
 </body>
