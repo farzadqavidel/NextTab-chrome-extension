@@ -3,7 +3,6 @@ const WeatherUI = (() => {
   let forecastData = null;
   let isOpen = false;
   let cityLabel = '';
-  const DEFAULT_COORDS = { lat: 35.6892, lon: 51.3890 };
 
   function init() {
     els.widget = document.getElementById('weather-widget');
@@ -42,33 +41,39 @@ const WeatherUI = (() => {
 
   async function loadWeather() {
     if (els.desc) els.desc.textContent = I18n.t('weatherLoading');
-    const coords = await resolveCoords();
-    cityLabel = coords.useDefault ? I18n.t('tehran') : '';
-    await fetchWeather(coords.lat, coords.lon);
+    try {
+      const coords = await resolveCoords();
+      cityLabel = coords.city || '';
+      await fetchWeather(coords.lat, coords.lon);
+    } catch {
+      if (els.desc) els.desc.textContent = I18n.t('weatherUnavailable');
+    }
   }
 
   async function resolveCoords() {
-    if (!navigator.geolocation) {
-      return { ...DEFAULT_COORDS, useDefault: true };
-    }
-
-    if (navigator.permissions?.query) {
-      try {
-        const status = await navigator.permissions.query({ name: 'geolocation' });
-        if (status.state === 'denied') {
-          return { ...DEFAULT_COORDS, useDefault: true };
+    if (navigator.geolocation) {
+      let denied = false;
+      if (navigator.permissions?.query) {
+        try {
+          const status = await navigator.permissions.query({ name: 'geolocation' });
+          denied = status.state === 'denied';
+        } catch {
+          /* Permissions API unavailable */
         }
-      } catch {
-        /* Permissions API unavailable */
+      }
+
+      if (!denied) {
+        try {
+          const pos = await getPosition();
+          const city = await reverseGeocode(pos.lat, pos.lon);
+          return { lat: pos.lat, lon: pos.lon, city: city || Locale.timezoneLabel() };
+        } catch {
+          /* fall through to timezone geocoding */
+        }
       }
     }
 
-    try {
-      const pos = await getPosition();
-      return { lat: pos.lat, lon: pos.lon, useDefault: false };
-    } catch {
-      return { ...DEFAULT_COORDS, useDefault: true };
-    }
+    return geocodeFromTimezone();
   }
 
   function getPosition() {
@@ -79,6 +84,58 @@ const WeatherUI = (() => {
         { timeout: 8000, maximumAge: 600000, enableHighAccuracy: false }
       );
     });
+  }
+
+  async function reverseGeocode(lat, lon) {
+    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=${lang}&count=1`;
+    const res = await fetch(url);
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.results?.[0]?.name || '';
+  }
+
+  async function searchGeocode(name, lang) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=${lang}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const r = data.results?.[0];
+    if (!r) return null;
+    return { lat: r.latitude, lon: r.longitude, city: r.name || name };
+  }
+
+  async function geocodeFromTimezone() {
+    const tz = Locale.getTimezone();
+    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const tzLabel = Locale.timezoneLabel();
+    const queries = [tzLabel, tz.replace(/_/g, ' ')];
+
+    for (const q of queries) {
+      const hit = await searchGeocode(q, lang);
+      if (hit) return hit;
+    }
+
+    try {
+      const region = new Intl.Locale(navigator.language).maximize().region;
+      if (region) {
+        const hit = await searchGeocode(region, lang);
+        if (hit) return { ...hit, city: tzLabel };
+        try {
+          const countryName = new Intl.DisplayNames([lang], { type: 'region' }).of(region);
+          if (countryName) {
+            const countryHit = await searchGeocode(countryName, lang);
+            if (countryHit) return { ...countryHit, city: tzLabel };
+          }
+        } catch {
+          /* DisplayNames unsupported */
+        }
+      }
+    } catch {
+      /* Intl.Locale unsupported */
+    }
+
+    throw new Error('location unavailable');
   }
 
   async function fetchWeather(lat, lon) {
@@ -93,13 +150,18 @@ const WeatherUI = (() => {
     renderCurrent();
   }
 
+  function getTodayKey() {
+    const tz = forecastData?.timezone || Locale.getTimezone();
+    return Locale.formatDateISO(new Date(), tz);
+  }
+
   function renderCurrent() {
     if (!forecastData?.current) return;
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
     els.icon.textContent = w.icon;
     els.temp.textContent = `${Math.round(cur.temperature_2m)}°`;
-    els.desc.textContent = cityLabel || w.label;
+    els.desc.textContent = cityLabel ? `${cityLabel} · ${w.label}` : w.label;
     els.widget.title = `${w.label} — ${I18n.t('weatherClick')}`;
   }
 
@@ -109,7 +171,7 @@ const WeatherUI = (() => {
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
     const { time, weather_code, temperature_2m_max, temperature_2m_min } = forecastData.daily;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayKey();
 
     let listHtml = '';
     for (let i = 0; i < time.length; i++) {
@@ -120,8 +182,8 @@ const WeatherUI = (() => {
       let label;
 
       if (d === today) label = I18n.t('weatherToday');
-      else if (d === offsetDate(today, 1)) label = I18n.t('weatherTomorrow');
-      else if (d === offsetDate(today, -1)) label = I18n.t('weatherYesterday');
+      else if (d === Locale.offsetDateISO(today, 1)) label = I18n.t('weatherTomorrow');
+      else if (d === Locale.offsetDateISO(today, -1)) label = I18n.t('weatherYesterday');
       else if (d < today) label = I18n.t('weatherDaysAgo', { n: Math.abs(dayDiff(today, d)) });
       else label = I18n.t('weatherDaysLater', { n: dayDiff(today, d) });
 
@@ -162,12 +224,6 @@ const WeatherUI = (() => {
     `;
   }
 
-  function offsetDate(iso, days) {
-    const d = new Date(iso);
-    d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0, 10);
-  }
-
   function dayDiff(from, to) {
     return Math.round((new Date(to) - new Date(from)) / 86400000);
   }
@@ -177,5 +233,5 @@ const WeatherUI = (() => {
     if (isOpen) renderForecastModal();
   }
 
-  return { init, refresh };
+  return { init, refresh, reload: loadWeather };
 })();

@@ -141,11 +141,7 @@ const CalendarUI = (() => {
   }
 
   function updateClock() {
-    const now = new Date();
-    const h = now.getHours().toString().padStart(2, '0');
-    const m = now.getMinutes().toString().padStart(2, '0');
-    const time = `${h}:${m}`;
-    els.dayClock.textContent = I18n.getLang() === 'fa' ? Jalali.toPersianDigits(time) : time;
+    els.dayClock.textContent = Locale.formatClock(new Date());
   }
 
   function refresh() {

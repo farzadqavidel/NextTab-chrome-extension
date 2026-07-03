@@ -107,6 +107,9 @@ const NotesUI = (() => {
         btn.classList.toggle('hidden', trashView || areaOnly);
       }
     });
+    els.contextMenu.querySelectorAll('.ctx-edit').forEach((btn) => {
+      btn.classList.toggle('hidden', trashView || areaOnly);
+    });
     els.contextMenu.querySelectorAll('[data-action="delete"]').forEach((btn) => {
       btn.classList.toggle('hidden', areaOnly);
     });
