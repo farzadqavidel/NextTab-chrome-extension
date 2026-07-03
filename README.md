@@ -35,7 +35,6 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 | Storage | Chrome `storage.local` + IndexedDB (wallpapers) |
 | Calendar | Custom Jalali & Hijri algorithms |
 | Weather | [Open-Meteo API](https://open-meteo.com/) |
-| Translation | [MyMemory API](https://mymemory.translated.net/) |
 | Fonts | [Vazirmatn](https://fonts.google.com/) via Google Fonts |
 
 ---
@@ -50,10 +49,10 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 - Fridays highlighted
 
 ### Bookmarks
-- Unlimited bookmarks with custom groups & colors
+- Unlimited bookmarks in folder groups with custom colors
+- Default group plus custom groups; navigate with back button
 - Auto favicon loading with letter fallback
-- Import from Chrome bookmarks (with folder structure)
-- Right-click to edit or delete
+- Right-click to edit, delete, or open in a new tab
 
 ### Search
 - Google search bar (text, voice*, image search)
@@ -63,10 +62,6 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 - Current weather for your location (GPS or system timezone)
 - Multi-day forecast modal with correct local dates
 - Powered by Open-Meteo
-
-### Translator
-- Quick **English ↔ Persian** translation in a small popup
-- Switch direction with one click; copy result to clipboard
 
 ### Notes
 - Quick notes panel with trash & restore
@@ -143,10 +138,10 @@ cd Chrome-Extention
 | Open settings | Click the **gear icon** (top-right) |
 | Change theme | Settings → **Appearance** → pick a color theme |
 | Set background | Settings → **Background** → gradient, color, or image |
-| Add bookmark | Click **+** in the center column, or use the folder tabs |
-| Import Chrome bookmarks | Bookmarks area → import button |
+| Add bookmark | Open a folder group → click the **+** tile |
+| Add folder group | Bookmarks groups view → click the **+** tile |
+| Weather forecast | Click the **weather widget** (top-left card) |
 | Switch language | Settings → **Language** → فارسی / English |
-| Open translator | Click the **translate icon** (top-right) |
 | Backup data | Settings → **Backup** → Export to JSON file |
 | Restore data | Settings → **Backup** → Import from JSON file |
 
@@ -173,8 +168,7 @@ Chrome-Extention/
 │   ├── notes.js           # Notes panel
 │   ├── weather.js         # Weather widget
 │   ├── locale.js          # System timezone & locale helpers
-│   ├── translator.js      # EN ↔ FA translator
-│   ├── i18n.js            # FA / EN translations
+│   ├── i18n.js            # FA / EN UI strings
 │   ├── jalali.js          # Jalali date math
 │   ├── hijri.js           # Hijri date math
 │   └── events.js          # Occasions data
@@ -191,13 +185,11 @@ Chrome-Extention/
 | Permission | Why |
 |------------|-----|
 | `storage` | Save bookmarks, notes, and settings locally |
-| `bookmarks` | Optional import from Chrome bookmarks |
 | `4kwallpapers.com` | Load curated background wallpapers |
 | `api.open-meteo.com` | Weather data |
 | `geocoding-api.open-meteo.com` | City name from coordinates / timezone |
-| `api.mymemory.translated.net` | Translation (only when you use the translator) |
 
-No data is sent to third-party servers except weather, geocoding, translation, and wallpaper downloads you choose.
+No data is sent to third-party servers except weather, geocoding, and wallpaper downloads you choose.
 
 ---
 
