@@ -6,6 +6,16 @@
 [![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](#)
 
+[مستندات فارسی](./README-fa.md)
+
+---
+
+<p align="center">
+  <img src="Picture/Tabyar.png" alt="Tabyar New Tab dashboard" width="820"/>
+</p>
+
+<p align="center"><em>Tabyar — custom New Tab dashboard</em></p>
+
 ---
 
 ## Overview
@@ -69,6 +79,12 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 
 ### Optional Python Installer
 The `launcher/` folder includes a standalone installer that downloads the extension from GitHub and helps set it up on Windows.
+
+<p align="center">
+  <img src="Picture/setting.png" alt="Tabyar settings panel" width="620"/>
+</p>
+
+<p align="center"><em>Settings — themes, backgrounds & backup</em></p>
 
 ---
 
@@ -159,8 +175,10 @@ Chrome-Extention/
 │   ├── hijri.js           # Hijri date math
 │   └── events.js          # Occasions data
 ├── icons/                 # Extension icons (Ty)
+├── Picture/               # Screenshots for README
 ├── launcher/              # Optional Python installer
-└── README.md
+├── README.md
+└── README-fa.md           # Persian documentation
 ```
 
 ---

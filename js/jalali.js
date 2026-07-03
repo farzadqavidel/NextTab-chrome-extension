@@ -1,7 +1,4 @@
-/**
- * Accurate Jalali (Persian) calendar conversion
- * Based on the algorithm by Kazimierz M. Borkowski
- */
+
 const Jalali = (() => {
   const PERSIAN_MONTHS = [
     'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
