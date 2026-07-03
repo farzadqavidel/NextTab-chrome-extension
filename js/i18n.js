@@ -124,8 +124,14 @@ const I18n = (() => {
       themeOcean: 'اقیانوس',
       themeForest: 'جنگل',
       themeLavender: 'اسطوخودوس',
-      themeLight: 'روشن',
-      themeGlass: 'شیشه‌ای'
+      themeGlass: 'شیشه‌ای',
+      readyWallpapers: 'والپیپرهای آماده',
+      wpNature: 'طبیعت',
+      wpSpace: 'فضا',
+      wpMinimal: 'مینیمال',
+      wpAnime: 'انیمه',
+      wpCars: 'ماشین',
+      wpAbstract: 'انتزاعی'
     },
     en: {
       settings: 'Settings',
@@ -251,8 +257,14 @@ const I18n = (() => {
       themeOcean: 'Ocean',
       themeForest: 'Forest',
       themeLavender: 'Lavender',
-      themeLight: 'Light',
-      themeGlass: 'Glass'
+      themeGlass: 'Glass',
+      readyWallpapers: 'Ready wallpapers',
+      wpNature: 'Nature',
+      wpSpace: 'Space',
+      wpMinimal: 'Minimal',
+      wpAnime: 'Anime',
+      wpCars: 'Cars',
+      wpAbstract: 'Abstract'
     }
   };
 

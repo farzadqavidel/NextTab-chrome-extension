@@ -1,4 +1,7 @@
 const Storage = (() => {
+  const VALID_THEMES = new Set(['midnight', 'ocean', 'forest', 'lavender', 'glass']);
+  const VALID_GRADIENTS = new Set(['midnight', 'ocean', 'aurora', 'sunset', 'forest', 'lavender', 'night']);
+
   const DEFAULT_DATA = {
     bookmarks: [],
     folders: [
@@ -9,10 +12,10 @@ const Storage = (() => {
     activeFolderId: 'default',
     selectedDay: null,
     settings: {
-      theme: 'light',
-      colorMode: 'light',
+      theme: 'glass',
+      colorMode: 'dark',
       bgType: 'gradient',
-      bgGradient: 'ocean',
+      bgGradient: 'night',
       bgColor: '#000000',
       bgImage: '',
       bgBlur: 0,
@@ -58,7 +61,20 @@ const Storage = (() => {
     if (data.selectedDay) merged.selectedDay = data.selectedDay;
     if (data.settings) {
       merged.settings = { ...merged.settings, ...data.settings };
-      if (merged.settings.colorMode !== 'dark') merged.settings.colorMode = 'light';
+      if (merged.settings.theme === 'light' || !VALID_THEMES.has(merged.settings.theme)) {
+        merged.settings.theme = 'midnight';
+      }
+      merged.settings.colorMode = 'dark';
+      if (!VALID_GRADIENTS.has(merged.settings.bgGradient)) {
+        merged.settings.bgGradient = 'midnight';
+      }
+      if (merged.settings.bgImage && /\/images\/wallpapers\/\d+\.jpg$/i.test(merged.settings.bgImage)) {
+        merged.settings.bgImage = '';
+        if (merged.settings.bgType === 'image') {
+          merged.settings.bgType = 'gradient';
+          merged.settings.bgGradient = merged.settings.bgGradient || 'midnight';
+        }
+      }
     }
     return merged;
   }
