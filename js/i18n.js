@@ -5,6 +5,7 @@ const I18n = (() => {
       language: 'زبان',
       weatherClick: 'کلیک برای پیش‌بینی',
       weatherLoading: 'در حال بارگذاری...',
+      weatherUnavailable: 'آب‌وهوا در دسترس نیست',
       weatherForecast: 'پیش‌بینی آب‌وهوا',
       weatherToday: 'امروز',
       weatherTomorrow: 'فردا',
@@ -56,6 +57,7 @@ const I18n = (() => {
       addNew: 'افزودن جدید',
       addChoiceDesc: 'چه چیزی می‌خواهید اضافه کنید؟',
       link: 'لینک',
+      bookmark: 'بوکمارک',
       addBookmarkHint: 'افزودن بوکمارک',
       group: 'گروه',
       addGroupHint: 'ساخت پوشه جدید',
@@ -119,7 +121,6 @@ const I18n = (() => {
       humidity: 'رطوبت',
       wind: 'باد',
       currentWeather: 'وضعیت فعلی',
-      tehran: 'تهران',
       themeMidnight: 'نیمه‌شب',
       themeOcean: 'اقیانوس',
       themeForest: 'جنگل',
@@ -138,6 +139,7 @@ const I18n = (() => {
       language: 'Language',
       weatherClick: 'Click for forecast',
       weatherLoading: 'Loading...',
+      weatherUnavailable: 'Weather unavailable',
       weatherForecast: 'Weather Forecast',
       weatherToday: 'Today',
       weatherTomorrow: 'Tomorrow',
@@ -189,6 +191,7 @@ const I18n = (() => {
       addNew: 'Add new',
       addChoiceDesc: 'What would you like to add?',
       link: 'Link',
+      bookmark: 'Bookmark',
       addBookmarkHint: 'Add bookmark',
       group: 'Group',
       addGroupHint: 'Create new folder',
@@ -252,7 +255,6 @@ const I18n = (() => {
       humidity: 'Humidity',
       wind: 'Wind',
       currentWeather: 'Current',
-      tehran: 'Tehran',
       themeMidnight: 'Midnight',
       themeOcean: 'Ocean',
       themeForest: 'Forest',
@@ -398,7 +400,7 @@ const I18n = (() => {
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
-    if (typeof WeatherUI !== 'undefined') WeatherUI.refresh();
+    if (typeof WeatherUI !== 'undefined') WeatherUI.reload?.();
     SettingsUI.updateLanguageButtons?.(lang);
   }
 

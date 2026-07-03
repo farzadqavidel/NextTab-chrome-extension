@@ -35,7 +35,7 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 | Storage | Chrome `storage.local` + IndexedDB (wallpapers) |
 | Calendar | Custom Jalali & Hijri algorithms |
 | Weather | [Open-Meteo API](https://open-meteo.com/) |
-| Installer (optional) | **Python 3** (stdlib only) |
+| Translation | [MyMemory API](https://mymemory.translated.net/) |
 | Fonts | [Vazirmatn](https://fonts.google.com/) via Google Fonts |
 
 ---
@@ -44,7 +44,7 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 
 ### Calendar
 - Accurate **Jalali (Persian) calendar** with month navigation
-- Live clock and today’s date
+- Live clock and today’s date — follows your **system timezone and locale**
 - Gregorian & Hijri date display
 - Iranian occasions & holidays
 - Fridays highlighted
@@ -60,9 +60,13 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 - Opens results in the same tab
 
 ### Weather
-- Current weather for your location
-- Multi-day forecast modal
+- Current weather for your location (GPS or system timezone)
+- Multi-day forecast modal with correct local dates
 - Powered by Open-Meteo
+
+### Translator
+- Quick **English ↔ Persian** translation in a small popup
+- Switch direction with one click; copy result to clipboard
 
 ### Notes
 - Quick notes panel with trash & restore
@@ -76,9 +80,6 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 - **Languages:** Persian (FA) & English (EN)
 - Export / import all data as JSON
 - Reset to defaults
-
-### Optional Python Installer
-The `launcher/` folder includes a standalone installer that downloads the extension from GitHub and helps set it up on Windows.
 
 <p align="center">
   <img src="Picture/setting.png" alt="Tabyar settings panel" width="620"/>
@@ -145,6 +146,7 @@ cd Chrome-Extention
 | Add bookmark | Click **+** in the center column, or use the folder tabs |
 | Import Chrome bookmarks | Bookmarks area → import button |
 | Switch language | Settings → **Language** → فارسی / English |
+| Open translator | Click the **translate icon** (top-right) |
 | Backup data | Settings → **Backup** → Export to JSON file |
 | Restore data | Settings → **Backup** → Import from JSON file |
 
@@ -170,13 +172,14 @@ Chrome-Extention/
 │   ├── bookmarks.js       # Bookmarks manager
 │   ├── notes.js           # Notes panel
 │   ├── weather.js         # Weather widget
+│   ├── locale.js          # System timezone & locale helpers
+│   ├── translator.js      # EN ↔ FA translator
 │   ├── i18n.js            # FA / EN translations
 │   ├── jalali.js          # Jalali date math
 │   ├── hijri.js           # Hijri date math
 │   └── events.js          # Occasions data
 ├── icons/                 # Extension icons (Ty)
 ├── Picture/               # Screenshots for README
-├── launcher/              # Optional Python installer
 ├── README.md
 └── README-fa.md           # Persian documentation
 ```
@@ -191,8 +194,10 @@ Chrome-Extention/
 | `bookmarks` | Optional import from Chrome bookmarks |
 | `4kwallpapers.com` | Load curated background wallpapers |
 | `api.open-meteo.com` | Weather data |
+| `geocoding-api.open-meteo.com` | City name from coordinates / timezone |
+| `api.mymemory.translated.net` | Translation (only when you use the translator) |
 
-No data is sent to third-party servers except weather API calls and wallpaper downloads you choose.
+No data is sent to third-party servers except weather, geocoding, translation, and wallpaper downloads you choose.
 
 ---
 

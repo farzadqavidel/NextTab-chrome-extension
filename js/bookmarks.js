@@ -1,9 +1,18 @@
 const BookmarksUI = (() => {
+  const GRID_COLS = 4;
+  const MIN_SLOTS = 8;
+
   let contextTarget = null;
   let editingBookmarkId = null;
   let editingFolderId = null;
+  let activePickerTile = null;
 
   const els = {};
+
+  const PICKER_SVG = {
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6z"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12 11v6M9 14h6"/></svg>'
+  };
 
   function init() {
     els.grid = document.getElementById('bookmarks-grid');
@@ -11,26 +20,23 @@ const BookmarksUI = (() => {
     els.emptyState = document.getElementById('empty-bookmarks');
     els.contextMenu = document.getElementById('context-menu');
 
-    document.getElementById('btn-add-bookmark').addEventListener('click', openAddChoice);
-    document.getElementById('btn-empty-add').addEventListener('click', openAddChoice);
+    document.getElementById('btn-add-bookmark').addEventListener('click', () => openFirstAddPicker());
+    document.getElementById('btn-empty-add').addEventListener('click', () => openFirstAddPicker());
     document.getElementById('btn-import-all').addEventListener('click', importAllFromChrome);
     document.getElementById('form-bookmark').addEventListener('submit', handleBookmarkSubmit);
     document.getElementById('form-folder').addEventListener('submit', handleFolderSubmit);
-    document.getElementById('btn-choice-link').addEventListener('click', () => {
-      closeModal('modal-add-choice');
-      openBookmarkModal();
-    });
-    document.getElementById('btn-choice-group').addEventListener('click', () => {
-      closeModal('modal-add-choice');
-      openFolderModal();
-    });
 
     setupColorPicker();
     setupModalClose();
     setupContextMenu();
-    document.addEventListener('click', () => hideContextMenu());
+    document.addEventListener('click', handleDocumentClick);
 
     syncActiveFolder().then(() => render());
+  }
+
+  function handleDocumentClick() {
+    hideContextMenu();
+    closeAddPicker();
   }
 
   async function syncActiveFolder() {
@@ -112,8 +118,45 @@ const BookmarksUI = (() => {
     if (id === 'modal-folder') editingFolderId = null;
   }
 
-  function openAddChoice() {
-    openModal('modal-add-choice');
+  function openFirstAddPicker() {
+    const tile = els.grid.querySelector('.bm-tile-add');
+    if (tile) openAddPicker(tile);
+  }
+
+  function closeAddPicker() {
+    if (!activePickerTile) return;
+    activePickerTile.classList.remove('bm-tile-picker-open');
+    activePickerTile.innerHTML = '<span class="bm-tile-plus" aria-hidden="true">+</span>';
+    activePickerTile = null;
+  }
+
+  function openAddPicker(tile) {
+    closeAddPicker();
+    activePickerTile = tile;
+    tile.classList.add('bm-tile-picker-open');
+    tile.innerHTML = `
+      <div class="bm-tile-picker">
+        <button type="button" class="bm-pick-btn" data-pick="link">
+          <span>${I18n.t('bookmark')}</span>
+          ${PICKER_SVG.link}
+        </button>
+        <button type="button" class="bm-pick-btn" data-pick="folder">
+          <span>${I18n.t('folder')}</span>
+          ${PICKER_SVG.folder}
+        </button>
+      </div>
+    `;
+
+    tile.querySelector('[data-pick="link"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAddPicker();
+      openBookmarkModal();
+    });
+    tile.querySelector('[data-pick="folder"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAddPicker();
+      openFolderModal();
+    });
   }
 
   function showContextMenu(x, y, target) {
@@ -123,8 +166,13 @@ const BookmarksUI = (() => {
     els.contextMenu.style.top = y + 'px';
 
     const isBookmark = target.type === 'bookmark';
+    const isFolder = target.type === 'folder';
+
     els.contextMenu.querySelectorAll('.ctx-bookmark-only').forEach((btn) => {
       btn.classList.toggle('hidden', !isBookmark);
+    });
+    els.contextMenu.querySelectorAll('.ctx-edit').forEach((btn) => {
+      btn.classList.remove('hidden');
     });
     els.contextMenu.querySelectorAll('.ctx-note-only').forEach((btn) => {
       btn.classList.add('hidden');
@@ -132,6 +180,7 @@ const BookmarksUI = (() => {
     els.contextMenu.querySelectorAll('.ctx-trash-only').forEach((btn) => {
       btn.classList.add('hidden');
     });
+    els.contextMenu.querySelector('[data-action="delete"]')?.classList.remove('hidden');
 
     els.contextMenu.classList.remove('hidden');
   }
@@ -303,10 +352,31 @@ const BookmarksUI = (() => {
       if (folder && !folder.isDefault) {
         item.addEventListener('contextmenu', (e) => {
           e.preventDefault();
+          e.stopPropagation();
           showContextMenu(e.clientX, e.clientY, { type: 'folder', id: folderId });
         });
       }
     });
+  }
+
+  function buildAddTileHtml() {
+    return `
+      <button type="button" class="bm-tile bm-tile-add" title="${I18n.t('add')}">
+        <span class="bm-tile-plus" aria-hidden="true">+</span>
+      </button>
+    `;
+  }
+
+  function buildBookmarkTileHtml(bm) {
+    return `
+      <a href="${escapeHtml(bm.url)}" class="bm-tile bm-tile-link" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
+        <div class="bm-tile-icon">
+          <img src="${getFaviconUrl(bm.url)}" alt="" loading="lazy">
+          <span class="bm-tile-fallback">${escapeHtml(bm.title.charAt(0))}</span>
+        </div>
+        <span class="bm-tile-label">${escapeHtml(bm.title)}</span>
+      </a>
+    `;
   }
 
   function renderBookmarks() {
@@ -314,27 +384,18 @@ const BookmarksUI = (() => {
     const bookmarks = Storage.getBookmarks(activeId);
 
     els.emptyState.classList.add('hidden');
+    closeAddPicker();
 
-    const itemsHtml = bookmarks.map((bm) => `
-      <a href="${escapeHtml(bm.url)}" class="bookmark-item" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
-        <div class="bookmark-icon">
-          <img src="${getFaviconUrl(bm.url)}" alt="" loading="lazy">
-          <span class="bookmark-fallback">${escapeHtml(bm.title.charAt(0))}</span>
-        </div>
-        <span class="bookmark-title">${escapeHtml(bm.title)}</span>
-      </a>
-    `).join('');
+    const filledCount = bookmarks.length;
+    const totalSlots = Math.max(MIN_SLOTS, Math.ceil((filledCount + 1) / GRID_COLS) * GRID_COLS);
+    const emptyCount = totalSlots - filledCount;
 
-    els.grid.innerHTML = itemsHtml + `
-      <button type="button" class="bookmark-item bookmark-add-tile" id="btn-add-tile" title="${I18n.t('add')}">
-        <div class="bookmark-icon bookmark-icon-add">+</div>
-        <span class="bookmark-title">${I18n.t('add')}</span>
-      </button>
-    `;
+    const bookmarksHtml = bookmarks.map(buildBookmarkTileHtml).join('');
+    const addTilesHtml = Array.from({ length: emptyCount }, () => buildAddTileHtml()).join('');
 
-    document.getElementById('btn-add-tile').addEventListener('click', openAddChoice);
+    els.grid.innerHTML = bookmarksHtml + addTilesHtml;
 
-    els.grid.querySelectorAll('a.bookmark-item img').forEach((img) => {
+    els.grid.querySelectorAll('.bm-tile-link img').forEach((img) => {
       img.addEventListener('error', () => {
         img.style.display = 'none';
         const fallback = img.nextElementSibling;
@@ -342,10 +403,19 @@ const BookmarksUI = (() => {
       });
     });
 
-    els.grid.querySelectorAll('a.bookmark-item').forEach((item) => {
+    els.grid.querySelectorAll('.bm-tile-link').forEach((item) => {
       item.addEventListener('contextmenu', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         showContextMenu(e.clientX, e.clientY, { type: 'bookmark', id: item.dataset.id });
+      });
+    });
+
+    els.grid.querySelectorAll('.bm-tile-add').forEach((tile) => {
+      tile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (tile.classList.contains('bm-tile-picker-open')) return;
+        openAddPicker(tile);
       });
     });
   }
@@ -361,5 +431,5 @@ const BookmarksUI = (() => {
     renderBookmarks();
   }
 
-  return { init, render, openBookmarkModal, openAddChoice, hideContextMenu };
+  return { init, render, openBookmarkModal, openFirstAddPicker, hideContextMenu };
 })();
