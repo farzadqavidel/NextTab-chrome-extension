@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
-  SettingsUI.applyAll();
+  await SettingsUI.applyAll();
   CalendarUI.init();
   BookmarksUI.init();
   NotesUI.init();

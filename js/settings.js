@@ -136,40 +136,6 @@ const SettingsUI = (() => {
         '--input-bg': '#faf5ff'
       }
     },
-    light: {
-      nameKey: 'themeLight',
-      accent: '#4285f4',
-      dark: {
-        '--bg-card': 'rgba(15, 30, 60, 0.55)',
-        '--bg-card-hover': 'rgba(20, 40, 80, 0.65)',
-        '--text-primary': '#f1f5f9',
-        '--text-secondary': '#94a3b8',
-        '--accent': '#4285f4',
-        '--accent-hover': '#60a5fa',
-        '--border': 'rgba(148, 163, 184, 0.15)',
-        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
-        '--search-bg': 'rgba(15, 30, 60, 0.6)',
-        '--cal-today': '#4285f4',
-        '--cal-friday': '#f87171'
-      },
-      light: {
-        '--bg-card': '#ffffff',
-        '--bg-card-hover': '#ffffff',
-        '--surface-muted': '#f4f7fb',
-        '--text-primary': '#1e293b',
-        '--text-secondary': '#64748b',
-        '--accent': '#4285f4',
-        '--accent-hover': '#1a73e8',
-        '--border': 'rgba(0, 0, 0, 0.06)',
-        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
-        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
-        '--search-bg': '#ffffff',
-        '--cal-today': '#4285f4',
-        '--cal-friday': '#ef4444',
-        '--tile-bg': '#ffffff',
-        '--input-bg': '#f8fafc'
-      }
-    },
     glass: {
       nameKey: 'themeGlass',
       accent: '#38bdf8',
@@ -211,16 +177,68 @@ const SettingsUI = (() => {
   };
 
   const GRADIENTS = {
-    sky: 'linear-gradient(180deg, #C7E2F7 0%, #dbeafe 50%, #C7E2F7 100%)',
-    softblue: 'linear-gradient(160deg, #C7E2F7 0%, #e0f2fe 40%, #bfdbfe 100%)',
     midnight: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
     ocean: 'linear-gradient(135deg, #0c4a6e 0%, #164e63 50%, #0e7490 100%)',
     aurora: 'linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #0e7490 100%)',
     sunset: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #9a3412 100%)',
     forest: 'linear-gradient(135deg, #052e16 0%, #14532d 50%, #166534 100%)',
     lavender: 'linear-gradient(135deg, #2e1065 0%, #4c1d95 50%, #6b21a8 100%)',
-    dawn: 'linear-gradient(135deg, #fdf4ff 0%, #fce7f3 50%, #fef3c7 100%)',
     night: 'linear-gradient(180deg, #020617 0%, #0f172a 40%, #1e293b 100%)'
+  };
+
+  const WALLPAPERS = {
+    nature: [
+      { id: '26748', url: 'https://4kwallpapers.com/images/wallpapers/stac-a-phris-arch-1920x1080-26748.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26748.jpg' },
+      { id: '26444', url: 'https://4kwallpapers.com/images/wallpapers/lunar-tides-1920x1080-26444.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26444.jpg' },
+      { id: '26357', url: 'https://4kwallpapers.com/images/wallpapers/mountain-peaks-teal-1920x1080-26357.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26357.jpg' },
+      { id: '26446', url: 'https://4kwallpapers.com/images/wallpapers/black-volcanic-sand-1920x1080-26446.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26446.jpg' }
+    ],
+    space: [
+      { id: '26741', url: 'https://4kwallpapers.com/images/wallpapers/europa-jupiter-moon-1920x1080-26741.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26741.jpg' },
+      { id: '26342', url: 'https://4kwallpapers.com/images/wallpapers/planet-earth-dark-1920x1080-26342.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26342.jpg' },
+      { id: '26344', url: 'https://4kwallpapers.com/images/wallpapers/moon-dark-1920x1080-26344.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26344.jpg' },
+      { id: '26347', url: 'https://4kwallpapers.com/images/wallpapers/mars-red-planet-1920x1080-26347.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26347.jpg' }
+    ],
+    minimal: [
+      { id: '26734', url: 'https://4kwallpapers.com/images/wallpapers/metallic-abstract-1920x1080-26734.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26734.jpg' },
+      { id: '26307', url: 'https://4kwallpapers.com/images/wallpapers/lone-tree-1920x1080-26307.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26307.jpg' },
+      { id: '26517', url: 'https://4kwallpapers.com/images/wallpapers/zenitsu-agatsuma-1920x1080-26517.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26517.jpg' },
+      { id: '26106', url: 'https://4kwallpapers.com/images/wallpapers/marshmello-material-1920x1080-26106.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26106.jpg' }
+    ],
+    anime: [
+      { id: '26719', url: 'https://4kwallpapers.com/images/wallpapers/sakamoto-days-1920x1080-26719.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26719.jpg' },
+      { id: '26732', url: 'https://4kwallpapers.com/images/wallpapers/lumine-intertwined-1920x1080-26732.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26732.jpg' },
+      { id: '26691', url: 'https://4kwallpapers.com/images/wallpapers/pain-nagato-black-1920x1080-26691.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26691.jpg' },
+      { id: '26716', url: 'https://4kwallpapers.com/images/wallpapers/reze-selfie-1920x1080-26716.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26716.jpg' }
+    ],
+    cars: [
+      { id: '26722', url: 'https://4kwallpapers.com/images/wallpapers/genesis-magma-gt3-1920x1080-26722.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26722.jpg' },
+      { id: '26727', url: 'https://4kwallpapers.com/images/wallpapers/bugatti-w16-mistral-1920x1080-26727.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26727.jpg' },
+      { id: '26704', url: 'https://4kwallpapers.com/images/wallpapers/audi-nuvolari-super-1920x1080-26704.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26704.jpg' },
+      { id: '26708', url: 'https://4kwallpapers.com/images/wallpapers/bmw-m-concept-neue-1920x1080-26708.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26708.jpg' }
+    ],
+    abstract: [
+      { id: '26737', url: 'https://4kwallpapers.com/images/wallpapers/microsoft-surface-1920x1080-26737.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26737.jpg' },
+      { id: '26735', url: 'https://4kwallpapers.com/images/wallpapers/microsoft-surface-1920x1080-26735.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26735.jpg' },
+      { id: '26687', url: 'https://4kwallpapers.com/images/wallpapers/huawei-gradient-1920x1080-26687.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26687.jpg' },
+      { id: '26686', url: 'https://4kwallpapers.com/images/wallpapers/huawei-dark-mode-1920x1080-26686.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26686.jpg' }
+    ]
+  };
+
+  const WALLPAPER_CATEGORY_KEYS = {
+    nature: 'wpNature',
+    space: 'wpSpace',
+    minimal: 'wpMinimal',
+    anime: 'wpAnime',
+    cars: 'wpCars',
+    abstract: 'wpAbstract'
+  };
+
+  const BASE_DARK_VARS = {
+    '--surface-muted': 'rgba(255, 255, 255, 0.07)',
+    '--tile-bg': 'rgba(255, 255, 255, 0.12)',
+    '--input-bg': 'rgba(255, 255, 255, 0.1)',
+    '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.32)'
   };
 
   function init() {
@@ -228,11 +246,10 @@ const SettingsUI = (() => {
     setupTabs();
     renderThemeGrid();
     renderGradientGrid();
+    renderWallpaperGallery();
     setupBackgroundControls();
-    setupModeToggle();
     setupLanguageToggle();
     setupBackupControls();
-    applyAll();
   }
 
   function openSettings() {
@@ -248,24 +265,6 @@ const SettingsUI = (() => {
         tab.classList.add('active');
         document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
       });
-    });
-  }
-
-  function setupModeToggle() {
-    document.querySelectorAll('.mode-btn[data-mode]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const mode = btn.dataset.mode;
-        if (!mode) return;
-        await Storage.updateSettings({ colorMode: mode });
-        updateModeButtons(mode);
-        applyTheme(Storage.getSettings().theme);
-      });
-    });
-  }
-
-  function updateModeButtons(mode) {
-    document.querySelectorAll('.mode-btn[data-mode]').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.mode === mode);
     });
   }
 
@@ -329,7 +328,7 @@ const SettingsUI = (() => {
         card.classList.add('active');
         document.querySelector('input[name="bg-type"][value="gradient"]').checked = true;
         showBgOptions('gradient');
-        applyBackground();
+        await applyBackground();
       });
     });
   }
@@ -347,12 +346,57 @@ const SettingsUI = (() => {
     });
   }
 
+  function renderWallpaperGallery() {
+    const container = document.getElementById('wallpaper-gallery');
+    if (!container) return;
+
+    const settings = Storage.getSettings();
+    container.innerHTML = Object.entries(WALLPAPERS).map(([category, items]) => `
+      <div class="wallpaper-category">
+        <h5 class="wallpaper-category-title">${I18n.t(WALLPAPER_CATEGORY_KEYS[category])}</h5>
+        <div class="wallpaper-grid">
+          ${items.map((wallpaper) => `
+            <button type="button"
+                    class="wallpaper-card ${settings.bgImage === wallpaper.url ? 'active' : ''}"
+                    data-url="${wallpaper.url}"
+                    style="background-image:url('${wallpaper.thumb}')"
+                    title="${I18n.t(WALLPAPER_CATEGORY_KEYS[category])}"></button>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.wallpaper-card').forEach((card) => {
+      card.addEventListener('click', async () => {
+        const url = card.dataset.url;
+        card.classList.add('loading');
+        await Storage.updateSettings({ bgImage: url, bgType: 'image' });
+        document.getElementById('bg-image-url').value = url;
+        document.querySelector('input[name="bg-type"][value="image"]').checked = true;
+        showBgOptions('image');
+        container.querySelectorAll('.wallpaper-card').forEach((c) => c.classList.remove('active'));
+        card.classList.add('active');
+        try {
+          await applyBackground();
+        } finally {
+          card.classList.remove('loading');
+        }
+      });
+    });
+  }
+
+  function updateWallpaperSelection(url) {
+    document.querySelectorAll('.wallpaper-card').forEach((card) => {
+      card.classList.toggle('active', card.dataset.url === url);
+    });
+  }
+
   function setupBackgroundControls() {
     document.querySelectorAll('input[name="bg-type"]').forEach((radio) => {
       radio.addEventListener('change', async (e) => {
         await Storage.updateSettings({ bgType: e.target.value });
         showBgOptions(e.target.value);
-        applyBackground();
+        await applyBackground();
       });
     });
 
@@ -360,7 +404,7 @@ const SettingsUI = (() => {
       const color = e.target.value;
       updateColorPickerUI(color);
       await Storage.updateSettings({ bgColor: color });
-      applyBackground();
+      await applyBackground();
     });
 
     document.querySelectorAll('.color-preset').forEach((btn) => {
@@ -370,7 +414,7 @@ const SettingsUI = (() => {
         await Storage.updateSettings({ bgColor: color, bgType: 'color' });
         document.querySelector('input[name="bg-type"][value="color"]').checked = true;
         showBgOptions('color');
-        applyBackground();
+        await applyBackground();
       });
     });
 
@@ -389,7 +433,8 @@ const SettingsUI = (() => {
         await Storage.updateSettings({ bgImage: ev.target.result, bgType: 'image' });
         document.querySelector('input[name="bg-type"][value="image"]').checked = true;
         showBgOptions('image');
-        applyBackground();
+        updateWallpaperSelection('');
+        await applyBackground();
       };
       reader.readAsDataURL(file);
     });
@@ -398,14 +443,14 @@ const SettingsUI = (() => {
       const val = e.target.value;
       document.getElementById('bg-blur-value').textContent = val + 'px';
       await Storage.updateSettings({ bgBlur: parseInt(val, 10) });
-      applyBackground();
+      await applyBackground();
     });
 
     document.getElementById('bg-overlay').addEventListener('input', async (e) => {
       const val = e.target.value;
       document.getElementById('bg-overlay-value').textContent = val + '%';
       await Storage.updateSettings({ bgOverlay: parseInt(val, 10) });
-      applyBackground();
+      await applyBackground();
     });
   }
 
@@ -418,7 +463,8 @@ const SettingsUI = (() => {
     await Storage.updateSettings({ bgImage: url, bgType: 'image' });
     document.querySelector('input[name="bg-type"][value="image"]').checked = true;
     showBgOptions('image');
-    applyBackground();
+    updateWallpaperSelection(url);
+    await applyBackground();
   }
 
   function setupBackupControls() {
@@ -429,7 +475,7 @@ const SettingsUI = (() => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `صفحه-اول-${date}.json`;
+      a.download = `tabyar-backup-${date}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -446,7 +492,7 @@ const SettingsUI = (() => {
         try {
           const data = JSON.parse(ev.target.result);
           await Storage.importAllData(data);
-          applyAll();
+          await applyAll();
           I18n.applyDom();
           BookmarksUI.render();
           CalendarUI.refresh();
@@ -463,13 +509,14 @@ const SettingsUI = (() => {
     document.getElementById('btn-reset-data').addEventListener('click', async () => {
       if (confirm(I18n.t('resetConfirm'))) {
         await Storage.resetAll();
-        applyAll();
+        await applyAll();
         I18n.applyDom();
         BookmarksUI.render();
         CalendarUI.refresh();
         NotesUI.render();
         renderThemeGrid();
         renderGradientGrid();
+        renderWallpaperGallery();
         syncControlsFromSettings();
       }
     });
@@ -492,27 +539,24 @@ const SettingsUI = (() => {
     document.getElementById('bg-blur-value').textContent = s.bgBlur + 'px';
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
-    updateModeButtons(s.colorMode);
     updateLanguageButtons(s.language || 'fa');
   }
 
   function applyTheme(themeKey) {
-    const theme = THEMES[themeKey] || THEMES.midnight;
-    const storedMode = Storage.getSettings().colorMode;
-    const colorMode = storedMode === 'dark' ? 'dark' : 'light';
-    const vars = colorMode === 'light' ? theme.light : theme.dark;
+    const theme = THEMES[themeKey] || THEMES.glass;
+    const vars = { ...BASE_DARK_VARS, ...theme.dark };
     const root = document.documentElement;
     const body = document.body;
     Object.entries(vars).forEach(([key, val]) => {
       root.style.setProperty(key, val);
       body.style.setProperty(key, val);
     });
-    body.classList.toggle('light-mode', colorMode === 'light');
-    body.classList.toggle('dark-mode', colorMode === 'dark');
+    body.classList.remove('light-mode');
+    body.classList.add('dark-mode');
     body.classList.toggle('glass-theme', themeKey === 'glass');
   }
 
-  function applyBackground() {
+  async function applyBackground() {
     const s = Storage.getSettings();
     const layer = document.getElementById('background-layer');
 
@@ -521,39 +565,48 @@ const SettingsUI = (() => {
     layer.style.backgroundImage = '';
     layer.style.backgroundSize = '';
     layer.style.backgroundPosition = '';
+    layer.classList.remove('bg-loading');
 
     if (s.bgType === 'gradient') {
-      const gradient = GRADIENTS[s.bgGradient] || GRADIENTS.ocean;
+      const gradient = GRADIENTS[s.bgGradient] || GRADIENTS.night;
       layer.style.background = gradient;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'color') {
       layer.style.background = s.bgColor;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'image' && s.bgImage) {
-      layer.style.backgroundImage = `url("${s.bgImage}")`;
-      layer.style.backgroundSize = 'cover';
-      layer.style.backgroundPosition = 'center';
-      layer.style.filter = `blur(${s.bgBlur}px)`;
-      layer.style.setProperty('--bg-overlay-opacity', s.bgOverlay / 100);
+      layer.classList.add('bg-loading');
+      try {
+        const src = await WallpaperLoader.resolve(s.bgImage);
+        layer.style.backgroundImage = `url("${src}")`;
+        layer.style.backgroundSize = 'cover';
+        layer.style.backgroundPosition = 'center';
+        layer.style.filter = `blur(${s.bgBlur}px)`;
+        layer.style.setProperty('--bg-overlay-opacity', s.bgOverlay / 100);
+      } catch (err) {
+        console.warn('Tabyar: wallpaper load failed', err);
+      } finally {
+        layer.classList.remove('bg-loading');
+      }
     }
   }
 
-  function applyAll() {
+  async function applyAll() {
     const s = Storage.getSettings();
     applyTheme(s.theme);
-    applyBackground();
-    updateModeButtons(s.colorMode);
+    await applyBackground();
     updateLanguageButtons(s.language || 'fa');
   }
 
-  function reapplyAppearance() {
+  async function reapplyAppearance() {
     const s = Storage.getSettings();
     applyTheme(s.theme);
-    applyBackground();
+    await applyBackground();
   }
 
   function refreshI18n() {
     renderThemeGrid();
+    renderWallpaperGallery();
     syncControlsFromSettings();
   }
 
