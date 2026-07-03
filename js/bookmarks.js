@@ -318,8 +318,7 @@ const BookmarksUI = (() => {
     const itemsHtml = bookmarks.map((bm) => `
       <a href="${escapeHtml(bm.url)}" class="bookmark-item" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
         <div class="bookmark-icon">
-          <img src="${getFaviconUrl(bm.url)}" alt="" loading="lazy"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <img src="${getFaviconUrl(bm.url)}" alt="" loading="lazy">
           <span class="bookmark-fallback">${escapeHtml(bm.title.charAt(0))}</span>
         </div>
         <span class="bookmark-title">${escapeHtml(bm.title)}</span>
@@ -334,6 +333,14 @@ const BookmarksUI = (() => {
     `;
 
     document.getElementById('btn-add-tile').addEventListener('click', openAddChoice);
+
+    els.grid.querySelectorAll('a.bookmark-item img').forEach((img) => {
+      img.addEventListener('error', () => {
+        img.style.display = 'none';
+        const fallback = img.nextElementSibling;
+        if (fallback) fallback.style.display = 'flex';
+      });
+    });
 
     els.grid.querySelectorAll('a.bookmark-item').forEach((item) => {
       item.addEventListener('contextmenu', (e) => {
