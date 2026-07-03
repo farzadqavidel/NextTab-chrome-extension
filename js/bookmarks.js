@@ -1,6 +1,7 @@
 const BookmarksUI = (() => {
   let contextTarget = null;
   let editingBookmarkId = null;
+  let editingFolderId = null;
 
   const els = {};
 
@@ -65,22 +66,39 @@ const BookmarksUI = (() => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const action = btn.dataset.action;
-        if (contextTarget) {
-          if (contextTarget.type === 'bookmark') {
-            if (action === 'edit') openBookmarkModal(contextTarget.id);
-            if (action === 'delete') deleteBookmark(contextTarget.id);
-          }
+        if (!contextTarget) return;
+        if (contextTarget.type === 'bookmark') {
+          if (action === 'open-new-tab') openBookmarkInNewTab(contextTarget.id);
+          if (action === 'edit') openBookmarkModal(contextTarget.id);
+          if (action === 'delete') deleteBookmark(contextTarget.id);
+        } else if (contextTarget.type === 'folder') {
+          if (action === 'edit') openFolderModal(contextTarget.id);
+          if (action === 'delete') deleteFolder(contextTarget.id);
         }
         hideContextMenu();
       });
     });
   }
 
+  function openBookmarkInNewTab(id) {
+    const bm = Storage.getData().bookmarks.find((b) => b.id === id);
+    if (bm) window.open(bm.url, '_blank');
+  }
+
   async function deleteFolder(folderId) {
     const folder = Storage.getFolders().find((f) => f.id === folderId);
     if (!folder || folder.isDefault) return;
-    if (!confirm(I18n.t('deleteGroupConfirm'))) return;
-    await Storage.deleteFolder(folderId);
+
+    const bookmarkCount = Storage.getData().bookmarks.filter((b) => b.folderId === folderId).length;
+    let deleteBookmarks = false;
+
+    if (bookmarkCount > 0) {
+      deleteBookmarks = confirm(I18n.t('deleteGroupWithBookmarksConfirm'));
+    } else if (!confirm(I18n.t('deleteGroupConfirm'))) {
+      return;
+    }
+
+    await Storage.deleteFolder(folderId, deleteBookmarks);
     render();
   }
 
@@ -91,6 +109,7 @@ const BookmarksUI = (() => {
   function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
     if (id === 'modal-bookmark') editingBookmarkId = null;
+    if (id === 'modal-folder') editingFolderId = null;
   }
 
   function openAddChoice() {
@@ -99,8 +118,21 @@ const BookmarksUI = (() => {
 
   function showContextMenu(x, y, target) {
     contextTarget = target;
+    NotesUI.clearContext?.();
     els.contextMenu.style.left = x + 'px';
     els.contextMenu.style.top = y + 'px';
+
+    const isBookmark = target.type === 'bookmark';
+    els.contextMenu.querySelectorAll('.ctx-bookmark-only').forEach((btn) => {
+      btn.classList.toggle('hidden', !isBookmark);
+    });
+    els.contextMenu.querySelectorAll('.ctx-note-only').forEach((btn) => {
+      btn.classList.add('hidden');
+    });
+    els.contextMenu.querySelectorAll('.ctx-trash-only').forEach((btn) => {
+      btn.classList.add('hidden');
+    });
+
     els.contextMenu.classList.remove('hidden');
   }
 
@@ -147,12 +179,33 @@ const BookmarksUI = (() => {
     openModal('modal-bookmark');
   }
 
-  function openFolderModal() {
-    document.getElementById('form-folder').reset();
-    document.getElementById('folder-color').value = '#6366f1';
-    document.querySelectorAll('#folder-color-picker .color-swatch').forEach((s) => {
-      s.classList.toggle('active', s.dataset.color === '#6366f1');
-    });
+  function openFolderModal(folderId) {
+    editingFolderId = folderId || null;
+    const titleEl = document.getElementById('modal-folder-title');
+    const submitBtn = document.getElementById('btn-folder-submit');
+
+    if (folderId) {
+      const folder = Storage.getFolders().find((f) => f.id === folderId);
+      if (!folder || folder.isDefault) return;
+      titleEl.textContent = I18n.t('editGroup');
+      submitBtn.textContent = I18n.t('save');
+      document.getElementById('folder-id').value = folder.id;
+      document.getElementById('folder-name').value = folder.name;
+      document.getElementById('folder-color').value = folder.color;
+      document.querySelectorAll('#folder-color-picker .color-swatch').forEach((s) => {
+        s.classList.toggle('active', s.dataset.color === folder.color);
+      });
+    } else {
+      titleEl.textContent = I18n.t('newGroup');
+      submitBtn.textContent = I18n.t('createGroup');
+      document.getElementById('form-folder').reset();
+      document.getElementById('folder-id').value = '';
+      document.getElementById('folder-color').value = '#6366f1';
+      document.querySelectorAll('#folder-color-picker .color-swatch').forEach((s) => {
+        s.classList.toggle('active', s.dataset.color === '#6366f1');
+      });
+    }
+
     openModal('modal-folder');
   }
 
@@ -183,8 +236,13 @@ const BookmarksUI = (() => {
     const color = document.getElementById('folder-color').value;
     if (!name) return;
 
-    const folder = await Storage.addFolder({ name, color });
-    await Storage.setActiveFolder(folder.id);
+    if (editingFolderId) {
+      await Storage.updateFolder(editingFolderId, { name, color });
+    } else {
+      const folder = await Storage.addFolder({ name, color });
+      await Storage.setActiveFolder(folder.id);
+    }
+
     closeModal('modal-folder');
     render();
   }
@@ -221,18 +279,13 @@ const BookmarksUI = (() => {
 
     els.folderTabs.innerHTML = folders.map((f) => {
       const isActive = f.id === activeId;
-      const deleteBtn = f.isDefault ? '' : `
-        <button type="button" class="folder-tab-delete"
-                data-folder-id="${f.id}"
-                title="${I18n.t('deleteGroup')}"
-                aria-label="${I18n.t('deleteGroup')}">&times;</button>`;
       return `
-        <div class="folder-tab-item ${isActive ? 'active' : ''}" style="--folder-color: ${f.color}">
+        <div class="folder-tab-item ${isActive ? 'active' : ''}" style="--folder-color: ${f.color}"
+             data-folder-id="${f.id}">
           <button type="button" class="folder-tab"
                   data-folder-id="${f.id}">
             ${escapeHtml(I18n.getFolderName(f))}
           </button>
-          ${deleteBtn}
         </div>
       `;
     }).join('');
@@ -244,11 +297,15 @@ const BookmarksUI = (() => {
       });
     });
 
-    els.folderTabs.querySelectorAll('.folder-tab-delete').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteFolder(btn.dataset.folderId);
-      });
+    els.folderTabs.querySelectorAll('.folder-tab-item').forEach((item) => {
+      const folderId = item.dataset.folderId;
+      const folder = Storage.getFolders().find((f) => f.id === folderId);
+      if (folder && !folder.isDefault) {
+        item.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          showContextMenu(e.clientX, e.clientY, { type: 'folder', id: folderId });
+        });
+      }
     });
   }
 
@@ -297,5 +354,5 @@ const BookmarksUI = (() => {
     renderBookmarks();
   }
 
-  return { init, render, openBookmarkModal, openAddChoice };
+  return { init, render, openBookmarkModal, openAddChoice, hideContextMenu };
 })();

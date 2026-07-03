@@ -20,6 +20,10 @@ const I18n = (() => {
       hijri: 'قمری',
       searchGoogle: 'جستجو در گوگل',
       searchPlaceholder: 'جستجو در گوگل...',
+      searchSubmit: 'جستجو',
+      searchImage: 'جستجوی تصویر',
+      searchVoice: 'جستجوی صوتی',
+      voiceNotSupported: 'مرورگر شما از جستجوی صوتی پشتیبانی نمی‌کند',
       add: 'افزودن',
       import: 'ایمپورت',
       emptyBookmarks: 'هنوز بوکمارکی اضافه نکرده‌اید',
@@ -27,6 +31,22 @@ const I18n = (() => {
       notes: 'یادداشت',
       hideNotes: 'مخفی کردن یادداشت‌ها',
       showNotes: 'نمایش یادداشت‌ها',
+      expandNotes: 'نمایش بزرگ‌تر',
+      allNotes: 'همه یادداشت‌ها',
+      editNote: 'ویرایش یادداشت',
+      markDone: 'تیک زدن',
+      markUndone: 'برداشتن تیک',
+      deleteNoteConfirm: 'این یادداشت به سطل زباله منتقل می‌شود. ادامه می‌دهید؟',
+      deleteAllNotesConfirm: 'همه یادداشت‌ها به سطل زباله منتقل می‌شوند. ادامه می‌دهید؟',
+      emptyTrashConfirm: 'همه یادداشت‌های سطل زباله برای همیشه حذف می‌شوند. ادامه می‌دهید؟',
+      permanentDeleteConfirm: 'این یادداشت برای همیشه حذف می‌شود. ادامه می‌دهید؟',
+      notesTrash: 'سطل زباله',
+      backToNotes: 'بازگشت به یادداشت‌ها',
+      deleteAllNotes: 'حذف همه یادداشت‌ها',
+      emptyTrash: 'خالی کردن سطل زباله',
+      restoreNote: 'بازیابی',
+      trashEmptyTitle: 'سطل زباله خالی است',
+      trashEmptyHint: 'یادداشت‌های حذف‌شده اینجا نمایش داده می‌شوند',
       notePlaceholder: 'نوشتن یادداشت جدید...',
       addNote: 'افزودن یادداشت',
       notesEmptyTitle: 'هنوز یادداشتی ثبت نکرده‌اید!',
@@ -53,7 +73,10 @@ const I18n = (() => {
       color: 'رنگ',
       createGroup: 'ساخت گروه',
       deleteGroup: 'حذف گروه',
-      deleteGroupConfirm: 'این گروه حذف می‌شود و بوکمارک‌هایش به «بدون دسته‌بندی» منتقل می‌شوند. ادامه می‌دهید؟',
+      deleteGroupConfirm: 'این گروه حذف می‌شود. ادامه می‌دهید؟',
+      deleteGroupWithBookmarksConfirm: 'آیا لینک‌های داخل این گروه هم حذف شوند؟\n\n«تأیید» = حذف لینک‌ها\n«انصراف» = انتقال لینک‌ها به «بدون دسته‌بندی»',
+      editGroup: 'ویرایش گروه',
+      openNewTab: 'باز کردن در تب جدید',
       defaultFolder: 'بدون دسته‌بندی',
       edit: 'ویرایش',
       tabAppearance: 'ظاهر',
@@ -69,6 +92,7 @@ const I18n = (() => {
       image: 'تصویر',
       readyGradients: 'گرادیانت‌های آماده',
       bgColor: 'رنگ پس‌زمینه',
+      clickToPick: 'برای تغییر رنگ کلیک کنید',
       bgImage: 'تصویر پس‌زمینه',
       imageUrl: 'آدرس تصویر (URL)',
       apply: 'ثبت',
@@ -100,7 +124,8 @@ const I18n = (() => {
       themeOcean: 'اقیانوس',
       themeForest: 'جنگل',
       themeLavender: 'اسطوخودوس',
-      themeLight: 'روشن'
+      themeLight: 'روشن',
+      themeGlass: 'شیشه‌ای'
     },
     en: {
       settings: 'Settings',
@@ -122,6 +147,10 @@ const I18n = (() => {
       hijri: 'Hijri',
       searchGoogle: 'Search Google',
       searchPlaceholder: 'Search Google...',
+      searchSubmit: 'Search',
+      searchImage: 'Image search',
+      searchVoice: 'Voice search',
+      voiceNotSupported: 'Your browser does not support voice search',
       add: 'Add',
       import: 'Import',
       emptyBookmarks: 'No bookmarks yet',
@@ -129,6 +158,22 @@ const I18n = (() => {
       notes: 'Notes',
       hideNotes: 'Hide notes',
       showNotes: 'Show notes',
+      expandNotes: 'Expand view',
+      allNotes: 'All notes',
+      editNote: 'Edit note',
+      markDone: 'Mark done',
+      markUndone: 'Mark undone',
+      deleteNoteConfirm: 'This note will be moved to trash. Continue?',
+      deleteAllNotesConfirm: 'All notes will be moved to trash. Continue?',
+      emptyTrashConfirm: 'All trashed notes will be permanently deleted. Continue?',
+      permanentDeleteConfirm: 'This note will be permanently deleted. Continue?',
+      notesTrash: 'Trash',
+      backToNotes: 'Back to notes',
+      deleteAllNotes: 'Delete all notes',
+      emptyTrash: 'Empty trash',
+      restoreNote: 'Restore',
+      trashEmptyTitle: 'Trash is empty',
+      trashEmptyHint: 'Deleted notes appear here',
       notePlaceholder: 'Write a new note...',
       addNote: 'Add note',
       notesEmptyTitle: 'No notes yet!',
@@ -155,7 +200,10 @@ const I18n = (() => {
       color: 'Color',
       createGroup: 'Create group',
       deleteGroup: 'Delete group',
-      deleteGroupConfirm: 'This group will be deleted and its bookmarks moved to "Uncategorized". Continue?',
+      deleteGroupConfirm: 'This group will be deleted. Continue?',
+      deleteGroupWithBookmarksConfirm: 'Also delete bookmarks inside this group?\n\nOK = delete bookmarks\nCancel = move bookmarks to "Uncategorized"',
+      editGroup: 'Edit group',
+      openNewTab: 'Open in new tab',
       defaultFolder: 'Uncategorized',
       edit: 'Edit',
       tabAppearance: 'Appearance',
@@ -171,6 +219,7 @@ const I18n = (() => {
       image: 'Image',
       readyGradients: 'Preset gradients',
       bgColor: 'Background color',
+      clickToPick: 'Click to change color',
       bgImage: 'Background image',
       imageUrl: 'Image URL',
       apply: 'Apply',
@@ -202,7 +251,8 @@ const I18n = (() => {
       themeOcean: 'Ocean',
       themeForest: 'Forest',
       themeLavender: 'Lavender',
-      themeLight: 'Light'
+      themeLight: 'Light',
+      themeGlass: 'Glass'
     }
   };
 
@@ -321,18 +371,23 @@ const I18n = (() => {
         .join('');
     }
 
-    const langBtn = document.getElementById('btn-lang');
-    if (langBtn) {
-      langBtn.textContent = lang === 'fa' ? 'EN' : 'فا';
-      langBtn.title = lang === 'fa' ? 'Switch to English' : 'تغییر به فارسی';
+    if (typeof SettingsUI !== 'undefined') {
+      SettingsUI.updateLanguageButtons?.(lang);
     }
   }
 
   async function setLanguage(nextLang) {
     lang = nextLang === 'en' ? 'en' : 'fa';
     await Storage.updateSettings({ language: lang });
+    if (typeof SettingsUI !== 'undefined') {
+      SettingsUI.reapplyAppearance?.();
+    }
     applyDom();
-    refreshAll();
+    if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
+    if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
+    if (typeof NotesUI !== 'undefined') NotesUI.render();
+    if (typeof WeatherUI !== 'undefined') WeatherUI.refresh();
+    SettingsUI.updateLanguageButtons?.(lang);
   }
 
   async function toggleLanguage() {
@@ -350,7 +405,6 @@ const I18n = (() => {
   function init() {
     lang = Storage.getSettings().language || 'fa';
     applyDom();
-    document.getElementById('btn-lang')?.addEventListener('click', toggleLanguage);
   }
 
   return {

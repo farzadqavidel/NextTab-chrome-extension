@@ -2,8 +2,8 @@ const SettingsUI = (() => {
   const THEMES = {
     midnight: {
       nameKey: 'themeMidnight',
-      mode: 'dark',
-      vars: {
+      accent: '#6366f1',
+      dark: {
         '--bg-card': 'rgba(15, 30, 60, 0.55)',
         '--bg-card-hover': 'rgba(20, 40, 80, 0.65)',
         '--text-primary': '#f1f5f9',
@@ -15,12 +15,29 @@ const SettingsUI = (() => {
         '--search-bg': 'rgba(15, 30, 60, 0.6)',
         '--cal-today': '#6366f1',
         '--cal-friday': '#f87171'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#f4f5fb',
+        '--text-primary': '#1e293b',
+        '--text-secondary': '#64748b',
+        '--accent': '#6366f1',
+        '--accent-hover': '#818cf8',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#6366f1',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#f8fafc'
       }
     },
     ocean: {
       nameKey: 'themeOcean',
-      mode: 'dark',
-      vars: {
+      accent: '#06b6d4',
+      dark: {
         '--bg-card': 'rgba(8, 47, 73, 0.55)',
         '--bg-card-hover': 'rgba(12, 74, 110, 0.65)',
         '--text-primary': '#ecfeff',
@@ -32,12 +49,29 @@ const SettingsUI = (() => {
         '--search-bg': 'rgba(8, 47, 73, 0.6)',
         '--cal-today': '#06b6d4',
         '--cal-friday': '#fb7185'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#f0fdfa',
+        '--text-primary': '#134e4a',
+        '--text-secondary': '#64748b',
+        '--accent': '#06b6d4',
+        '--accent-hover': '#0891b2',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#06b6d4',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#f0fdfa'
       }
     },
     forest: {
       nameKey: 'themeForest',
-      mode: 'dark',
-      vars: {
+      accent: '#22c55e',
+      dark: {
         '--bg-card': 'rgba(5, 46, 22, 0.55)',
         '--bg-card-hover': 'rgba(20, 83, 45, 0.65)',
         '--text-primary': '#ecfdf5',
@@ -49,12 +83,29 @@ const SettingsUI = (() => {
         '--search-bg': 'rgba(5, 46, 22, 0.6)',
         '--cal-today': '#22c55e',
         '--cal-friday': '#fbbf24'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#f0fdf4',
+        '--text-primary': '#14532d',
+        '--text-secondary': '#64748b',
+        '--accent': '#22c55e',
+        '--accent-hover': '#16a34a',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#22c55e',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#f0fdf4'
       }
     },
     lavender: {
       nameKey: 'themeLavender',
-      mode: 'dark',
-      vars: {
+      accent: '#a78bfa',
+      dark: {
         '--bg-card': 'rgba(46, 16, 101, 0.55)',
         '--bg-card-hover': 'rgba(76, 29, 149, 0.65)',
         '--text-primary': '#faf5ff',
@@ -66,12 +117,42 @@ const SettingsUI = (() => {
         '--search-bg': 'rgba(46, 16, 101, 0.6)',
         '--cal-today': '#a78bfa',
         '--cal-friday': '#f472b6'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#faf5ff',
+        '--text-primary': '#4c1d95',
+        '--text-secondary': '#64748b',
+        '--accent': '#a78bfa',
+        '--accent-hover': '#8b5cf6',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#a78bfa',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#faf5ff'
       }
     },
     light: {
       nameKey: 'themeLight',
-      mode: 'light',
-      vars: {
+      accent: '#4285f4',
+      dark: {
+        '--bg-card': 'rgba(15, 30, 60, 0.55)',
+        '--bg-card-hover': 'rgba(20, 40, 80, 0.65)',
+        '--text-primary': '#f1f5f9',
+        '--text-secondary': '#94a3b8',
+        '--accent': '#4285f4',
+        '--accent-hover': '#60a5fa',
+        '--border': 'rgba(148, 163, 184, 0.15)',
+        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
+        '--search-bg': 'rgba(15, 30, 60, 0.6)',
+        '--cal-today': '#4285f4',
+        '--cal-friday': '#f87171'
+      },
+      light: {
         '--bg-card': '#ffffff',
         '--bg-card-hover': '#ffffff',
         '--surface-muted': '#f4f7fb',
@@ -87,6 +168,44 @@ const SettingsUI = (() => {
         '--cal-friday': '#ef4444',
         '--tile-bg': '#ffffff',
         '--input-bg': '#f8fafc'
+      }
+    },
+    glass: {
+      nameKey: 'themeGlass',
+      accent: '#38bdf8',
+      dark: {
+        '--bg-card': 'rgba(255, 255, 255, 0.1)',
+        '--bg-card-hover': 'rgba(255, 255, 255, 0.16)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.07)',
+        '--text-primary': '#f8fafc',
+        '--text-secondary': 'rgba(248, 250, 252, 0.7)',
+        '--accent': '#38bdf8',
+        '--accent-hover': '#7dd3fc',
+        '--border': 'rgba(255, 255, 255, 0.2)',
+        '--shadow': '0 8px 32px rgba(0, 0, 0, 0.22)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.32)',
+        '--search-bg': 'rgba(255, 255, 255, 0.12)',
+        '--cal-today': '#38bdf8',
+        '--cal-friday': '#fb7185',
+        '--tile-bg': 'rgba(255, 255, 255, 0.12)',
+        '--input-bg': 'rgba(255, 255, 255, 0.1)'
+      },
+      light: {
+        '--bg-card': 'rgba(255, 255, 255, 0.48)',
+        '--bg-card-hover': 'rgba(255, 255, 255, 0.58)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.38)',
+        '--text-primary': '#0f172a',
+        '--text-secondary': '#475569',
+        '--accent': '#0ea5e9',
+        '--accent-hover': '#0284c7',
+        '--border': 'rgba(255, 255, 255, 0.55)',
+        '--shadow': '0 8px 32px rgba(0, 0, 0, 0.08)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.14)',
+        '--search-bg': 'rgba(255, 255, 255, 0.58)',
+        '--cal-today': '#0ea5e9',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': 'rgba(255, 255, 255, 0.5)',
+        '--input-bg': 'rgba(255, 255, 255, 0.42)'
       }
     }
   };
@@ -111,6 +230,7 @@ const SettingsUI = (() => {
     renderGradientGrid();
     setupBackgroundControls();
     setupModeToggle();
+    setupLanguageToggle();
     setupBackupControls();
     applyAll();
   }
@@ -132,21 +252,35 @@ const SettingsUI = (() => {
   }
 
   function setupModeToggle() {
-    document.querySelectorAll('.mode-btn').forEach((btn) => {
+    document.querySelectorAll('.mode-btn[data-mode]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const mode = btn.dataset.mode;
-        const themeKey = mode === 'light' ? 'light' : 'midnight';
-        await Storage.updateSettings({ colorMode: mode, theme: themeKey });
+        if (!mode) return;
+        await Storage.updateSettings({ colorMode: mode });
         updateModeButtons(mode);
-        renderThemeGrid();
-        applyTheme(themeKey);
+        applyTheme(Storage.getSettings().theme);
       });
     });
   }
 
   function updateModeButtons(mode) {
-    document.querySelectorAll('.mode-btn').forEach((btn) => {
+    document.querySelectorAll('.mode-btn[data-mode]').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+  }
+
+  function setupLanguageToggle() {
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        await I18n.setLanguage(btn.dataset.lang);
+        updateLanguageButtons(btn.dataset.lang);
+      });
+    });
+  }
+
+  function updateLanguageButtons(lang) {
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
     });
   }
 
@@ -155,10 +289,12 @@ const SettingsUI = (() => {
     const settings = Storage.getSettings();
 
     grid.innerHTML = Object.entries(THEMES).map(([key, theme]) => {
-      const accent = theme.vars['--accent'];
+      const preview = key === 'glass'
+        ? 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(56,189,248,0.35) 100%)'
+        : theme.accent;
       return `
         <button class="theme-card ${settings.theme === key ? 'active' : ''}" data-theme="${key}">
-          <div class="theme-preview" style="background: ${accent}"></div>
+          <div class="theme-preview ${key === 'glass' ? 'theme-preview-glass' : ''}" style="background: ${preview}"></div>
           <span>${I18n.t(theme.nameKey)}</span>
         </button>
       `;
@@ -167,11 +303,9 @@ const SettingsUI = (() => {
     grid.querySelectorAll('.theme-card').forEach((card) => {
       card.addEventListener('click', async () => {
         const themeKey = card.dataset.theme;
-        const theme = THEMES[themeKey];
-        await Storage.updateSettings({ theme: themeKey, colorMode: theme.mode });
+        await Storage.updateSettings({ theme: themeKey });
         grid.querySelectorAll('.theme-card').forEach((c) => c.classList.remove('active'));
         card.classList.add('active');
-        updateModeButtons(theme.mode);
         applyTheme(themeKey);
       });
     });
@@ -200,6 +334,19 @@ const SettingsUI = (() => {
     });
   }
 
+  function updateColorPickerUI(color) {
+    const normalized = (color || '#000000').toLowerCase();
+    const picker = document.getElementById('bg-color-picker');
+    const preview = document.getElementById('bg-color-preview');
+    const hexEl = document.getElementById('bg-color-hex');
+    if (picker) picker.value = normalized;
+    if (preview) preview.style.background = normalized;
+    if (hexEl) hexEl.textContent = normalized.toUpperCase();
+    document.querySelectorAll('.color-preset').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.color.toLowerCase() === normalized);
+    });
+  }
+
   function setupBackgroundControls() {
     document.querySelectorAll('input[name="bg-type"]').forEach((radio) => {
       radio.addEventListener('change', async (e) => {
@@ -210,8 +357,21 @@ const SettingsUI = (() => {
     });
 
     document.getElementById('bg-color-picker').addEventListener('input', async (e) => {
-      await Storage.updateSettings({ bgColor: e.target.value });
+      const color = e.target.value;
+      updateColorPickerUI(color);
+      await Storage.updateSettings({ bgColor: color });
       applyBackground();
+    });
+
+    document.querySelectorAll('.color-preset').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const color = btn.dataset.color;
+        updateColorPickerUI(color);
+        await Storage.updateSettings({ bgColor: color, bgType: 'color' });
+        document.querySelector('input[name="bg-type"][value="color"]').checked = true;
+        showBgOptions('color');
+        applyBackground();
+      });
     });
 
     document.getElementById('btn-bg-url-apply').addEventListener('click', applyBgFromUrl);
@@ -326,22 +486,30 @@ const SettingsUI = (() => {
     document.querySelector(`input[name="bg-type"][value="${s.bgType}"]`).checked = true;
     showBgOptions(s.bgType);
     document.getElementById('bg-color-picker').value = s.bgColor;
+    updateColorPickerUI(s.bgColor);
     document.getElementById('bg-image-url').value = s.bgImage.startsWith('data:') ? '' : s.bgImage;
     document.getElementById('bg-blur').value = s.bgBlur;
     document.getElementById('bg-blur-value').textContent = s.bgBlur + 'px';
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
     updateModeButtons(s.colorMode);
+    updateLanguageButtons(s.language || 'fa');
   }
 
   function applyTheme(themeKey) {
     const theme = THEMES[themeKey] || THEMES.midnight;
+    const storedMode = Storage.getSettings().colorMode;
+    const colorMode = storedMode === 'dark' ? 'dark' : 'light';
+    const vars = colorMode === 'light' ? theme.light : theme.dark;
     const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([key, val]) => {
+    const body = document.body;
+    Object.entries(vars).forEach(([key, val]) => {
       root.style.setProperty(key, val);
+      body.style.setProperty(key, val);
     });
-    document.body.classList.toggle('light-mode', theme.mode === 'light');
-    document.body.classList.toggle('dark-mode', theme.mode === 'dark');
+    body.classList.toggle('light-mode', colorMode === 'light');
+    body.classList.toggle('dark-mode', colorMode === 'dark');
+    body.classList.toggle('glass-theme', themeKey === 'glass');
   }
 
   function applyBackground() {
@@ -355,7 +523,7 @@ const SettingsUI = (() => {
     layer.style.backgroundPosition = '';
 
     if (s.bgType === 'gradient') {
-      const gradient = GRADIENTS[s.bgGradient] || GRADIENTS.sky;
+      const gradient = GRADIENTS[s.bgGradient] || GRADIENTS.ocean;
       layer.style.background = gradient;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'color') {
@@ -375,6 +543,13 @@ const SettingsUI = (() => {
     applyTheme(s.theme);
     applyBackground();
     updateModeButtons(s.colorMode);
+    updateLanguageButtons(s.language || 'fa');
+  }
+
+  function reapplyAppearance() {
+    const s = Storage.getSettings();
+    applyTheme(s.theme);
+    applyBackground();
   }
 
   function refreshI18n() {
@@ -382,5 +557,5 @@ const SettingsUI = (() => {
     syncControlsFromSettings();
   }
 
-  return { init, applyAll, refreshI18n };
+  return { init, applyAll, refreshI18n, updateLanguageButtons, reapplyAppearance };
 })();
