@@ -6,6 +6,7 @@ const BookmarksUI = (() => {
   let editingBookmarkId = null;
   let editingFolderId = null;
   let activePickerTile = null;
+  let viewFolderId = null;
 
   const els = {};
 
@@ -14,15 +15,15 @@ const BookmarksUI = (() => {
     folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12 11v6M9 14h6"/></svg>'
   };
 
+  const FOLDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+
   function init() {
     els.grid = document.getElementById('bookmarks-grid');
-    els.folderTabs = document.getElementById('folder-tabs');
-    els.emptyState = document.getElementById('empty-bookmarks');
+    els.backBtn = document.getElementById('btn-bm-back');
+    els.backLabel = document.getElementById('bm-back-label');
     els.contextMenu = document.getElementById('context-menu');
 
-    document.getElementById('btn-add-bookmark').addEventListener('click', () => openFirstAddPicker());
-    document.getElementById('btn-empty-add').addEventListener('click', () => openFirstAddPicker());
-    document.getElementById('btn-import-all').addEventListener('click', importAllFromChrome);
+    els.backBtn.addEventListener('click', navigateBack);
     document.getElementById('form-bookmark').addEventListener('submit', handleBookmarkSubmit);
     document.getElementById('form-folder').addEventListener('submit', handleFolderSubmit);
 
@@ -31,7 +32,7 @@ const BookmarksUI = (() => {
     setupContextMenu();
     document.addEventListener('click', handleDocumentClick);
 
-    syncActiveFolder().then(() => render());
+    render();
   }
 
   function handleDocumentClick() {
@@ -39,11 +40,20 @@ const BookmarksUI = (() => {
     closeAddPicker();
   }
 
-  async function syncActiveFolder() {
-    const effective = Storage.getEffectiveActiveFolderId();
-    if (Storage.getData().activeFolderId !== effective) {
-      await Storage.setActiveFolder(effective);
-    }
+  function isGroupsView() {
+    return viewFolderId === null;
+  }
+
+  function navigateToFolder(folderId) {
+    viewFolderId = folderId;
+    closeAddPicker();
+    render();
+  }
+
+  function navigateBack() {
+    viewFolderId = null;
+    closeAddPicker();
+    render();
   }
 
   function setupColorPicker() {
@@ -105,6 +115,7 @@ const BookmarksUI = (() => {
     }
 
     await Storage.deleteFolder(folderId, deleteBookmarks);
+    if (viewFolderId === folderId) viewFolderId = null;
     render();
   }
 
@@ -118,11 +129,6 @@ const BookmarksUI = (() => {
     if (id === 'modal-folder') editingFolderId = null;
   }
 
-  function openFirstAddPicker() {
-    const tile = els.grid.querySelector('.bm-tile-add');
-    if (tile) openAddPicker(tile);
-  }
-
   function closeAddPicker() {
     if (!activePickerTile) return;
     activePickerTile.classList.remove('bm-tile-picker-open');
@@ -130,20 +136,42 @@ const BookmarksUI = (() => {
     activePickerTile = null;
   }
 
-  function openAddPicker(tile) {
+  function openAddPicker(tile, mode) {
     closeAddPicker();
     activePickerTile = tile;
     tile.classList.add('bm-tile-picker-open');
+
+    const folderOnly = mode === 'groups';
+    const linkOnly = mode === 'folder';
+
+    if (linkOnly) {
+      tile.innerHTML = `
+        <div class="bm-tile-picker bm-tile-picker-single">
+          <button type="button" class="bm-pick-btn" data-pick="link">
+            <span>${I18n.t('bookmark')}</span>
+            ${PICKER_SVG.link}
+          </button>
+        </div>
+      `;
+      tile.querySelector('[data-pick="link"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAddPicker();
+        openBookmarkModal();
+      });
+      return;
+    }
+
     tile.innerHTML = `
       <div class="bm-tile-picker">
         <button type="button" class="bm-pick-btn" data-pick="link">
           <span>${I18n.t('bookmark')}</span>
           ${PICKER_SVG.link}
         </button>
+        ${folderOnly ? `
         <button type="button" class="bm-pick-btn" data-pick="folder">
           <span>${I18n.t('folder')}</span>
           ${PICKER_SVG.folder}
-        </button>
+        </button>` : ''}
       </div>
     `;
 
@@ -152,11 +180,14 @@ const BookmarksUI = (() => {
       closeAddPicker();
       openBookmarkModal();
     });
-    tile.querySelector('[data-pick="folder"]').addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeAddPicker();
-      openFolderModal();
-    });
+
+    if (folderOnly) {
+      tile.querySelector('[data-pick="folder"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeAddPicker();
+        openFolderModal();
+      });
+    }
   }
 
   function showContextMenu(x, y, target) {
@@ -166,7 +197,6 @@ const BookmarksUI = (() => {
     els.contextMenu.style.top = y + 'px';
 
     const isBookmark = target.type === 'bookmark';
-    const isFolder = target.type === 'folder';
 
     els.contextMenu.querySelectorAll('.ctx-bookmark-only').forEach((btn) => {
       btn.classList.toggle('hidden', !isBookmark);
@@ -202,12 +232,16 @@ const BookmarksUI = (() => {
     });
   }
 
+  function getTargetFolderId() {
+    return viewFolderId || 'default';
+  }
+
   function openBookmarkModal(bookmarkId) {
     editingBookmarkId = bookmarkId || null;
     const title = document.getElementById('modal-bookmark-title');
-    const activeFolder = Storage.getEffectiveActiveFolderId();
+    const targetFolder = getTargetFolderId();
 
-    populateFolderSelect(document.getElementById('bookmark-folder'), activeFolder);
+    populateFolderSelect(document.getElementById('bookmark-folder'), targetFolder);
 
     if (bookmarkId) {
       title.textContent = I18n.t('editBookmark');
@@ -222,7 +256,7 @@ const BookmarksUI = (() => {
       title.textContent = I18n.t('addBookmark');
       document.getElementById('form-bookmark').reset();
       document.getElementById('bookmark-id').value = '';
-      document.getElementById('bookmark-folder').value = activeFolder;
+      document.getElementById('bookmark-folder').value = targetFolder;
     }
 
     openModal('modal-bookmark');
@@ -288,8 +322,7 @@ const BookmarksUI = (() => {
     if (editingFolderId) {
       await Storage.updateFolder(editingFolderId, { name, color });
     } else {
-      const folder = await Storage.addFolder({ name, color });
-      await Storage.setActiveFolder(folder.id);
+      await Storage.addFolder({ name, color });
     }
 
     closeModal('modal-folder');
@@ -303,16 +336,6 @@ const BookmarksUI = (() => {
     }
   }
 
-  function importAllFromChrome() {
-    if (!confirm(I18n.t('importChromeConfirm'))) return;
-
-    chrome.bookmarks.getTree(async (tree) => {
-      await Storage.importBookmarkTree(tree, 'default');
-      render();
-      alert(I18n.t('importSuccess'));
-    });
-  }
-
   function getFaviconUrl(url) {
     try {
       const domain = new URL(url).hostname;
@@ -322,46 +345,28 @@ const BookmarksUI = (() => {
     }
   }
 
-  function renderFolderTabs() {
-    const folders = Storage.getVisibleFolders();
-    const activeId = Storage.getEffectiveActiveFolderId();
-
-    els.folderTabs.innerHTML = folders.map((f) => {
-      const isActive = f.id === activeId;
-      return `
-        <div class="folder-tab-item ${isActive ? 'active' : ''}" style="--folder-color: ${f.color}"
-             data-folder-id="${f.id}">
-          <button type="button" class="folder-tab"
-                  data-folder-id="${f.id}">
-            ${escapeHtml(I18n.getFolderName(f))}
-          </button>
-        </div>
-      `;
-    }).join('');
-
-    els.folderTabs.querySelectorAll('.folder-tab').forEach((tab) => {
-      tab.addEventListener('click', async () => {
-        await Storage.setActiveFolder(tab.dataset.folderId);
-        render();
-      });
-    });
-
-    els.folderTabs.querySelectorAll('.folder-tab-item').forEach((item) => {
-      const folderId = item.dataset.folderId;
-      const folder = Storage.getFolders().find((f) => f.id === folderId);
-      if (folder && !folder.isDefault) {
-        item.addEventListener('contextmenu', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showContextMenu(e.clientX, e.clientY, { type: 'folder', id: folderId });
-        });
-      }
-    });
+  function buildDefaultFolderTileHtml() {
+    return `
+      <button type="button" class="bm-tile bm-tile-folder bm-tile-default" data-folder-id="default" title="${I18n.t('defaultFolder')}">
+        <span class="bm-tile-plus" aria-hidden="true">+</span>
+        <span class="bm-tile-label">${I18n.t('defaultFolder')}</span>
+      </button>
+    `;
   }
 
-  function buildAddTileHtml() {
+  function buildFolderTileHtml(folder) {
     return `
-      <button type="button" class="bm-tile bm-tile-add" title="${I18n.t('add')}">
+      <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${folder.id}"
+              style="--folder-color: ${folder.color}" title="${escapeHtml(I18n.getFolderName(folder))}">
+        <span class="bm-tile-folder-icon">${FOLDER_SVG}</span>
+        <span class="bm-tile-label">${escapeHtml(I18n.getFolderName(folder))}</span>
+      </button>
+    `;
+  }
+
+  function buildAddTileHtml(mode) {
+    return `
+      <button type="button" class="bm-tile bm-tile-add" data-add-mode="${mode}" title="${I18n.t('add')}">
         <span class="bm-tile-plus" aria-hidden="true">+</span>
       </button>
     `;
@@ -379,22 +384,26 @@ const BookmarksUI = (() => {
     `;
   }
 
-  function renderBookmarks() {
-    const activeId = Storage.getEffectiveActiveFolderId();
-    const bookmarks = Storage.getBookmarks(activeId);
+  function bindFolderTiles() {
+    els.grid.querySelectorAll('.bm-tile-folder').forEach((tile) => {
+      tile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateToFolder(tile.dataset.folderId);
+      });
 
-    els.emptyState.classList.add('hidden');
-    closeAddPicker();
+      const folderId = tile.dataset.folderId;
+      const folder = Storage.getFolders().find((f) => f.id === folderId);
+      if (folder && !folder.isDefault) {
+        tile.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showContextMenu(e.clientX, e.clientY, { type: 'folder', id: folderId });
+        });
+      }
+    });
+  }
 
-    const filledCount = bookmarks.length;
-    const totalSlots = Math.max(MIN_SLOTS, Math.ceil((filledCount + 1) / GRID_COLS) * GRID_COLS);
-    const emptyCount = totalSlots - filledCount;
-
-    const bookmarksHtml = bookmarks.map(buildBookmarkTileHtml).join('');
-    const addTilesHtml = Array.from({ length: emptyCount }, () => buildAddTileHtml()).join('');
-
-    els.grid.innerHTML = bookmarksHtml + addTilesHtml;
-
+  function bindBookmarkTiles() {
     els.grid.querySelectorAll('.bm-tile-link img').forEach((img) => {
       img.addEventListener('error', () => {
         img.style.display = 'none';
@@ -410,14 +419,59 @@ const BookmarksUI = (() => {
         showContextMenu(e.clientX, e.clientY, { type: 'bookmark', id: item.dataset.id });
       });
     });
+  }
 
+  function bindAddTiles(mode) {
     els.grid.querySelectorAll('.bm-tile-add').forEach((tile) => {
       tile.addEventListener('click', (e) => {
         e.stopPropagation();
         if (tile.classList.contains('bm-tile-picker-open')) return;
-        openAddPicker(tile);
+        openAddPicker(tile, tile.dataset.addMode || mode);
       });
     });
+  }
+
+  function padAddTiles(html, filledCount, mode) {
+    const totalSlots = Math.max(MIN_SLOTS, Math.ceil((filledCount + 1) / GRID_COLS) * GRID_COLS);
+    const emptyCount = totalSlots - filledCount;
+    return html + Array.from({ length: emptyCount }, () => buildAddTileHtml(mode)).join('');
+  }
+
+  function renderGroupsView() {
+    els.backBtn.classList.add('hidden');
+    closeAddPicker();
+
+    const folders = Storage.getFolders().sort((a, b) => a.order - b.order);
+    const customFolders = folders.filter((f) => !f.isDefault);
+
+    let html = buildDefaultFolderTileHtml();
+    html += customFolders.map(buildFolderTileHtml).join('');
+    html = padAddTiles(html, 1 + customFolders.length, 'groups');
+
+    els.grid.innerHTML = html;
+    bindFolderTiles();
+    bindAddTiles('groups');
+  }
+
+  function renderFolderView() {
+    const folder = Storage.getFolders().find((f) => f.id === viewFolderId);
+    if (!folder) {
+      viewFolderId = null;
+      renderGroupsView();
+      return;
+    }
+
+    els.backBtn.classList.remove('hidden');
+    els.backLabel.textContent = I18n.getFolderName(folder);
+    closeAddPicker();
+
+    const bookmarks = Storage.getBookmarks(viewFolderId);
+    let html = bookmarks.map(buildBookmarkTileHtml).join('');
+    html = padAddTiles(html, bookmarks.length, 'folder');
+
+    els.grid.innerHTML = html;
+    bindBookmarkTiles();
+    bindAddTiles('folder');
   }
 
   function escapeHtml(str) {
@@ -427,9 +481,12 @@ const BookmarksUI = (() => {
   }
 
   function render() {
-    renderFolderTabs();
-    renderBookmarks();
+    if (isGroupsView()) {
+      renderGroupsView();
+    } else {
+      renderFolderView();
+    }
   }
 
-  return { init, render, openBookmarkModal, openFirstAddPicker, hideContextMenu };
+  return { init, render, openBookmarkModal, hideContextMenu };
 })();
