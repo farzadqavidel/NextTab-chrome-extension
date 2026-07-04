@@ -24,6 +24,9 @@ const I18n = (() => {
       searchSubmit: 'جستجو',
       searchImage: 'جستجوی تصویر',
       searchVoice: 'جستجوی صوتی',
+      searchHistory: 'سابقه جستجو',
+      clearSearchHistory: 'حذف همه جستجوها',
+      clearSearchHistoryConfirm: 'همه سابقه جستجو حذف شود؟',
       voiceNotSupported: 'مرورگر شما از جستجوی صوتی پشتیبانی نمی‌کند',
       add: 'افزودن',
       import: 'ایمپورت',
@@ -77,10 +80,10 @@ const I18n = (() => {
       createGroup: 'ساخت گروه',
       deleteGroup: 'حذف گروه',
       deleteGroupConfirm: 'این گروه حذف می‌شود. ادامه می‌دهید؟',
-      deleteGroupWithBookmarksConfirm: 'آیا لینک‌های داخل این گروه هم حذف شوند؟\n\n«تأیید» = حذف لینک‌ها\n«انصراف» = انتقال لینک‌ها به «بدون دسته‌بندی»',
+      deleteGroupWithBookmarksConfirm: 'آیا لینک‌های داخل این گروه هم حذف شوند؟\n\n«تأیید» = حذف لینک‌ها\n«انصراف» = انتقال لینک‌ها به صفحه اصلی',
       editGroup: 'ویرایش گروه',
       openNewTab: 'باز کردن در تب جدید',
-      defaultFolder: 'بدون دسته‌بندی',
+      defaultFolder: 'صفحه اصلی',
       edit: 'ویرایش',
       tabAppearance: 'ظاهر',
       tabBackground: 'پس‌زمینه',
@@ -159,6 +162,9 @@ const I18n = (() => {
       searchSubmit: 'Search',
       searchImage: 'Image search',
       searchVoice: 'Voice search',
+      searchHistory: 'Search history',
+      clearSearchHistory: 'Clear all searches',
+      clearSearchHistoryConfirm: 'Clear all search history?',
       voiceNotSupported: 'Your browser does not support voice search',
       add: 'Add',
       import: 'Import',
@@ -212,10 +218,10 @@ const I18n = (() => {
       createGroup: 'Create group',
       deleteGroup: 'Delete group',
       deleteGroupConfirm: 'This group will be deleted. Continue?',
-      deleteGroupWithBookmarksConfirm: 'Also delete bookmarks inside this group?\n\nOK = delete bookmarks\nCancel = move bookmarks to "Uncategorized"',
+      deleteGroupWithBookmarksConfirm: 'Also delete bookmarks inside this group?\n\nOK = delete bookmarks\nCancel = move bookmarks to main page',
       editGroup: 'Edit group',
       openNewTab: 'Open in new tab',
-      defaultFolder: 'Uncategorized',
+      defaultFolder: 'Main page',
       edit: 'Edit',
       tabAppearance: 'Appearance',
       tabBackground: 'Background',
@@ -402,6 +408,7 @@ const I18n = (() => {
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
+    if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
     if (typeof WeatherUI !== 'undefined') WeatherUI.reload?.();
     SettingsUI.updateLanguageButtons?.(lang);
   }
@@ -414,6 +421,7 @@ const I18n = (() => {
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
+    if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
     if (typeof WeatherUI !== 'undefined') WeatherUI.refresh();
     if (typeof SettingsUI !== 'undefined') SettingsUI.refreshI18n?.();
   }

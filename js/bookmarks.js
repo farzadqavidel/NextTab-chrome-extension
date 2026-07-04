@@ -1,5 +1,5 @@
 const BookmarksUI = (() => {
-  const GRID_COLS = 4;
+  const GRID_COLS = 5;
   const MIN_SLOTS = 8;
 
   let contextTarget = null;
@@ -345,15 +345,6 @@ const BookmarksUI = (() => {
     }
   }
 
-  function buildDefaultFolderTileHtml() {
-    return `
-      <button type="button" class="bm-tile bm-tile-folder bm-tile-default" data-folder-id="default" title="${I18n.t('defaultFolder')}">
-        <span class="bm-tile-plus" aria-hidden="true">+</span>
-        <span class="bm-tile-label">${I18n.t('defaultFolder')}</span>
-      </button>
-    `;
-  }
-
   function buildFolderTileHtml(folder) {
     return `
       <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${folder.id}"
@@ -443,13 +434,15 @@ const BookmarksUI = (() => {
 
     const folders = Storage.getFolders().sort((a, b) => a.order - b.order);
     const customFolders = folders.filter((f) => !f.isDefault);
+    const rootBookmarks = Storage.getBookmarks('default');
 
-    let html = buildDefaultFolderTileHtml();
-    html += customFolders.map(buildFolderTileHtml).join('');
-    html = padAddTiles(html, 1 + customFolders.length, 'groups');
+    let html = customFolders.map(buildFolderTileHtml).join('');
+    html += rootBookmarks.map(buildBookmarkTileHtml).join('');
+    html = padAddTiles(html, customFolders.length + rootBookmarks.length, 'groups');
 
     els.grid.innerHTML = html;
     bindFolderTiles();
+    bindBookmarkTiles();
     bindAddTiles('groups');
   }
 

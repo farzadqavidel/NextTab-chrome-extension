@@ -131,6 +131,9 @@
               </div>
             </div>
           </form>
+          <div id="search-history" class="search-history hidden">
+            <ul id="search-history-list" class="search-history-list"></ul>
+          </div>
           <input type="file" id="search-image-input" accept="image/*" capture="environment" class="hidden">
         </div>
 
@@ -414,6 +417,11 @@
     </div>
   </div>
 
+  <div class="context-menu hidden" id="search-context-menu">
+    <button type="button" data-action="show-history" data-i18n="searchHistory">سابقه جستجو</button>
+    <button type="button" data-action="clear-history" data-i18n="clearSearchHistory">حذف همه جستجوها</button>
+  </div>
+
   <div class="context-menu hidden" id="context-menu">
     <button data-action="open-new-tab" data-i18n="openNewTab" class="ctx-bookmark-only">باز کردن در تب جدید</button>
     <button data-action="toggle-done" data-i18n="markDone" class="ctx-note-only hidden">تیک زدن</button>
@@ -434,6 +442,7 @@
   <script src="js/weather.js"></script>
   <script src="js/notes.js"></script>
   <script src="js/bookmarks.js"></script>
+  <script src="js/search.js"></script>
   <script src="js/wallpaper.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>

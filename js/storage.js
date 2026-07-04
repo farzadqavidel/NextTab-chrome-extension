@@ -5,12 +5,13 @@ const Storage = (() => {
   const DEFAULT_DATA = {
     bookmarks: [],
     folders: [
-      { id: 'default', name: 'بدون دسته‌بندی', color: '#94a3b8', order: 0, isDefault: true }
+      { id: 'default', name: 'صفحه اصلی', color: '#94a3b8', order: 0, isDefault: true }
     ],
     notes: [],
     trashedNotes: [],
     activeFolderId: 'default',
     selectedDay: null,
+    searchHistory: [],
     settings: {
       theme: 'glass',
       colorMode: 'dark',
@@ -53,12 +54,13 @@ const Storage = (() => {
     if (data.folders) {
       merged.folders = data.folders;
       const def = merged.folders.find((f) => f.isDefault);
-      if (def && def.name === 'همه') def.name = 'بدون دسته‌بندی';
+      if (def && (def.name === 'همه' || def.name === 'بدون دسته‌بندی')) def.name = 'صفحه اصلی';
     }
     if (data.notes) merged.notes = data.notes;
     if (data.trashedNotes) merged.trashedNotes = data.trashedNotes;
     if (data.activeFolderId) merged.activeFolderId = data.activeFolderId;
     if (data.selectedDay) merged.selectedDay = data.selectedDay;
+    if (Array.isArray(data.searchHistory)) merged.searchHistory = data.searchHistory;
     if (data.settings) {
       merged.settings = { ...merged.settings, ...data.settings };
       if (merged.settings.theme === 'light' || !VALID_THEMES.has(merged.settings.theme)) {
@@ -203,6 +205,31 @@ const Storage = (() => {
 
   async function deleteNote(id) {
     await moveNoteToTrash(id);
+  }
+
+  const SEARCH_HISTORY_MAX = 20;
+
+  function getSearchHistory() {
+    return cache.searchHistory || [];
+  }
+
+  async function addSearchHistory(query) {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const history = (cache.searchHistory || []).filter((item) => item !== trimmed);
+    history.unshift(trimmed);
+    cache.searchHistory = history.slice(0, SEARCH_HISTORY_MAX);
+    await save();
+  }
+
+  async function removeSearchHistory(query) {
+    cache.searchHistory = (cache.searchHistory || []).filter((item) => item !== query);
+    await save();
+  }
+
+  async function clearSearchHistory() {
+    cache.searchHistory = [];
+    await save();
   }
 
   async function addBookmark({ title, url, folderId }) {
@@ -401,6 +428,10 @@ const Storage = (() => {
     permanentlyDeleteNote,
     moveAllNotesToTrash,
     emptyTrash,
+    getSearchHistory,
+    addSearchHistory,
+    removeSearchHistory,
+    clearSearchHistory,
     addBookmark,
     updateBookmark,
     deleteBookmark,
