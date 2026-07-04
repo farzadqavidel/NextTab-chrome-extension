@@ -143,6 +143,29 @@ const Jalali = (() => {
     return toPersianDigits(`${h}:${m}:${s}`);
   }
 
+  function gregorianToday() {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+  }
+
+  function daysInGregorianMonth(gy, gm) {
+    return new Date(gy, gm, 0).getDate();
+  }
+
+  function getGregorianMonthDays(gy, gm) {
+    const count = daysInGregorianMonth(gy, gm);
+    const days = [];
+    for (let d = 1; d <= count; d++) {
+      const date = new Date(gy, gm - 1, d);
+      days.push({ day: d, weekday: date.getDay() });
+    }
+    return days;
+  }
+
+  function getGregorianWeekday(gy, gm, gd) {
+    return new Date(gy, gm - 1, gd).getDay();
+  }
+
   return {
     PERSIAN_MONTHS,
     PERSIAN_WEEKDAYS,
@@ -155,6 +178,10 @@ const Jalali = (() => {
     getMonthDays,
     toPersianDigits,
     formatDate,
-    formatTime
+    formatTime,
+    gregorianToday,
+    daysInGregorianMonth,
+    getGregorianMonthDays,
+    getGregorianWeekday
   };
 })();

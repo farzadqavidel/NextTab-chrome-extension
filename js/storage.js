@@ -25,7 +25,18 @@ const Storage = (() => {
       compactBookmarks: false,
       bookmarkSize: 'medium',
       notesBlurred: false,
-      language: 'fa'
+      language: 'fa',
+      welcomeShown: false,
+      onboardingComplete: false,
+      country: '',
+      city: '',
+      countryCode: '',
+      timezone: '',
+      calendarType: 'jalali',
+      locationLat: null,
+      locationLon: null,
+      googleServicesVisible: true,
+      enabledGoogleServices: ['gmail', 'drive', 'maps', 'youtube', 'translate', 'calendar', 'photos']
     }
   };
 
@@ -40,6 +51,12 @@ const Storage = (() => {
       chrome.storage.local.get(['personalStartPage'], (result) => {
         if (result.personalStartPage) {
           cache = mergeDefaults(result.personalStartPage);
+          if (result.personalStartPage.settings?.welcomeShown === undefined) {
+            cache.settings.welcomeShown = true;
+          }
+          if (result.personalStartPage.settings?.onboardingComplete === undefined) {
+            cache.settings.onboardingComplete = true;
+          }
         } else {
           cache = structuredClone(DEFAULT_DATA);
         }
@@ -103,14 +120,41 @@ const Storage = (() => {
   }
 
   function getSelectedDay() {
-    if (cache.selectedDay) return cache.selectedDay;
-    const t = Jalali.today();
-    return { year: t.year, month: t.month, day: t.day };
+    const g = getSelectedGregorian();
+    return Jalali.gregorianToJalali(g.year, g.month, g.day);
+  }
+
+  function getSelectedGregorian() {
+    if (cache.selectedDay?.gy != null) {
+      return { year: cache.selectedDay.gy, month: cache.selectedDay.gm, day: cache.selectedDay.gd };
+    }
+    if (cache.selectedDay?.year != null && cache.selectedDay.gy == null) {
+      const g = Jalali.jalaliToGregorian(
+        cache.selectedDay.year,
+        cache.selectedDay.month,
+        cache.selectedDay.day
+      );
+      return { year: g.year, month: g.month, day: g.day };
+    }
+    return Jalali.gregorianToday();
   }
 
   async function setSelectedDay(year, month, day) {
-    cache.selectedDay = { year, month, day };
+    const g = Jalali.jalaliToGregorian(year, month, day);
+    cache.selectedDay = { gy: g.year, gm: g.month, gd: g.day };
     await save();
+  }
+
+  async function setSelectedGregorian(year, month, day) {
+    cache.selectedDay = { gy: year, gm: month, gd: day };
+    await save();
+  }
+
+  function getTodayGregorian() {
+    const tz = cache.settings.timezone || undefined;
+    const iso = Locale.formatDateISO(new Date(), tz);
+    const [year, month, day] = iso.split('-').map(Number);
+    return { year, month, day };
   }
 
   function getBookmarks(folderId) {
@@ -413,7 +457,10 @@ const Storage = (() => {
     getSettings,
     updateSettings,
     getSelectedDay,
+    getSelectedGregorian,
     setSelectedDay,
+    setSelectedGregorian,
+    getTodayGregorian,
     getBookmarks,
     getFolders,
     getVisibleFolders,

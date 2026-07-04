@@ -1,6 +1,6 @@
 const BookmarksUI = (() => {
   const GRID_COLS = 5;
-  const MIN_SLOTS = 8;
+  const MIN_SLOTS = 5;
 
   let contextTarget = null;
   let editingBookmarkId = null;
@@ -16,6 +16,7 @@ const BookmarksUI = (() => {
   };
 
   const FOLDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+  const DEFAULT_FAVICON = 'icons/default-favicon.png';
 
   function init() {
     els.grid = document.getElementById('bookmarks-grid');
@@ -341,10 +342,21 @@ const BookmarksUI = (() => {
       const domain = new URL(url).hostname;
       return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
     } catch {
-      return '';
+      return DEFAULT_FAVICON;
     }
   }
 
+  function buildBookmarkTileHtml(bm) {
+    const favicon = getFaviconUrl(bm.url);
+    return `
+      <a href="${escapeHtml(bm.url)}" class="bm-tile bm-tile-link" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
+        <div class="bm-tile-icon">
+          <img src="${favicon}" alt="" loading="lazy" data-default-favicon="${DEFAULT_FAVICON}">
+        </div>
+        <span class="bm-tile-label">${escapeHtml(bm.title)}</span>
+      </a>
+    `;
+  }
   function buildFolderTileHtml(folder) {
     return `
       <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${folder.id}"
@@ -360,18 +372,6 @@ const BookmarksUI = (() => {
       <button type="button" class="bm-tile bm-tile-add" data-add-mode="${mode}" title="${I18n.t('add')}">
         <span class="bm-tile-plus" aria-hidden="true">+</span>
       </button>
-    `;
-  }
-
-  function buildBookmarkTileHtml(bm) {
-    return `
-      <a href="${escapeHtml(bm.url)}" class="bm-tile bm-tile-link" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
-        <div class="bm-tile-icon">
-          <img src="${getFaviconUrl(bm.url)}" alt="" loading="lazy">
-          <span class="bm-tile-fallback">${escapeHtml(bm.title.charAt(0))}</span>
-        </div>
-        <span class="bm-tile-label">${escapeHtml(bm.title)}</span>
-      </a>
     `;
   }
 
@@ -397,9 +397,10 @@ const BookmarksUI = (() => {
   function bindBookmarkTiles() {
     els.grid.querySelectorAll('.bm-tile-link img').forEach((img) => {
       img.addEventListener('error', () => {
-        img.style.display = 'none';
-        const fallback = img.nextElementSibling;
-        if (fallback) fallback.style.display = 'flex';
+        const defaultSrc = img.dataset.defaultFavicon || DEFAULT_FAVICON;
+        if (img.dataset.fallbackApplied === 'true') return;
+        img.dataset.fallbackApplied = 'true';
+        img.src = defaultSrc;
       });
     });
 

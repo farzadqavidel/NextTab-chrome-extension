@@ -51,6 +51,22 @@ const WeatherUI = (() => {
   }
 
   async function resolveCoords() {
+    const s = Storage.getSettings();
+    if (s.locationLat != null && s.locationLon != null) {
+      return { lat: s.locationLat, lon: s.locationLon, city: s.city || '' };
+    }
+
+    if (s.city || s.country) {
+      const hit = await geocodeLocation(s.city, s.country);
+      if (hit) {
+        await Storage.updateSettings({
+          locationLat: hit.lat,
+          locationLon: hit.lon
+        });
+        return hit;
+      }
+    }
+
     if (navigator.geolocation) {
       let denied = false;
       if (navigator.permissions?.query) {
@@ -95,14 +111,55 @@ const WeatherUI = (() => {
     return data.results?.[0]?.name || '';
   }
 
-  async function searchGeocode(name, lang) {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=${lang}`;
+  async function searchGeocode(name, lang, count = 1) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=${count}&language=${lang}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return count === 1 ? null : [];
     const data = await res.json();
-    const r = data.results?.[0];
-    if (!r) return null;
-    return { lat: r.latitude, lon: r.longitude, city: r.name || name };
+    if (count === 1) {
+      const r = data.results?.[0];
+      if (!r) return null;
+      return mapGeocodeResult(r, name);
+    }
+    return (data.results || []).map((r) => mapGeocodeResult(r, r.name));
+  }
+
+  function mapGeocodeResult(r, fallbackName) {
+    return {
+      lat: r.latitude,
+      lon: r.longitude,
+      city: r.name || fallbackName,
+      country: r.country || '',
+      countryCode: r.country_code || '',
+      timezone: r.timezone || '',
+      admin1: r.admin1 || '',
+      label: [r.name, r.admin1, r.country].filter(Boolean).join(I18n.getLang() === 'fa' ? '، ' : ', ')
+    };
+  }
+
+  async function geocodeLocation(city, country) {
+    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const queries = [
+      [city, country].filter(Boolean).join(', '),
+      city,
+      country
+    ].filter(Boolean);
+
+    for (const q of queries) {
+      const hit = await searchGeocode(q, lang);
+      if (hit) {
+        return { ...hit, city: city || hit.city, country: country || hit.country };
+      }
+    }
+    return null;
+  }
+
+  async function applyLocation(result) {
+    const updates = LocationPicker.buildLocationUpdates(result);
+    await Storage.updateSettings(updates);
+    CalendarUI.refresh();
+    await loadWeather();
+    return updates;
   }
 
   async function geocodeFromTimezone() {
@@ -233,5 +290,5 @@ const WeatherUI = (() => {
     if (isOpen) renderForecastModal();
   }
 
-  return { init, refresh, reload: loadWeather };
+  return { init, refresh, reload: loadWeather, geocodeLocation, applyLocation };
 })();

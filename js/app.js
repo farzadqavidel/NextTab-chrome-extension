@@ -5,9 +5,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   CalendarUI.init();
   BookmarksUI.init();
   NotesUI.init();
-  WeatherUI.init();
   SettingsUI.init();
   SearchUI.init();
+  GoogleServicesUI.init();
+
+  if (Storage.getSettings().onboardingComplete) {
+    WeatherUI.init();
+    showWelcomeIfNeeded();
+  } else {
+    await showOnboardingFlow();
+  }
 
   document.getElementById('dashboard').classList.add('loaded');
 
@@ -82,3 +89,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
+
+function updateOnboardingLangButtons(lang) {
+  document.querySelectorAll('.onboarding-lang-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+async function showOnboardingFlow() {
+  const modal = document.getElementById('modal-onboarding');
+  const form = document.getElementById('form-onboarding');
+  const lang = Storage.getSettings().language || 'fa';
+
+  updateOnboardingLangButtons(lang);
+  modal.classList.remove('hidden');
+
+  const onboardingPicker = LocationPicker.attach({
+    inputId: 'onboarding-location-search',
+    listId: 'onboarding-location-suggestions',
+    hiddenId: 'onboarding-location-data'
+  });
+
+  document.querySelectorAll('.onboarding-lang-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      await I18n.setLanguage(btn.dataset.lang);
+      updateOnboardingLangButtons(btn.dataset.lang);
+    });
+  });
+
+  return new Promise((resolve) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const selected = onboardingPicker.getSelected();
+      if (!selected) {
+        alert(I18n.t('selectFromSuggestions'));
+        return;
+      }
+
+      const selectedLang = document.querySelector('.onboarding-lang-btn.active')?.dataset.lang || 'fa';
+      const locationUpdates = LocationPicker.buildLocationUpdates(selected);
+
+      await Storage.updateSettings({
+        ...locationUpdates,
+        language: selectedLang,
+        onboardingComplete: true
+      });
+
+      await I18n.setLanguage(selectedLang);
+      modal.classList.add('hidden');
+      CalendarUI.refresh();
+      WeatherUI.init();
+      GoogleServicesUI.render();
+      showWelcomeIfNeeded();
+      resolve();
+    }, { once: true });
+  });
+}
+
+async function showWelcomeIfNeeded() {
+  if (Storage.getSettings().welcomeShown) return;
+
+  const modal = document.getElementById('modal-welcome');
+  modal.classList.remove('hidden');
+
+  document.getElementById('btn-welcome-dismiss').addEventListener('click', async () => {
+    modal.classList.add('hidden');
+    await Storage.updateSettings({ welcomeShown: true });
+  }, { once: true });
+}

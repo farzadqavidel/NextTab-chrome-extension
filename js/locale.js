@@ -1,5 +1,7 @@
 const Locale = (() => {
   function getTimezone() {
+    const saved = typeof Storage !== 'undefined' ? Storage.getSettings().timezone : '';
+    if (saved) return saved;
     try {
       return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     } catch {
