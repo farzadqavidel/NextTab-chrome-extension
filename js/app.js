@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
+  await syncStoredLocationLanguage();
   await SettingsUI.applyAll();
   CalendarUI.init();
   BookmarksUI.init();
@@ -89,6 +90,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
+
+async function syncStoredLocationLanguage() {
+  const s = Storage.getSettings();
+  if (s.locationLat == null || s.locationLon == null) return;
+
+  const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
+  if (!resolved) return;
+
+  if (resolved.name !== s.city || resolved.country !== s.country) {
+    await Storage.updateSettings({
+      city: resolved.name,
+      country: resolved.country
+    });
+  }
+}
 
 function updateOnboardingLangButtons(lang) {
   document.querySelectorAll('.onboarding-lang-btn').forEach((btn) => {

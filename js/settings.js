@@ -289,7 +289,54 @@ const SettingsUI = (() => {
   let settingsLocationPicker = null;
 
   function buildLocationLabel(settings) {
-    return [settings.city, settings.country].filter(Boolean).join(I18n.getLang() === 'fa' ? '، ' : ', ');
+    return [settings.city, settings.country].filter(Boolean).join(getSeparator());
+  }
+
+  function getSeparator() {
+    return I18n.getLang() === 'fa' ? '، ' : ', ';
+  }
+
+  async function refreshLocationLabels() {
+    const s = Storage.getSettings();
+    if (s.locationLat == null || s.locationLon == null) {
+      settingsLocationPicker?.clear();
+      return;
+    }
+
+    const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
+    if (!resolved) return;
+
+    await Storage.updateSettings({
+      city: resolved.name,
+      country: resolved.country
+    });
+
+    settingsLocationPicker?.setDisplay(resolved.label, resolved);
+  }
+
+  async function syncLocationDisplay() {
+    const s = Storage.getSettings();
+    if (s.locationLat == null || s.locationLon == null) {
+      settingsLocationPicker?.clear();
+      return;
+    }
+
+    const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
+    if (resolved) {
+      settingsLocationPicker?.setDisplay(resolved.label, resolved);
+      return;
+    }
+
+    const label = buildLocationLabel(s);
+    settingsLocationPicker?.setDisplay(label, label ? {
+      name: s.city,
+      country: s.country,
+      countryCode: s.countryCode,
+      lat: s.locationLat,
+      lon: s.locationLon,
+      timezone: s.timezone,
+      label
+    } : null);
   }
 
   function getCalendarTypeLabel(calendarType) {
@@ -664,19 +711,7 @@ const SettingsUI = (() => {
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
     updateLanguageButtons(s.language || 'fa');
-
-    const label = buildLocationLabel(s);
-    if (settingsLocationPicker) {
-      settingsLocationPicker.setDisplay(label, label ? {
-        name: s.city,
-        country: s.country,
-        countryCode: s.countryCode,
-        lat: s.locationLat,
-        lon: s.locationLon,
-        timezone: s.timezone,
-        label
-      } : null);
-    }
+    syncLocationDisplay();
     updateCalendarTypeHint(s.calendarType);
 
     const toggleGs = document.getElementById('toggle-google-services-visible');
@@ -753,5 +788,5 @@ const SettingsUI = (() => {
     syncControlsFromSettings();
   }
 
-  return { init, applyAll, refreshI18n, updateLanguageButtons, reapplyAppearance };
+  return { init, applyAll, refreshI18n, refreshLocationLabels, updateLanguageButtons, reapplyAppearance };
 })();

@@ -53,7 +53,12 @@ const WeatherUI = (() => {
   async function resolveCoords() {
     const s = Storage.getSettings();
     if (s.locationLat != null && s.locationLon != null) {
-      return { lat: s.locationLat, lon: s.locationLon, city: s.city || '' };
+      const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
+      return {
+        lat: s.locationLat,
+        lon: s.locationLon,
+        city: resolved?.name || s.city || ''
+      };
     }
 
     if (s.city || s.country) {

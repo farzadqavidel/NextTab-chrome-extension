@@ -13,6 +13,10 @@ const CalendarUI = (() => {
     return Storage.getSettings().countryCode || '';
   }
 
+  function getLang() {
+    return I18n.getLang();
+  }
+
   function gregorianToPrimary(g) {
     const type = getCalendarType();
     if (type === 'jalali') return Jalali.gregorianToJalali(g.year, g.month, g.day);
@@ -106,8 +110,14 @@ const CalendarUI = (() => {
     renderOtherDates(g);
   }
 
+  function formatNativeScriptDate(day, monthName, year) {
+    const d = I18n.formatDigits(day);
+    const y = I18n.formatDigits(year);
+    return `\u2066${d}\u2069 ${monthName} \u2066${y}\u2069`;
+  }
+
   function formatGregorianDisplay(g) {
-    if (I18n.getLang() === 'fa') {
+    if (getLang() === 'fa') {
       return PersianEvents.formatGregorianFromGregorian(g.year, g.month, g.day);
     }
     const monthName = I18n.getGregorianMonthName(g.month - 1);
@@ -115,10 +125,59 @@ const CalendarUI = (() => {
   }
 
   function formatJalaliDisplay(j) {
-    if (I18n.getLang() === 'fa') {
-      return Jalali.formatDate(j.year, j.month, j.day);
+    const month = Jalali.PERSIAN_MONTHS[j.month - 1];
+    return formatNativeScriptDate(j.day, month, j.year);
+  }
+
+  function formatHijriDisplay(h) {
+    const month = Hijri.MONTHS[h.month - 1];
+    return formatNativeScriptDate(h.day, month, h.year);
+  }
+
+  function getEventsForDate(g) {
+    const type = getCalendarType();
+    const lang = getLang();
+
+    if (type === 'gregorian') {
+      return PersianEvents.getGregorianEvents(g.year, g.month, g.day, lang);
     }
-    return `${j.day} ${I18n.getMonthName(j.month - 1)} ${j.year}`;
+    if (type === 'hijri') {
+      const h = Hijri.gregorianToHijri(g.year, g.month, g.day);
+      return PersianEvents.getHijriEvents(h.year, h.month, h.day, lang);
+    }
+    const j = Jalali.gregorianToJalali(g.year, g.month, g.day);
+    return PersianEvents.getEvents(j.year, j.month, j.day, lang);
+  }
+
+  function getDayFlags(g) {
+    const type = getCalendarType();
+    const lang = getLang();
+    const weekday = new Date(g.year, g.month - 1, g.day).getDay();
+
+    let weekendClass = '';
+    if (type === 'gregorian' && weekday === 0) {
+      weekendClass = 'sunday';
+    } else if (type !== 'gregorian' && weekday === 5) {
+      weekendClass = 'friday';
+    }
+
+    let isHoliday = false;
+    let hasEvent = false;
+
+    if (type === 'gregorian') {
+      isHoliday = weekday === 0 || PersianEvents.isGregorianHoliday(g.year, g.month, g.day, lang);
+      hasEvent = PersianEvents.hasGregorianEvents(g.year, g.month, g.day, lang);
+    } else if (type === 'hijri') {
+      const h = Hijri.gregorianToHijri(g.year, g.month, g.day);
+      isHoliday = weekday === 5 || PersianEvents.isHijriHoliday(h.year, h.month, h.day, lang);
+      hasEvent = PersianEvents.hasHijriEvents(h.year, h.month, h.day, lang);
+    } else {
+      const j = Jalali.gregorianToJalali(g.year, g.month, g.day);
+      isHoliday = weekday === 5 || PersianEvents.isHoliday(j.year, j.month, j.day, lang);
+      hasEvent = PersianEvents.hasEvents(j.year, j.month, j.day, lang);
+    }
+
+    return { weekendClass, isHoliday, hasEvent };
   }
 
   function renderDayInfo(g) {
@@ -130,14 +189,18 @@ const CalendarUI = (() => {
     if (type === 'jalali') {
       els.dayDate.textContent = formatJalaliDisplay(primary);
     } else if (type === 'hijri') {
-      els.dayDate.textContent = Hijri.format(primary.year, primary.month, primary.day);
+      els.dayDate.textContent = formatHijriDisplay(primary);
     } else {
       els.dayDate.textContent = formatGregorianDisplay(g);
     }
     els.dayWeekday.textContent = weekday;
 
-    const j = Jalali.gregorianToJalali(g.year, g.month, g.day);
-    const events = PersianEvents.getEvents(j.year, j.month, j.day);
+    let events = getEventsForDate(g);
+    if (type === 'gregorian' && date.getDay() === 0) {
+      events = [{ title: I18n.t('sundayHoliday'), type: 'holiday' }, ...events];
+    } else if (type !== 'gregorian' && date.getDay() === 5) {
+      events = [{ title: I18n.t('fridayHoliday'), type: 'holiday' }, ...events];
+    }
     if (events.length === 0) {
       els.eventsList.innerHTML = `<li class="no-events">${I18n.t('noOccasion')}</li>`;
     } else {
@@ -157,7 +220,7 @@ const CalendarUI = (() => {
     const formats = {
       jalali: formatJalaliDisplay(j),
       gregorian: formatGregorianDisplay(g),
-      hijri: Hijri.format(h.year, h.month, h.day)
+      hijri: formatHijriDisplay(h)
     };
     const labels = {
       jalali: I18n.t('solar'),
@@ -167,8 +230,14 @@ const CalendarUI = (() => {
 
     const others = ['jalali', 'gregorian', 'hijri'].filter((item) => item !== type);
     els.otherDates.innerHTML = others.map((item) =>
-      `<span><strong>${labels[item]}:</strong> ${formats[item]}</span>`
+      `<span><strong>${labels[item]}:</strong> <bdi class="alt-date">${formats[item]}</bdi></span>`
     ).join('');
+  }
+
+  function applyCalendarDirection() {
+    const card = document.querySelector('.calendar-card');
+    if (!card) return;
+    card.dir = getCalendarType() === 'gregorian' ? 'ltr' : 'rtl';
   }
 
   function getWeekdayOffset(firstWeekday) {
@@ -177,10 +246,20 @@ const CalendarUI = (() => {
     return (firstWeekday + 1) % 7;
   }
 
+  function getWeekendColumnIndex() {
+    const type = getCalendarType();
+    const mondayStart = RegionHelper.weekStartsOnMonday(type, getCountryCode());
+    if (type === 'gregorian') return mondayStart ? 6 : 0;
+    return mondayStart ? 4 : 6;
+  }
+
   function renderWeekdays() {
     if (!els.weekdays) return;
     const labels = I18n.getCalendarWeekdays(getCalendarType(), getCountryCode());
-    els.weekdays.innerHTML = labels.map((label) => `<span>${label}</span>`).join('');
+    const weekendIdx = getWeekendColumnIndex();
+    els.weekdays.innerHTML = labels.map((label, i) =>
+      `<span${i === weekendIdx ? ' class="weekend"' : ''}>${label}</span>`
+    ).join('');
   }
 
   function renderCalendarDays() {
@@ -197,20 +276,16 @@ const CalendarUI = (() => {
 
     for (const { day } of monthDays) {
       const g = primaryToGregorian(viewYear, viewMonth, day);
-      const j = Jalali.gregorianToJalali(g.year, g.month, g.day);
       const isToday = viewYear === today.year && viewMonth === today.month && day === today.day;
       const isSelected = viewYear === selectedPrimary.year &&
         viewMonth === selectedPrimary.month &&
         day === selectedPrimary.day;
-      const weekday = new Date(g.year, g.month - 1, g.day).getDay();
-      const isFriday = weekday === 5;
-      const isHoliday = PersianEvents.isHoliday(j.year, j.month, j.day);
-      const hasEvent = PersianEvents.hasEvents(j.year, j.month, j.day);
+      const { weekendClass, isHoliday, hasEvent } = getDayFlags(g);
 
       const classes = ['cal-day'];
       if (isToday) classes.push('today');
       if (isSelected) classes.push('selected');
-      if (isFriday) classes.push('friday');
+      if (weekendClass) classes.push(weekendClass);
       if (isHoliday) classes.push('holiday');
       if (hasEvent && !isHoliday) classes.push('has-event');
 
@@ -228,9 +303,9 @@ const CalendarUI = (() => {
   function updateHeader() {
     const type = getCalendarType();
     if (type === 'jalali') {
-      els.monthName.textContent = I18n.getMonthName(viewMonth - 1);
+      els.monthName.textContent = Jalali.PERSIAN_MONTHS[viewMonth - 1];
     } else if (type === 'hijri') {
-      els.monthName.textContent = I18n.getHijriMonthName(viewMonth - 1);
+      els.monthName.textContent = Hijri.MONTHS[viewMonth - 1];
     } else {
       els.monthName.textContent = I18n.getGregorianMonthName(viewMonth - 1);
     }
@@ -238,6 +313,7 @@ const CalendarUI = (() => {
   }
 
   function render() {
+    applyCalendarDirection();
     renderWeekdays();
     updateHeader();
     const selectedG = Storage.getSelectedGregorian();

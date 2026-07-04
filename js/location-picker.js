@@ -1,6 +1,23 @@
 const LocationPicker = (() => {
   let debounceTimer = null;
 
+  function getSeparator() {
+    return I18n.getLang() === 'fa' ? '، ' : ', ';
+  }
+
+  function mapResult(r) {
+    return {
+      name: r.name,
+      country: r.country || '',
+      countryCode: r.country_code || '',
+      admin1: r.admin1 || '',
+      lat: r.latitude,
+      lon: r.longitude,
+      timezone: r.timezone || '',
+      label: [r.name, r.admin1, r.country].filter(Boolean).join(getSeparator())
+    };
+  }
+
   async function searchLocations(query) {
     const trimmed = query.trim();
     if (trimmed.length < 2) return [];
@@ -11,16 +28,20 @@ const LocationPicker = (() => {
     if (!res.ok) return [];
 
     const data = await res.json();
-    return (data.results || []).map((r) => ({
-      name: r.name,
-      country: r.country || '',
-      countryCode: r.country_code || '',
-      admin1: r.admin1 || '',
-      lat: r.latitude,
-      lon: r.longitude,
-      timezone: r.timezone || '',
-      label: [r.name, r.admin1, r.country].filter(Boolean).join(I18n.getLang() === 'fa' ? '، ' : ', ')
-    }));
+    return (data.results || []).map((r) => mapResult(r));
+  }
+
+  async function resolveLocation(lat, lon) {
+    if (lat == null || lon == null) return null;
+
+    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=${lang}&count=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const r = (await res.json()).results?.[0];
+    if (!r) return null;
+    return mapResult(r);
   }
 
   function buildLocationUpdates(result) {
@@ -92,6 +113,22 @@ const LocationPicker = (() => {
       }
     });
 
+    document.addEventListener('tabyar:language-changed', async () => {
+      if (!input.value.trim()) return;
+      if (selected) {
+        const resolved = await resolveLocation(selected.lat, selected.lon);
+        if (resolved) {
+          selected = resolved;
+          input.value = resolved.label;
+          if (hidden) hidden.value = JSON.stringify(resolved);
+        }
+      }
+      if (input.value.trim().length >= 2) {
+        const items = await searchLocations(input.value);
+        showList(items);
+      }
+    });
+
     document.addEventListener('click', (e) => {
       if (!list.contains(e.target) && e.target !== input) hideList();
     });
@@ -118,5 +155,5 @@ const LocationPicker = (() => {
     return div.innerHTML;
   }
 
-  return { attach, searchLocations, buildLocationUpdates };
+  return { attach, searchLocations, resolveLocation, buildLocationUpdates };
 })();
