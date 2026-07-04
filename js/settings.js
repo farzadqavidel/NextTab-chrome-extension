@@ -249,6 +249,9 @@ const SettingsUI = (() => {
     renderWallpaperGallery();
     setupBackgroundControls();
     setupLanguageToggle();
+    setupLocationControls();
+    setupGoogleServicesControls();
+    renderGoogleServicesSettings();
     setupBackupControls();
   }
 
@@ -269,7 +272,7 @@ const SettingsUI = (() => {
   }
 
   function setupLanguageToggle() {
-    document.querySelectorAll('.lang-btn').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
       btn.addEventListener('click', async () => {
         await I18n.setLanguage(btn.dataset.lang);
         updateLanguageButtons(btn.dataset.lang);
@@ -278,8 +281,108 @@ const SettingsUI = (() => {
   }
 
   function updateLanguageButtons(lang) {
-    document.querySelectorAll('.lang-btn').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+  }
+
+  let settingsLocationPicker = null;
+
+  function buildLocationLabel(settings) {
+    return [settings.city, settings.country].filter(Boolean).join(I18n.getLang() === 'fa' ? '، ' : ', ');
+  }
+
+  function getCalendarTypeLabel(calendarType) {
+    const map = {
+      jalali: 'calendarJalali',
+      gregorian: 'calendarGregorian',
+      hijri: 'calendarHijri'
+    };
+    return I18n.t(map[calendarType] || 'calendarJalali');
+  }
+
+  function updateCalendarTypeHint(calendarType) {
+    const el = document.getElementById('setting-calendar-type-hint');
+    if (!el) return;
+    const type = calendarType || Storage.getSettings().calendarType || 'jalali';
+    el.textContent = `${I18n.t('calendarType')}: ${getCalendarTypeLabel(type)} — ${I18n.t('calendarTypeAuto')}`;
+  }
+
+  function initSettingsLocationPicker() {
+    settingsLocationPicker = LocationPicker.attach({
+      inputId: 'setting-location-search',
+      listId: 'setting-location-suggestions',
+      hiddenId: 'setting-location-data',
+      onSelect: (item) => updateCalendarTypeHint(RegionHelper.calendarTypeForCountry(item.countryCode))
+    });
+  }
+
+  function setupLocationControls() {
+    initSettingsLocationPicker();
+    document.getElementById('btn-save-location').addEventListener('click', saveLocationSettings);
+  }
+
+  async function saveLocationSettings() {
+    const input = document.getElementById('setting-location-search');
+    if (!input.value.trim()) {
+      await Storage.updateSettings({
+        country: '',
+        city: '',
+        countryCode: '',
+        timezone: '',
+        locationLat: null,
+        locationLon: null,
+        calendarType: 'jalali'
+      });
+      settingsLocationPicker?.clear();
+      CalendarUI.refresh();
+      WeatherUI.reload();
+      updateCalendarTypeHint('jalali');
+      return;
+    }
+
+    const selected = settingsLocationPicker?.getSelected();
+    if (!selected) {
+      alert(I18n.t('selectFromSuggestions'));
+      return;
+    }
+
+    await WeatherUI.applyLocation(selected);
+    updateCalendarTypeHint();
+    alert(I18n.t('locationSaved'));
+  }
+
+  function setupGoogleServicesControls() {
+    document.getElementById('toggle-google-services-visible').addEventListener('change', async (e) => {
+      await Storage.updateSettings({ googleServicesVisible: e.target.checked });
+      GoogleServicesUI.render();
+      renderGoogleServicesSettings();
+    });
+  }
+
+  function renderGoogleServicesSettings() {
+    const container = document.getElementById('google-services-settings');
+    if (!container) return;
+
+    const enabled = new Set(GoogleServicesUI.getEnabledServices());
+    const visible = Storage.getSettings().googleServicesVisible !== false;
+    container.classList.toggle('is-disabled', !visible);
+
+    container.innerHTML = GoogleServicesUI.getServices().map((service) => `
+      <label class="service-toggle">
+        <input type="checkbox" data-service-id="${service.id}" ${enabled.has(service.id) ? 'checked' : ''} ${visible ? '' : 'disabled'}>
+        <span>${I18n.t(service.nameKey)}</span>
+      </label>
+    `).join('');
+
+    container.querySelectorAll('input[data-service-id]').forEach((checkbox) => {
+      checkbox.addEventListener('change', async () => {
+        const current = new Set(GoogleServicesUI.getEnabledServices());
+        if (checkbox.checked) current.add(checkbox.dataset.serviceId);
+        else current.delete(checkbox.dataset.serviceId);
+        await Storage.updateSettings({ enabledGoogleServices: [...current] });
+        GoogleServicesUI.render();
+      });
     });
   }
 
@@ -520,6 +623,27 @@ const SettingsUI = (() => {
         syncControlsFromSettings();
       }
     });
+
+    document.getElementById('btn-import-chrome-bookmarks').addEventListener('click', importChromeBookmarks);
+  }
+
+  async function importChromeBookmarks() {
+    if (!confirm(I18n.t('importChromeConfirm'))) return;
+
+    try {
+      const tree = await new Promise((resolve, reject) => {
+        chrome.bookmarks.getTree((nodes) => {
+          if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+          else resolve(nodes);
+        });
+      });
+      await Storage.importBookmarkTree(tree);
+      BookmarksUI.render();
+      alert(I18n.t('importSuccess'));
+    } catch (err) {
+      console.error('Tabyar: bookmark import failed', err);
+      alert(I18n.t('importFailed'));
+    }
   }
 
   function showBgOptions(type) {
@@ -540,6 +664,24 @@ const SettingsUI = (() => {
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
     updateLanguageButtons(s.language || 'fa');
+
+    const label = buildLocationLabel(s);
+    if (settingsLocationPicker) {
+      settingsLocationPicker.setDisplay(label, label ? {
+        name: s.city,
+        country: s.country,
+        countryCode: s.countryCode,
+        lat: s.locationLat,
+        lon: s.locationLon,
+        timezone: s.timezone,
+        label
+      } : null);
+    }
+    updateCalendarTypeHint(s.calendarType);
+
+    const toggleGs = document.getElementById('toggle-google-services-visible');
+    if (toggleGs) toggleGs.checked = s.googleServicesVisible !== false;
+    renderGoogleServicesSettings();
   }
 
   function applyTheme(themeKey) {
@@ -607,6 +749,7 @@ const SettingsUI = (() => {
   function refreshI18n() {
     renderThemeGrid();
     renderWallpaperGallery();
+    renderGoogleServicesSettings();
     syncControlsFromSettings();
   }
 

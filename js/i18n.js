@@ -18,6 +18,7 @@ const I18n = (() => {
       calNext: 'ماه بعد',
       calGoToday: 'برو به امروز',
       gregorian: 'میلادی',
+      solar: 'شمسی',
       hijri: 'قمری',
       searchGoogle: 'جستجو در گوگل',
       searchPlaceholder: 'جستجو در گوگل...',
@@ -136,7 +137,49 @@ const I18n = (() => {
       wpMinimal: 'مینیمال',
       wpAnime: 'انیمه',
       wpCars: 'ماشین',
-      wpAbstract: 'انتزاعی'
+      wpAbstract: 'انتزاعی',
+      welcomeTitle: 'به تبیار خوش آمدید',
+      welcomeInstalled: 'این افزونه روی سیستم شما نصب شده است.',
+      welcomeLocationWarningBefore: 'اگر محل قرارگیری پوشه افزونه را عوض کنید، افزونه دچار مشکل می‌شود و باید مجدداً آن را در ',
+      welcomeLocationWarningAfter: ' بارگذاری کنید.',
+      welcomeBackupHint: 'همچنین می‌توانید در قسمت «ذخیره» تنظیمات، نسبت به دانلود بکاپ اقدام کنید.',
+      welcomeGotIt: 'متوجه شدم',
+      importBookmarksTitle: 'ایمپورت بوکمارک',
+      importBookmarksDesc: 'بوکمارک‌های مرورگر کروم را با ساختار پوشه‌ها به این صفحه منتقل کنید.',
+      importChromeBookmarks: 'ایمپورت از کروم',
+      importFailed: 'ایمپورت بوکمارک‌ها انجام نشد',
+      onboardingTitle: 'تنظیمات اولیه',
+      onboardingDesc: 'لطفاً کشور، شهر و زبان خود را انتخاب کنید.',
+      country: 'کشور',
+      city: 'شهر',
+      countryPlaceholder: 'مثلاً: ایران',
+      cityPlaceholder: 'مثلاً: تهران',
+      onboardingContinue: 'ادامه',
+      tabGeneral: 'عمومی',
+      yourLocation: 'محل زندگی',
+      locationDesc: 'برای نمایش آب‌وهوا و مناسبت‌های محلی، کشور و شهر خود را وارد کنید.',
+      saveLocation: 'ذخیره محل',
+      locationSaved: 'محل زندگی ذخیره شد',
+      locationNotFound: 'شهر یا کشور پیدا نشد. لطفاً دوباره بررسی کنید.',
+      googleServices: 'سرویس‌های گوگل',
+      googleSearch: 'جستجو',
+      googleGmail: 'جیمیل',
+      googleDrive: 'درایو',
+      googleMaps: 'نقشه',
+      googleYoutube: 'یوتیوب',
+      googleTranslate: 'ترجمه',
+      googleCalendar: 'تقویم',
+      googlePhotos: 'عکس‌ها',
+      searchLocation: 'جستجوی شهر یا کشور',
+      searchLocationPlaceholder: 'نام شهر یا کشور را بنویسید...',
+      showGoogleServices: 'نمایش سرویس‌های گوگل',
+      googleServicesSettings: 'سرویس‌هایی که می‌خواهید در صفحه نمایش داده شوند را انتخاب کنید.',
+      calendarType: 'نوع تقویم',
+      calendarTypeAuto: 'تنظیم خودکار بر اساس کشور',
+      calendarJalali: 'شمسی',
+      calendarGregorian: 'میلادی',
+      calendarHijri: 'قمری',
+      selectFromSuggestions: 'لطفاً یک مورد از لیست پیشنهادها را انتخاب کنید.'
     },
     en: {
       settings: 'Settings',
@@ -156,6 +199,7 @@ const I18n = (() => {
       calNext: 'Next month',
       calGoToday: 'Go to today',
       gregorian: 'Gregorian',
+      solar: 'Solar (Jalali)',
       hijri: 'Hijri',
       searchGoogle: 'Search Google',
       searchPlaceholder: 'Search Google...',
@@ -274,7 +318,49 @@ const I18n = (() => {
       wpMinimal: 'Minimal',
       wpAnime: 'Anime',
       wpCars: 'Cars',
-      wpAbstract: 'Abstract'
+      wpAbstract: 'Abstract',
+      welcomeTitle: 'Welcome to Tabyar',
+      welcomeInstalled: 'This extension is installed on your system.',
+      welcomeLocationWarningBefore: 'If you move the extension folder to a different location, it may stop working and you will need to reload it at ',
+      welcomeLocationWarningAfter: '.',
+      welcomeBackupHint: 'You can also download a backup from the Backup section in Settings.',
+      welcomeGotIt: 'Got it',
+      importBookmarksTitle: 'Import bookmarks',
+      importBookmarksDesc: 'Import your Chrome browser bookmarks with folder structure into this page.',
+      importChromeBookmarks: 'Import from Chrome',
+      importFailed: 'Failed to import bookmarks',
+      onboardingTitle: 'Initial setup',
+      onboardingDesc: 'Please select your country, city and language.',
+      country: 'Country',
+      city: 'City',
+      countryPlaceholder: 'e.g. Iran',
+      cityPlaceholder: 'e.g. Tehran',
+      onboardingContinue: 'Continue',
+      tabGeneral: 'General',
+      yourLocation: 'Your location',
+      locationDesc: 'Enter your country and city for weather and local occasions.',
+      saveLocation: 'Save location',
+      locationSaved: 'Location saved',
+      locationNotFound: 'City or country not found. Please check and try again.',
+      googleServices: 'Google services',
+      googleSearch: 'Search',
+      googleGmail: 'Gmail',
+      googleDrive: 'Drive',
+      googleMaps: 'Maps',
+      googleYoutube: 'YouTube',
+      googleTranslate: 'Translate',
+      googleCalendar: 'Calendar',
+      googlePhotos: 'Photos',
+      searchLocation: 'Search city or country',
+      searchLocationPlaceholder: 'Type a city or country...',
+      showGoogleServices: 'Show Google services',
+      googleServicesSettings: 'Choose which services appear on the page.',
+      calendarType: 'Calendar type',
+      calendarTypeAuto: 'Auto based on country',
+      calendarJalali: 'Solar (Jalali)',
+      calendarGregorian: 'Gregorian',
+      calendarHijri: 'Hijri',
+      selectFromSuggestions: 'Please select an item from the suggestions list.'
     }
   };
 
@@ -325,6 +411,23 @@ const I18n = (() => {
     en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   };
 
+  const GREGORIAN_MONTHS = {
+    fa: PersianEvents.GREGORIAN_MONTHS,
+    en: ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December']
+  };
+
+  const HIJRI_MONTHS = {
+    fa: Hijri.MONTHS,
+    en: ['Muharram', 'Safar', 'Rabi I', 'Rabi II', 'Jumada I', 'Jumada II',
+      'Rajab', 'Shaaban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah']
+  };
+
+  const CAL_WEEKDAYS_MON = {
+    fa: ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'],
+    en: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+  };
+
   let lang = 'fa';
 
   function getLang() {
@@ -350,6 +453,21 @@ const I18n = (() => {
   function getFolderName(folder) {
     if (folder.isDefault) return t('defaultFolder');
     return folder.name;
+  }
+
+  function getGregorianMonthName(monthIndex) {
+    return GREGORIAN_MONTHS[lang]?.[monthIndex] || GREGORIAN_MONTHS.fa[monthIndex];
+  }
+
+  function getHijriMonthName(monthIndex) {
+    return HIJRI_MONTHS[lang]?.[monthIndex] || HIJRI_MONTHS.fa[monthIndex];
+  }
+
+  function getCalendarWeekdays(calendarType, countryCode) {
+    if (RegionHelper.weekStartsOnMonday(calendarType, countryCode)) {
+      return CAL_WEEKDAYS_MON[lang] || CAL_WEEKDAYS_MON.fa;
+    }
+    return CAL_WEEKDAYS[lang] || CAL_WEEKDAYS.fa;
   }
 
   function getMonthName(monthIndex) {
@@ -406,10 +524,12 @@ const I18n = (() => {
     }
     applyDom();
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
+    if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
     if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
     if (typeof WeatherUI !== 'undefined') WeatherUI.reload?.();
+    if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
     SettingsUI.updateLanguageButtons?.(lang);
   }
 
@@ -419,10 +539,12 @@ const I18n = (() => {
 
   function refreshAll() {
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
+    if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
     if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
     if (typeof WeatherUI !== 'undefined') WeatherUI.refresh();
+    if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
     if (typeof SettingsUI !== 'undefined') SettingsUI.refreshI18n?.();
   }
 
@@ -438,6 +560,9 @@ const I18n = (() => {
     getWmo,
     getFolderName,
     getMonthName,
+    getGregorianMonthName,
+    getHijriMonthName,
+    getCalendarWeekdays,
     getWeekdayName,
     formatDigits,
     applyDom,

@@ -43,6 +43,39 @@ const Hijri = (() => {
     return { year: hy, month: hm, day: hd };
   }
 
+  function hijriToGregorian(hy, hm, hd) {
+    const jd = Math.floor((11 * hy + 3) / 30) + 354 * hy + 30 * hm -
+      Math.floor((hm - 1) / 2) + hd + 1948440 - 385;
+    return julianDayToGregorian(jd);
+  }
+
+  function daysInHijriMonth(hy, hm) {
+    const start = hijriToGregorian(hy, hm, 1);
+    const next = hm === 12 ? { year: hy + 1, month: 1 } : { year: hy, month: hm + 1 };
+    const end = hijriToGregorian(next.year, next.month, 1);
+    return gregorianToJulianDay(end.year, end.month, end.day) -
+      gregorianToJulianDay(start.year, start.month, start.day);
+  }
+
+  function getWeekday(hy, hm, hd) {
+    const g = hijriToGregorian(hy, hm, hd);
+    return new Date(g.year, g.month - 1, g.day).getDay();
+  }
+
+  function getMonthDays(hy, hm) {
+    const count = daysInHijriMonth(hy, hm);
+    const days = [];
+    for (let d = 1; d <= count; d++) {
+      days.push({ day: d, weekday: getWeekday(hy, hm, d) });
+    }
+    return days;
+  }
+
+  function today() {
+    const now = new Date();
+    return gregorianToHijri(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  }
+
   function fromJalali(jy, jm, jd) {
     const g = Jalali.jalaliToGregorian(jy, jm, jd);
     return gregorianToHijri(g.year, g.month, g.day);
@@ -56,5 +89,18 @@ const Hijri = (() => {
     return `${Jalali.toPersianDigits(hd)}/${Jalali.toPersianDigits(hm)}/${Jalali.toPersianDigits(hy)}`;
   }
 
-  return { MONTHS, gregorianToHijri, fromJalali, format, formatShort, julianDayToGregorian, gregorianToJulianDay };
+  return {
+    MONTHS,
+    gregorianToHijri,
+    hijriToGregorian,
+    fromJalali,
+    format,
+    formatShort,
+    julianDayToGregorian,
+    gregorianToJulianDay,
+    daysInHijriMonth,
+    getWeekday,
+    getMonthDays,
+    today
+  };
 })();

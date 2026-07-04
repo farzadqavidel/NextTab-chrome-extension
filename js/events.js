@@ -133,7 +133,11 @@ const PersianEvents = (() => {
 
   function formatGregorian(jy, jm, jd) {
     const g = Jalali.jalaliToGregorian(jy, jm, jd);
-    return `${Jalali.toPersianDigits(g.day)} ${GREGORIAN_MONTHS[g.month - 1]} ${Jalali.toPersianDigits(g.year)}`;
+    return formatGregorianFromGregorian(g.year, g.month, g.day);
+  }
+
+  function formatGregorianFromGregorian(gy, gm, gd) {
+    return `${Jalali.toPersianDigits(gd)} ${GREGORIAN_MONTHS[gm - 1]} ${Jalali.toPersianDigits(gy)}`;
   }
 
   function formatHijri(jy, jm, jd) {
@@ -141,5 +145,5 @@ const PersianEvents = (() => {
     return Hijri.format(h.year, h.month, h.day);
   }
 
-  return { getEvents, isHoliday, hasEvents, formatGregorian, formatHijri, GREGORIAN_MONTHS };
+  return { getEvents, isHoliday, hasEvents, formatGregorian, formatGregorianFromGregorian, formatHijri, GREGORIAN_MONTHS };
 })();
