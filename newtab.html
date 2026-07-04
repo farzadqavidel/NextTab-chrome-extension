@@ -109,11 +109,6 @@
               </button>
               <input type="text" name="q" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجو در گوگل..." autocomplete="off">
               <div class="search-actions">
-                <button type="submit" class="search-action-btn" data-i18n-aria="searchSubmit" aria-label="جستجو">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                  </svg>
-                </button>
                 <button type="button" id="btn-search-image" class="search-action-btn" data-i18n-aria="searchImage" aria-label="جستجوی تصویر">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -136,6 +131,11 @@
           </div>
           <input type="file" id="search-image-input" accept="image/*" capture="environment" class="hidden">
         </div>
+
+        <section class="card google-services-card">
+          <h3 class="section-label google-services-title" data-i18n="googleServices">سرویس‌های گوگل</h3>
+          <div class="google-services-grid" id="google-services-grid"></div>
+        </section>
 
         <section class="card bookmarks-card">
           <div class="bookmarks-header">
@@ -193,6 +193,55 @@
         </div>
       </aside>
 
+    </div>
+  </div>
+
+  <!-- Modal: Onboarding (first run) -->
+  <div class="modal-overlay hidden" id="modal-onboarding">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="onboardingTitle">تنظیمات اولیه</h2>
+      </div>
+      <form id="form-onboarding" class="onboarding-form">
+        <p class="settings-desc" data-i18n="onboardingDesc">لطفاً کشور، شهر و زبان خود را انتخاب کنید.</p>
+        <div class="form-group location-picker-wrap">
+          <label for="onboarding-location-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
+          <input type="text" id="onboarding-location-search" class="field-input" required autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
+          <ul id="onboarding-location-suggestions" class="location-suggestions hidden"></ul>
+          <input type="hidden" id="onboarding-location-data">
+        </div>
+        <div class="form-group">
+          <label data-i18n="language">زبان</label>
+          <div class="lang-toggle mode-toggle">
+            <button type="button" class="lang-btn onboarding-lang-btn" data-lang="fa">فارسی</button>
+            <button type="button" class="lang-btn onboarding-lang-btn" data-lang="en">English</button>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" data-i18n="onboardingContinue">ادامه</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Welcome (first run) -->
+  <div class="modal-overlay hidden" id="modal-welcome">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 data-i18n="welcomeTitle">به تبیار خوش آمدید</h2>
+      </div>
+      <div class="welcome-body">
+        <p data-i18n="welcomeInstalled">این افزونه روی سیستم شما نصب شده است.</p>
+        <p>
+          <span data-i18n="welcomeLocationWarningBefore">اگر محل قرارگیری پوشه افزونه را عوض کنید، افزونه دچار مشکل می‌شود و باید مجدداً آن را در</span>
+          <a href="chrome://extensions/" target="_blank" rel="noopener">chrome://extensions/</a>
+          <span data-i18n="welcomeLocationWarningAfter">بارگذاری کنید.</span>
+        </p>
+        <p data-i18n="welcomeBackupHint">همچنین می‌توانید در قسمت «ذخیره» تنظیمات، نسبت به دانلود بکاپ اقدام کنید.</p>
+      </div>
+      <div class="welcome-actions">
+        <button type="button" class="btn-primary" id="btn-welcome-dismiss" data-i18n="welcomeGotIt">متوجه شدم</button>
+      </div>
     </div>
   </div>
 
@@ -268,17 +317,38 @@
         <button class="modal-close" data-close="modal-settings" data-i18n-aria="close" aria-label="بستن">&times;</button>
       </div>
       <div class="settings-tabs">
-        <button class="settings-tab active" data-tab="appearance" data-i18n="tabAppearance">ظاهر</button>
+        <button class="settings-tab active" data-tab="general" data-i18n="tabGeneral">عمومی</button>
+        <button class="settings-tab" data-tab="appearance" data-i18n="tabAppearance">ظاهر</button>
         <button class="settings-tab" data-tab="background" data-i18n="tabBackground">پس‌زمینه</button>
         <button class="settings-tab" data-tab="backup" data-i18n="tabBackup">ذخیره</button>
       </div>
       <div class="settings-content">
-        <div class="settings-panel active" id="panel-appearance">
+        <div class="settings-panel active" id="panel-general">
           <h3 data-i18n="language">زبان</h3>
           <div class="lang-toggle mode-toggle">
             <button type="button" class="lang-btn" data-lang="fa">فارسی</button>
             <button type="button" class="lang-btn" data-lang="en">English</button>
           </div>
+          <h3 data-i18n="yourLocation">محل زندگی</h3>
+          <p class="settings-desc" data-i18n="locationDesc">برای نمایش آب‌وهوا و مناسبت‌های محلی، کشور و شهر خود را وارد کنید.</p>
+          <div class="form-group location-picker-wrap">
+            <label for="setting-location-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
+            <input type="text" id="setting-location-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
+            <ul id="setting-location-suggestions" class="location-suggestions hidden"></ul>
+            <input type="hidden" id="setting-location-data">
+          </div>
+          <p class="settings-hint" id="setting-calendar-type-hint"></p>
+          <button type="button" id="btn-save-location" class="btn-primary" data-i18n="saveLocation">ذخیره محل</button>
+          <hr class="settings-divider">
+          <h3 data-i18n="googleServices">سرویس‌های گوگل</h3>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-google-services-visible">
+            <span data-i18n="showGoogleServices">نمایش سرویس‌های گوگل</span>
+          </label>
+          <p class="settings-desc" data-i18n="googleServicesSettings">سرویس‌هایی که می‌خواهید در صفحه نمایش داده شوند را انتخاب کنید.</p>
+          <div id="google-services-settings" class="service-toggle-list"></div>
+        </div>
+        <div class="settings-panel" id="panel-appearance">
           <h3 data-i18n="colorTheme">تم رنگی</h3>
           <div class="theme-grid" id="theme-grid"></div>
         </div>
@@ -369,6 +439,12 @@
           </div>
           <p class="settings-hint" data-i18n="backupHint">با «ذخیره در فایل» محل ذخیره را خودتان انتخاب می‌کنید.</p>
           <hr class="settings-divider">
+          <h3 data-i18n="importBookmarksTitle">ایمپورت بوکمارک</h3>
+          <p class="settings-desc" data-i18n="importBookmarksDesc">بوکمارک‌های مرورگر کروم را با ساختار پوشه‌ها به این صفحه منتقل کنید.</p>
+          <div class="backup-actions">
+            <button type="button" id="btn-import-chrome-bookmarks" class="btn-soft" data-i18n="importChromeBookmarks">ایمپورت از کروم</button>
+          </div>
+          <hr class="settings-divider">
           <button type="button" id="btn-reset-data" class="btn-danger" data-i18n="resetAll">بازنشانی همه داده‌ها</button>
         </div>
       </div>
@@ -437,12 +513,15 @@
   <script src="js/events.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/locale.js"></script>
+  <script src="js/region.js"></script>
   <script src="js/i18n.js"></script>
+  <script src="js/location-picker.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/weather.js"></script>
   <script src="js/notes.js"></script>
   <script src="js/bookmarks.js"></script>
   <script src="js/search.js"></script>
+  <script src="js/google-services.js"></script>
   <script src="js/wallpaper.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>

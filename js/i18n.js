@@ -14,6 +14,8 @@ const I18n = (() => {
       weatherDaysLater: '{n} روز بعد',
       occasions: 'مناسبت‌ها',
       noOccasion: 'مناسبت خاصی ثبت نشده',
+      sundayHoliday: 'یکشنبه (تعطیل)',
+      fridayHoliday: 'جمعه (تعطیل)',
       calPrev: 'ماه قبل',
       calNext: 'ماه بعد',
       calGoToday: 'برو به امروز',
@@ -195,6 +197,8 @@ const I18n = (() => {
       weatherDaysLater: 'In {n} days',
       occasions: 'Occasions',
       noOccasion: 'No special occasion',
+      sundayHoliday: 'Sunday (holiday)',
+      fridayHoliday: 'Friday (holiday)',
       calPrev: 'Previous month',
       calNext: 'Next month',
       calGoToday: 'Go to today',
@@ -400,12 +404,6 @@ const I18n = (() => {
     en: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   };
 
-  const JALALI_MONTHS = {
-    fa: Jalali.PERSIAN_MONTHS,
-    en: ['Farvardin', 'Ordibehesht', 'Khordad', 'Tir', 'Mordad', 'Shahrivar',
-      'Mehr', 'Aban', 'Azar', 'Dey', 'Bahman', 'Esfand']
-  };
-
   const WEEKDAY_NAMES = {
     fa: Jalali.PERSIAN_WEEKDAYS,
     en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -415,12 +413,6 @@ const I18n = (() => {
     fa: PersianEvents.GREGORIAN_MONTHS,
     en: ['January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December']
-  };
-
-  const HIJRI_MONTHS = {
-    fa: Hijri.MONTHS,
-    en: ['Muharram', 'Safar', 'Rabi I', 'Rabi II', 'Jumada I', 'Jumada II',
-      'Rajab', 'Shaaban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah']
   };
 
   const CAL_WEEKDAYS_MON = {
@@ -460,7 +452,7 @@ const I18n = (() => {
   }
 
   function getHijriMonthName(monthIndex) {
-    return HIJRI_MONTHS[lang]?.[monthIndex] || HIJRI_MONTHS.fa[monthIndex];
+    return Hijri.MONTHS[monthIndex];
   }
 
   function getCalendarWeekdays(calendarType, countryCode) {
@@ -471,7 +463,7 @@ const I18n = (() => {
   }
 
   function getMonthName(monthIndex) {
-    return JALALI_MONTHS[lang]?.[monthIndex] || JALALI_MONTHS.fa[monthIndex];
+    return Jalali.PERSIAN_MONTHS[monthIndex];
   }
 
   function getWeekdayName(dayIndex) {
@@ -504,13 +496,6 @@ const I18n = (() => {
       el.setAttribute('aria-label', t(el.dataset.i18nAria));
     });
 
-    const calWeekdays = document.querySelector('.cal-weekdays');
-    if (calWeekdays) {
-      calWeekdays.innerHTML = CAL_WEEKDAYS[lang]
-        .map((d) => `<span>${d}</span>`)
-        .join('');
-    }
-
     if (typeof SettingsUI !== 'undefined') {
       SettingsUI.updateLanguageButtons?.(lang);
     }
@@ -523,6 +508,10 @@ const I18n = (() => {
       SettingsUI.reapplyAppearance?.();
     }
     applyDom();
+    if (typeof SettingsUI !== 'undefined') {
+      await SettingsUI.refreshLocationLabels?.();
+    }
+    document.dispatchEvent(new CustomEvent('tabyar:language-changed'));
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
     if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();

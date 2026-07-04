@@ -98,24 +98,71 @@ const PersianEvents = (() => {
     'ژوئیه', 'اوت', 'سپتامبر', 'اکتبر', 'نوامبر', 'دسامبر'
   ];
 
+  const GREGORIAN = {
+    '01-01': [{ titleFa: 'سال نو میلادی', titleEn: "New Year's Day", type: 'holiday' }],
+    '01-06': [{ titleFa: 'شب کریسمس (ارتدکس)', titleEn: 'Orthodox Christmas Eve', type: 'occasion' }],
+    '02-02': [{ titleFa: 'جشن میانه زمستان', titleEn: 'Groundhog Day', type: 'occasion' }],
+    '02-14': [{ titleFa: 'روز ولنتاین', titleEn: "Valentine's Day", type: 'occasion' }],
+    '03-08': [{ titleFa: 'روز جهانی زن', titleEn: "International Women's Day", type: 'occasion' }],
+    '03-17': [{ titleFa: 'روز سنت پاتریک', titleEn: "St. Patrick's Day", type: 'occasion' }],
+    '04-01': [{ titleFa: 'دروغ اول آوریل', titleEn: "April Fools' Day", type: 'occasion' }],
+    '04-22': [{ titleFa: 'روز زمین', titleEn: 'Earth Day', type: 'occasion' }],
+    '05-01': [{ titleFa: 'روز کارگر جهانی', titleEn: 'International Workers\' Day', type: 'holiday' }],
+    '05-05': [{ titleFa: 'روز پیروزی', titleEn: 'Cinco de Mayo', type: 'occasion' }],
+    '06-05': [{ titleFa: 'روز محیط زیست', titleEn: 'World Environment Day', type: 'occasion' }],
+    '06-21': [{ titleFa: 'روز جهانی یوگا', titleEn: 'International Yoga Day', type: 'occasion' }],
+    '07-04': [{ titleFa: 'روز استقلال آمریکا', titleEn: 'Independence Day (US)', type: 'holiday' }],
+    '07-14': [{ titleFa: 'روز ملی فرانسه', titleEn: 'Bastille Day', type: 'holiday' }],
+    '08-12': [{ titleFa: 'روز جهانی جوان', titleEn: 'International Youth Day', type: 'occasion' }],
+    '09-21': [{ titleFa: 'روز جهانی صلح', titleEn: 'International Day of Peace', type: 'occasion' }],
+    '10-01': [{ titleFa: 'روز جهانی سالمندان', titleEn: 'International Day of Older Persons', type: 'occasion' }],
+    '10-24': [{ titleFa: 'روز ملل متحد', titleEn: 'United Nations Day', type: 'occasion' }],
+    '10-31': [{ titleFa: 'جشن هالووین', titleEn: 'Halloween', type: 'occasion' }],
+    '11-11': [{ titleFa: 'روز آتش‌بس', titleEn: 'Armistice Day', type: 'occasion' }],
+    '11-24': [{ titleFa: 'Thanksgiving (US)', titleEn: 'Thanksgiving (US)', type: 'holiday' }],
+    '12-10': [{ titleFa: 'روز حقوق بشر', titleEn: 'Human Rights Day', type: 'occasion' }],
+    '12-24': [{ titleFa: 'شب کریسمس', titleEn: 'Christmas Eve', type: 'occasion' }],
+    '12-25': [{ titleFa: 'کریسمس', titleEn: 'Christmas Day', type: 'holiday' }],
+    '12-26': [{ titleFa: 'روز بوکسینگ', titleEn: 'Boxing Day', type: 'occasion' }],
+    '12-31': [{ titleFa: 'شب سال نو', titleEn: "New Year's Eve", type: 'occasion' }]
+  };
+
+  function localizeEvent(event, lang) {
+    const title = lang === 'en' ? (event.titleEn || event.titleFa || event.title) : (event.titleFa || event.titleEn || event.title);
+    return { title, type: event.type, source: event.source };
+  }
+
   function getKey(month, day) {
     return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
-  function getEvents(jy, jm, jd) {
+  function getGregorianEvents(gy, gm, gd, lang) {
+    const key = getKey(gm, gd);
+    return (GREGORIAN[key] || []).map((e) => localizeEvent(e, lang));
+  }
+
+  function getHijriEvents(hy, hm, hd, lang) {
+    const key = getKey(hm, hd);
+    return (HIJRI[key] || []).map((e) => localizeEvent({ ...e, titleFa: e.title, titleEn: e.title }, lang));
+  }
+
+  function getEvents(jy, jm, jd, lang) {
     const shamsiKey = getKey(jm, jd);
     const events = [];
 
     if (SHAMSI[shamsiKey]) {
-      events.push(...SHAMSI[shamsiKey]);
+      SHAMSI[shamsiKey].forEach((e) => {
+        events.push(localizeEvent({ ...e, titleFa: e.title, titleEn: e.title }, lang));
+      });
     }
 
     const h = Hijri.fromJalali(jy, jm, jd);
     const hijriKey = getKey(h.month, h.day);
     if (HIJRI[hijriKey]) {
       HIJRI[hijriKey].forEach((e) => {
-        if (!events.some((x) => x.title === e.title)) {
-          events.push({ ...e, source: 'hijri' });
+        const item = localizeEvent({ ...e, titleFa: e.title, titleEn: e.title }, lang);
+        if (!events.some((x) => x.title === item.title)) {
+          events.push({ ...item, source: 'hijri' });
         }
       });
     }
@@ -123,12 +170,28 @@ const PersianEvents = (() => {
     return events;
   }
 
-  function isHoliday(jy, jm, jd) {
-    return getEvents(jy, jm, jd).some((e) => e.type === 'holiday');
+  function isGregorianHoliday(gy, gm, gd, lang) {
+    return getGregorianEvents(gy, gm, gd, lang).some((e) => e.type === 'holiday');
   }
 
-  function hasEvents(jy, jm, jd) {
-    return getEvents(jy, jm, jd).length > 0;
+  function isHijriHoliday(hy, hm, hd, lang) {
+    return getHijriEvents(hy, hm, hd, lang).some((e) => e.type === 'holiday');
+  }
+
+  function isHoliday(jy, jm, jd, lang) {
+    return getEvents(jy, jm, jd, lang).some((e) => e.type === 'holiday');
+  }
+
+  function hasGregorianEvents(gy, gm, gd, lang) {
+    return getGregorianEvents(gy, gm, gd, lang).length > 0;
+  }
+
+  function hasHijriEvents(hy, hm, hd, lang) {
+    return getHijriEvents(hy, hm, hd, lang).length > 0;
+  }
+
+  function hasEvents(jy, jm, jd, lang) {
+    return getEvents(jy, jm, jd, lang).length > 0;
   }
 
   function formatGregorian(jy, jm, jd) {
@@ -137,7 +200,10 @@ const PersianEvents = (() => {
   }
 
   function formatGregorianFromGregorian(gy, gm, gd) {
-    return `${Jalali.toPersianDigits(gd)} ${GREGORIAN_MONTHS[gm - 1]} ${Jalali.toPersianDigits(gy)}`;
+    const month = GREGORIAN_MONTHS[gm - 1];
+    const d = Jalali.toPersianDigits(gd);
+    const y = Jalali.toPersianDigits(gy);
+    return `\u2066${d}\u2069 ${month} \u2066${y}\u2069`;
   }
 
   function formatHijri(jy, jm, jd) {
@@ -145,5 +211,19 @@ const PersianEvents = (() => {
     return Hijri.format(h.year, h.month, h.day);
   }
 
-  return { getEvents, isHoliday, hasEvents, formatGregorian, formatGregorianFromGregorian, formatHijri, GREGORIAN_MONTHS };
+  return {
+    getEvents,
+    getGregorianEvents,
+    getHijriEvents,
+    isHoliday,
+    isGregorianHoliday,
+    isHijriHoliday,
+    hasEvents,
+    hasGregorianEvents,
+    hasHijriEvents,
+    formatGregorian,
+    formatGregorianFromGregorian,
+    formatHijri,
+    GREGORIAN_MONTHS
+  };
 })();
