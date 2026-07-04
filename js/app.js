@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   NotesUI.init();
   WeatherUI.init();
   SettingsUI.init();
+  SearchUI.init();
 
   document.getElementById('dashboard').classList.add('loaded');
 
