@@ -1,10 +1,27 @@
+window.TabyarPerf = (() => {
+  function detectLowEnd() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) return true;
+    if (navigator.deviceMemory && navigator.deviceMemory <= 2) return true;
+    return false;
+  }
+
+  function apply(mode) {
+    const resolved = mode || 'auto';
+    document.documentElement.classList.remove('perf-lite');
+    if (resolved === 'lite' || (resolved === 'auto' && detectLowEnd())) {
+      document.documentElement.classList.add('perf-lite');
+    }
+  }
+
+  return { apply, detectLowEnd };
+})();
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
   SettingsUI.applyQuick();
-  if (window.TabyarPerf) {
-    TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
-  }
+  TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
   document.getElementById('dashboard').classList.add('loaded');
 
   CalendarUI.init();
@@ -171,6 +188,10 @@ async function showWelcomeIfNeeded() {
 
   const modal = document.getElementById('modal-welcome');
   modal.classList.remove('hidden');
+
+  document.getElementById('btn-open-extensions')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'chrome://extensions/' });
+  });
 
   document.getElementById('btn-welcome-dismiss').addEventListener('click', async () => {
     modal.classList.add('hidden');
