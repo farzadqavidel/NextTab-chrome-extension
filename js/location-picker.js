@@ -1,11 +1,13 @@
 const LocationPicker = (() => {
   let debounceTimer = null;
 
-  function getSeparator() {
-    return I18n.getLang() === 'fa' ? '، ' : ', ';
+  function getSeparator(lang) {
+    const useFa = lang ? lang === 'fa' : I18n.getLang() === 'fa';
+    return useFa ? '، ' : ', ';
   }
 
-  function mapResult(r) {
+  function mapResult(r, lang) {
+    const labelLang = lang || (I18n.getLang() === 'fa' ? 'fa' : 'en');
     return {
       name: r.name,
       country: r.country || '',
@@ -14,7 +16,7 @@ const LocationPicker = (() => {
       lat: r.latitude,
       lon: r.longitude,
       timezone: r.timezone || '',
-      label: [r.name, r.admin1, r.country].filter(Boolean).join(getSeparator())
+      label: [r.name, r.admin1, r.country].filter(Boolean).join(getSeparator(labelLang))
     };
   }
 
@@ -28,32 +30,41 @@ const LocationPicker = (() => {
     if (!res.ok) return [];
 
     const data = await res.json();
-    return (data.results || []).map((r) => mapResult(r));
+    return (data.results || []).map((r) => mapResult(r, lang));
   }
 
   async function resolveLocation(lat, lon) {
     if (lat == null || lon == null) return null;
 
-    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const lang = typeof I18n !== 'undefined' && I18n.getRegionalLang() === 'fa' ? 'fa' : 'en';
     const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=${lang}&count=1`;
     const res = await fetch(url);
     if (!res.ok) return null;
 
     const r = (await res.json()).results?.[0];
     if (!r) return null;
-    return mapResult(r);
+    return mapResult(r, lang);
   }
 
-  function buildLocationUpdates(result) {
-    return {
+  function buildLocationUpdates(result, prefix = '') {
+    const updates = {
       city: result.name,
       country: result.country,
       countryCode: result.countryCode,
       locationLat: result.lat,
       locationLon: result.lon,
-      timezone: result.timezone || '',
-      calendarType: RegionHelper.calendarTypeForCountry(result.countryCode)
+      timezone: result.timezone || ''
     };
+    if (!prefix) {
+      updates.calendarType = RegionHelper.calendarTypeForCountry(result.countryCode);
+    }
+    if (!prefix) return updates;
+
+    const prefixed = {};
+    Object.entries(updates).forEach(([key, value]) => {
+      prefixed[`second${key.charAt(0).toUpperCase()}${key.slice(1)}`] = value;
+    });
+    return prefixed;
   }
 
   function attach({ inputId, listId, hiddenId, onSelect }) {
@@ -114,16 +125,7 @@ const LocationPicker = (() => {
     });
 
     document.addEventListener('tabyar:language-changed', async () => {
-      if (!input.value.trim()) return;
-      if (selected) {
-        const resolved = await resolveLocation(selected.lat, selected.lon);
-        if (resolved) {
-          selected = resolved;
-          input.value = resolved.label;
-          if (hidden) hidden.value = JSON.stringify(resolved);
-        }
-      }
-      if (input.value.trim().length >= 2) {
+      if (input.value.trim().length >= 2 && !selected) {
         const items = await searchLocations(input.value);
         showList(items);
       }

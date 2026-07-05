@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
-  <script src="js/perf.js"></script>
   <style>
     :root {
       --bg-card: rgba(255, 255, 255, 0.1);
@@ -61,17 +60,34 @@
       <aside class="col-left">
         <div class="card day-info-card">
           <div class="day-info-top">
-            <div class="weather-block">
-              <button type="button" class="weather-widget" id="weather-widget" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
-                <span class="weather-icon" id="weather-icon" aria-hidden="true">🌡️</span>
-                <span class="weather-temp" id="weather-temp">—°</span>
-                <span class="weather-desc" id="weather-desc">...</span>
-              </button>
-            </div>
-            <div class="day-info-meta">
-              <span id="day-clock" class="day-clock">۰۰:۰۰</span>
-              <span id="day-date" class="day-date"></span>
-              <span id="day-weekday" class="day-weekday"></span>
+            <div class="locations-strip">
+              <div class="location-unit">
+                <div class="weather-block">
+                  <button type="button" class="weather-widget" id="weather-widget" data-weather-slot="primary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
+                    <span class="weather-icon" id="weather-icon" aria-hidden="true">🌡️</span>
+                    <span class="weather-temp" id="weather-temp">—°</span>
+                    <span class="weather-desc" id="weather-desc">...</span>
+                  </button>
+                </div>
+                <div class="day-info-meta">
+                  <span id="day-clock" class="day-clock">۰۰:۰۰</span>
+                  <span id="day-date" class="day-date"></span>
+                  <span id="day-weekday" class="day-weekday"></span>
+                </div>
+              </div>
+              <div class="location-unit location-unit-secondary hidden" id="location-unit-secondary">
+                <div class="weather-block">
+                  <button type="button" class="weather-widget" id="weather-widget-2" data-weather-slot="secondary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
+                    <span class="weather-icon" id="weather-icon-2" aria-hidden="true">🌡️</span>
+                    <span class="weather-temp" id="weather-temp-2">—°</span>
+                    <span class="weather-desc" id="weather-desc-2">...</span>
+                  </button>
+                </div>
+                <div class="day-info-meta">
+                  <span id="day-clock-2" class="day-clock day-clock-secondary">۰۰:۰۰</span>
+                  <span id="day-location-name-2" class="day-location-name"></span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="day-events">
@@ -238,7 +254,7 @@
         <p data-i18n="welcomeInstalled">این افزونه روی سیستم شما نصب شده است.</p>
         <p>
           <span data-i18n="welcomeLocationWarningBefore">اگر محل قرارگیری پوشه افزونه را عوض کنید، افزونه دچار مشکل می‌شود و باید مجدداً آن را در</span>
-          <a href="chrome://extensions/" target="_blank" rel="noopener">chrome://extensions/</a>
+          <a href="chrome://extensions" target="_blank" rel="noopener">chrome://extensions</a>
           <span data-i18n="welcomeLocationWarningAfter">بارگذاری کنید.</span>
         </p>
         <p data-i18n="welcomeBackupHint">همچنین می‌توانید در قسمت «ذخیره» تنظیمات، نسبت به دانلود بکاپ اقدام کنید.</p>
@@ -344,6 +360,19 @@
           <p class="settings-hint" id="setting-calendar-type-hint"></p>
           <button type="button" id="btn-save-location" class="btn-primary" data-i18n="saveLocation">ذخیره محل</button>
           <hr class="settings-divider">
+          <h3 data-i18n="secondLocation">کشور دوم</h3>
+          <p class="settings-desc" data-i18n="secondLocationDesc">نمایش آب‌وهوا و ساعت یک شهر دیگر کنار محل اصلی (اختیاری).</p>
+          <div class="form-group location-picker-wrap">
+            <label for="setting-location2-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
+            <input type="text" id="setting-location2-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
+            <ul id="setting-location2-suggestions" class="location-suggestions hidden"></ul>
+            <input type="hidden" id="setting-location2-data">
+          </div>
+          <div class="backup-actions">
+            <button type="button" id="btn-save-location2" class="btn-primary" data-i18n="saveSecondLocation">ذخیره کشور دوم</button>
+            <button type="button" id="btn-clear-location2" class="btn-soft" data-i18n="clearSecondLocation">حذف کشور دوم</button>
+          </div>
+          <hr class="settings-divider">
           <h3 data-i18n="googleServices">سرویس‌های گوگل</h3>
           <label class="toggle-row">
             <input type="checkbox" id="toggle-google-services-visible">
@@ -355,6 +384,14 @@
         <div class="settings-panel" id="panel-appearance">
           <h3 data-i18n="colorTheme">تم رنگی</h3>
           <div class="theme-grid" id="theme-grid"></div>
+          <hr class="settings-divider">
+          <h3 data-i18n="perfModeTitle">حالت عملکرد</h3>
+          <p class="settings-desc" data-i18n="perfModeDesc">برای سیستم‌های ضعیف‌تر، افکت‌های سنگین غیرفعال می‌شود.</p>
+          <div class="lang-toggle mode-toggle" id="perf-mode-toggle">
+            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="auto" data-i18n="perfModeAuto">خودکار</button>
+            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="lite" data-i18n="perfModeLite">سبک</button>
+            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="full" data-i18n="perfModeFull">کامل</button>
+          </div>
         </div>
         <div class="settings-panel" id="panel-background">
           <h3 data-i18n="bgType">نوع پس‌زمینه</h3>
@@ -527,6 +564,7 @@
   <script src="js/search.js"></script>
   <script src="js/google-services.js"></script>
   <script src="js/wallpaper.js"></script>
+  <script src="js/perf.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>
 </body>

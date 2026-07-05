@@ -1,20 +1,83 @@
 const WeatherUI = (() => {
+  const SLOT_CONFIG = {
+    primary: {
+      widget: 'weather-widget',
+      icon: 'weather-icon',
+      temp: 'weather-temp',
+      desc: 'weather-desc',
+      getCoords(settings) {
+        return {
+          lat: settings.locationLat,
+          lon: settings.locationLon,
+          city: settings.city,
+          country: settings.country,
+          timezone: settings.timezone,
+          countryCode: settings.countryCode
+        };
+      }
+    },
+    secondary: {
+      widget: 'weather-widget-2',
+      icon: 'weather-icon-2',
+      temp: 'weather-temp-2',
+      desc: 'weather-desc-2',
+      getCoords(settings) {
+        return {
+          lat: settings.secondLocationLat,
+          lon: settings.secondLocationLon,
+          city: settings.secondCity,
+          country: settings.secondCountry,
+          timezone: settings.secondTimezone,
+          countryCode: settings.secondCountryCode
+        };
+      }
+    }
+  };
+
   const els = {};
-  let forecastData = null;
+  const state = {
+    primary: { forecastData: null, cityLabel: '' },
+    secondary: { forecastData: null, cityLabel: '' }
+  };
+  let activeSlot = 'primary';
   let isOpen = false;
-  let cityLabel = '';
+
+  function getSlotEls(slot) {
+    const cfg = SLOT_CONFIG[slot];
+    return {
+      widget: document.getElementById(cfg.widget),
+      icon: document.getElementById(cfg.icon),
+      temp: document.getElementById(cfg.temp),
+      desc: document.getElementById(cfg.desc)
+    };
+  }
+
+  function hasSecondaryLocation() {
+    const s = Storage.getSettings();
+    return s.secondLocationLat != null && s.secondLocationLon != null;
+  }
+
+  function updateSecondaryVisibility() {
+    const unit = document.getElementById('location-unit-secondary');
+    const card = document.querySelector('.day-info-card');
+    const dashboard = document.getElementById('dashboard');
+    const hasSecond = hasSecondaryLocation();
+
+    if (unit) unit.classList.toggle('hidden', !hasSecond);
+    if (card) card.classList.toggle('has-second-location', hasSecond);
+    if (dashboard) dashboard.classList.toggle('has-second-location', hasSecond);
+  }
 
   function init() {
-    els.widget = document.getElementById('weather-widget');
-    els.icon = document.getElementById('weather-icon');
-    els.temp = document.getElementById('weather-temp');
-    els.desc = document.getElementById('weather-desc');
     els.modal = document.getElementById('modal-weather');
     els.modalBody = document.getElementById('weather-modal-body');
 
-    if (!els.widget) return;
+    Object.keys(SLOT_CONFIG).forEach((slot) => {
+      const slotEls = getSlotEls(slot);
+      if (!slotEls.widget) return;
+      slotEls.widget.addEventListener('click', (e) => openModal(e, slot));
+    });
 
-    els.widget.addEventListener('click', openModal);
     els.modal?.querySelector('[data-close="modal-weather"]')?.addEventListener('click', closeModal);
     els.modal?.addEventListener('click', (e) => {
       if (e.target === els.modal) closeModal();
@@ -23,12 +86,14 @@ const WeatherUI = (() => {
       if (e.key === 'Escape' && isOpen) closeModal();
     });
 
-    loadWeather();
+    updateSecondaryVisibility();
+    loadAllWeather();
   }
 
-  function openModal(e) {
+  function openModal(e, slot) {
     e.stopPropagation();
-    if (!forecastData || !els.modal) return;
+    activeSlot = slot;
+    if (!state[slot]?.forecastData || !els.modal) return;
     isOpen = true;
     els.modal.classList.remove('hidden');
     renderForecastModal();
@@ -39,62 +104,94 @@ const WeatherUI = (() => {
     els.modal?.classList.add('hidden');
   }
 
+  async function loadAllWeather() {
+    await loadWeatherSlot('primary');
+    if (hasSecondaryLocation()) {
+      await loadWeatherSlot('secondary');
+    } else {
+      clearSlot('secondary');
+    }
+    updateSecondaryVisibility();
+  }
+
   async function loadWeather() {
-    if (els.desc) els.desc.textContent = I18n.t('weatherLoading');
+    await loadAllWeather();
+  }
+
+  async function loadWeatherSlot(slot) {
+    const slotEls = getSlotEls(slot);
+    if (!slotEls.desc) return;
+
+    slotEls.desc.textContent = I18n.t('weatherLoading');
     try {
-      const coords = await resolveCoords();
-      cityLabel = coords.city || '';
-      await fetchWeather(coords.lat, coords.lon);
+      const coords = await resolveCoords(slot);
+      state[slot].cityLabel = coords.city || '';
+      await fetchWeather(slot, coords.lat, coords.lon);
     } catch {
-      if (els.desc) els.desc.textContent = I18n.t('weatherUnavailable');
+      slotEls.desc.textContent = I18n.t('weatherUnavailable');
     }
   }
 
-  async function resolveCoords() {
+  function clearSlot(slot) {
+    const slotEls = getSlotEls(slot);
+    state[slot].forecastData = null;
+    state[slot].cityLabel = '';
+    if (slotEls.icon) slotEls.icon.textContent = '🌡️';
+    if (slotEls.temp) slotEls.temp.textContent = '—°';
+    if (slotEls.desc) slotEls.desc.textContent = '...';
+  }
+
+  async function resolveCoords(slot) {
     const s = Storage.getSettings();
-    if (s.locationLat != null && s.locationLon != null) {
-      const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
+    const coords = SLOT_CONFIG[slot].getCoords(s);
+
+    if (coords.lat != null && coords.lon != null) {
+      const resolved = await LocationPicker.resolveLocation(coords.lat, coords.lon);
       return {
-        lat: s.locationLat,
-        lon: s.locationLon,
-        city: resolved?.name || s.city || ''
+        lat: coords.lat,
+        lon: coords.lon,
+        city: resolved?.name || coords.city || ''
       };
     }
 
-    if (s.city || s.country) {
-      const hit = await geocodeLocation(s.city, s.country);
-      if (hit) {
-        await Storage.updateSettings({
-          locationLat: hit.lat,
-          locationLon: hit.lon
-        });
-        return hit;
-      }
-    }
-
-    if (navigator.geolocation) {
-      let denied = false;
-      if (navigator.permissions?.query) {
-        try {
-          const status = await navigator.permissions.query({ name: 'geolocation' });
-          denied = status.state === 'denied';
-        } catch {
-          /* Permissions API unavailable */
+    if (slot === 'primary') {
+      if (s.city || s.country) {
+        const hit = await geocodeLocation(s.city, s.country);
+        if (hit) {
+          await Storage.updateSettings({
+            locationLat: hit.lat,
+            locationLon: hit.lon
+          });
+          return hit;
         }
       }
 
-      if (!denied) {
-        try {
-          const pos = await getPosition();
-          const city = await reverseGeocode(pos.lat, pos.lon);
-          return { lat: pos.lat, lon: pos.lon, city: city || Locale.timezoneLabel() };
-        } catch {
-          /* fall through to timezone geocoding */
+      if (navigator.geolocation) {
+        let denied = false;
+        if (navigator.permissions?.query) {
+          try {
+            const status = await navigator.permissions.query({ name: 'geolocation' });
+            denied = status.state === 'denied';
+          } catch {
+            /* Permissions API unavailable */
+          }
+        }
+
+        if (!denied) {
+          try {
+            const pos = await getPosition();
+            const city = await reverseGeocode(pos.lat, pos.lon);
+            return { lat: pos.lat, lon: pos.lon, city: city || Locale.timezoneLabel() };
+          } catch {
+            /* fall through */
+          }
         }
       }
+
+      return geocodeFromTimezone();
     }
 
-    return geocodeFromTimezone();
+    throw new Error('secondary location unavailable');
   }
 
   function getPosition() {
@@ -108,7 +205,7 @@ const WeatherUI = (() => {
   }
 
   async function reverseGeocode(lat, lon) {
-    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const lang = I18n.getRegionalLang() === 'fa' ? 'fa' : 'en';
     const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=${lang}&count=1`;
     const res = await fetch(url);
     if (!res.ok) return '';
@@ -138,12 +235,12 @@ const WeatherUI = (() => {
       countryCode: r.country_code || '',
       timezone: r.timezone || '',
       admin1: r.admin1 || '',
-      label: [r.name, r.admin1, r.country].filter(Boolean).join(I18n.getLang() === 'fa' ? '، ' : ', ')
+      label: [r.name, r.admin1, r.country].filter(Boolean).join(I18n.getRegionalLang() === 'fa' ? '، ' : ', ')
     };
   }
 
   async function geocodeLocation(city, country) {
-    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const lang = I18n.getRegionalLang() === 'fa' ? 'fa' : 'en';
     const queries = [
       [city, country].filter(Boolean).join(', '),
       city,
@@ -163,13 +260,36 @@ const WeatherUI = (() => {
     const updates = LocationPicker.buildLocationUpdates(result);
     await Storage.updateSettings(updates);
     CalendarUI.refresh();
-    await loadWeather();
+    await loadAllWeather();
     return updates;
+  }
+
+  async function applySecondLocation(result) {
+    const updates = LocationPicker.buildLocationUpdates(result, 'second');
+    await Storage.updateSettings(updates);
+    await loadWeatherSlot('secondary');
+    updateSecondaryVisibility();
+    CalendarUI.refresh();
+    return updates;
+  }
+
+  async function clearSecondLocation() {
+    await Storage.updateSettings({
+      secondCity: '',
+      secondCountry: '',
+      secondCountryCode: '',
+      secondTimezone: '',
+      secondLocationLat: null,
+      secondLocationLon: null
+    });
+    clearSlot('secondary');
+    updateSecondaryVisibility();
+    CalendarUI.refresh();
   }
 
   async function geocodeFromTimezone() {
     const tz = Locale.getTimezone();
-    const lang = I18n.getLang() === 'fa' ? 'fa' : 'en';
+    const lang = I18n.getRegionalLang() === 'fa' ? 'fa' : 'en';
     const tzLabel = Locale.timezoneLabel();
     const queries = [tzLabel, tz.replace(/_/g, ' ')];
 
@@ -200,7 +320,7 @@ const WeatherUI = (() => {
     throw new Error('location unavailable');
   }
 
-  async function fetchWeather(lat, lon) {
+  async function fetchWeather(slot, lat, lon) {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
@@ -208,32 +328,42 @@ const WeatherUI = (() => {
 
     const res = await fetch(url);
     if (!res.ok) throw new Error('weather fetch failed');
-    forecastData = await res.json();
-    renderCurrent();
+    state[slot].forecastData = await res.json();
+    renderCurrent(slot);
   }
 
-  function getTodayKey() {
-    const tz = forecastData?.timezone || Locale.getTimezone();
+  function getTodayKey(slot) {
+    const tz = state[slot].forecastData?.timezone ||
+      (slot === 'secondary' ? Storage.getSettings().secondTimezone : Locale.getTimezone());
     return Locale.formatDateISO(new Date(), tz);
   }
 
-  function renderCurrent() {
-    if (!forecastData?.current) return;
+  function renderCurrent(slot) {
+    const slotEls = getSlotEls(slot);
+    const forecastData = state[slot].forecastData;
+    if (!forecastData?.current || !slotEls.widget) return;
+
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
-    els.icon.textContent = w.icon;
-    els.temp.textContent = `${Math.round(cur.temperature_2m)}°`;
-    els.desc.textContent = cityLabel ? `${cityLabel} · ${w.label}` : w.label;
-    els.widget.title = `${w.label} — ${I18n.t('weatherClick')}`;
+    const cityLabel = state[slot].cityLabel;
+
+    if (slotEls.icon) slotEls.icon.textContent = w.icon;
+    if (slotEls.temp) slotEls.temp.textContent = `${Math.round(cur.temperature_2m)}°`;
+    if (slotEls.desc) {
+      slotEls.desc.textContent = cityLabel ? `${cityLabel} · ${w.label}` : w.label;
+    }
+    slotEls.widget.title = `${w.label} — ${I18n.t('weatherClick')}`;
   }
 
   function renderForecastModal() {
+    const forecastData = state[activeSlot].forecastData;
+    const cityLabel = state[activeSlot].cityLabel;
     if (!forecastData?.daily || !els.modalBody) return;
 
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
     const { time, weather_code, temperature_2m_max, temperature_2m_min } = forecastData.daily;
-    const today = getTodayKey();
+    const today = getTodayKey(activeSlot);
 
     let listHtml = '';
     for (let i = 0; i < time.length; i++) {
@@ -291,9 +421,19 @@ const WeatherUI = (() => {
   }
 
   function refresh() {
-    renderCurrent();
+    renderCurrent('primary');
+    if (hasSecondaryLocation()) renderCurrent('secondary');
     if (isOpen) renderForecastModal();
   }
 
-  return { init, refresh, reload: loadWeather, geocodeLocation, applyLocation };
+  return {
+    init,
+    refresh,
+    reload: loadWeather,
+    geocodeLocation,
+    applyLocation,
+    applySecondLocation,
+    clearSecondLocation,
+    hasSecondaryLocation
+  };
 })();

@@ -256,6 +256,7 @@ const SettingsUI = (() => {
     setupTabs();
     setupBackgroundControls();
     setupLanguageToggle();
+    setupPerfModeControls();
     setupLocationControls();
     setupGoogleServicesControls();
     setupBackupControls();
@@ -280,7 +281,7 @@ const SettingsUI = (() => {
   }
 
   function setupLanguageToggle() {
-    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn):not(.perf-mode-btn)').forEach((btn) => {
       btn.addEventListener('click', async () => {
         await I18n.setLanguage(btn.dataset.lang);
         updateLanguageButtons(btn.dataset.lang);
@@ -289,62 +290,76 @@ const SettingsUI = (() => {
   }
 
   function updateLanguageButtons(lang) {
-    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn):not(.perf-mode-btn)').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.lang === lang);
     });
   }
 
+  function applyPerfMode(mode) {
+    const resolved = mode || Storage.getSettings().perfMode || 'auto';
+    if (window.TabyarPerf) {
+      TabyarPerf.apply(resolved);
+    }
+  }
+
+  function updatePerfModeButtons(mode) {
+    document.querySelectorAll('.perf-mode-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.perfMode === mode);
+    });
+  }
+
+  function setupPerfModeControls() {
+    document.querySelectorAll('.perf-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const mode = btn.dataset.perfMode;
+        await Storage.updateSettings({ perfMode: mode });
+        applyPerfMode(mode);
+        updatePerfModeButtons(mode);
+      });
+    });
+  }
+
   let settingsLocationPicker = null;
+  let settingsLocation2Picker = null;
 
   function buildLocationLabel(settings) {
     return [settings.city, settings.country].filter(Boolean).join(getSeparator());
   }
 
   function getSeparator() {
-    return I18n.getLang() === 'fa' ? '، ' : ', ';
+    return I18n.getRegionalLang() === 'fa' ? '، ' : ', ';
+  }
+
+  function buildStoredLocationData(s, prefix = '') {
+    const city = prefix ? s.secondCity : s.city;
+    const country = prefix ? s.secondCountry : s.country;
+    const label = prefix ? buildSecondLocationLabel(s) : buildLocationLabel(s);
+    if (!label) return null;
+
+    return {
+      name: city,
+      country,
+      countryCode: prefix ? s.secondCountryCode : s.countryCode,
+      lat: prefix ? s.secondLocationLat : s.locationLat,
+      lon: prefix ? s.secondLocationLon : s.locationLon,
+      timezone: prefix ? s.secondTimezone : s.timezone,
+      label
+    };
   }
 
   async function refreshLocationLabels() {
-    const s = Storage.getSettings();
-    if (s.locationLat == null || s.locationLon == null) {
-      settingsLocationPicker?.clear();
-      return;
-    }
-
-    const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
-    if (!resolved) return;
-
-    await Storage.updateSettings({
-      city: resolved.name,
-      country: resolved.country
-    });
-
-    settingsLocationPicker?.setDisplay(resolved.label, resolved);
+    syncLocationDisplay();
+    syncSecondLocationDisplay();
   }
 
-  async function syncLocationDisplay() {
+  function syncLocationDisplay() {
     const s = Storage.getSettings();
     if (s.locationLat == null || s.locationLon == null) {
       settingsLocationPicker?.clear();
       return;
     }
 
-    const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
-    if (resolved) {
-      settingsLocationPicker?.setDisplay(resolved.label, resolved);
-      return;
-    }
-
-    const label = buildLocationLabel(s);
-    settingsLocationPicker?.setDisplay(label, label ? {
-      name: s.city,
-      country: s.country,
-      countryCode: s.countryCode,
-      lat: s.locationLat,
-      lon: s.locationLon,
-      timezone: s.timezone,
-      label
-    } : null);
+    settingsLocationPicker?.setDisplay(buildLocationLabel(s), buildStoredLocationData(s));
   }
 
   function getCalendarTypeLabel(calendarType) {
@@ -372,9 +387,50 @@ const SettingsUI = (() => {
     });
   }
 
+  function buildSecondLocationLabel(settings) {
+    return [settings.secondCity, settings.secondCountry].filter(Boolean).join(getSeparator());
+  }
+
+  function syncSecondLocationDisplay() {
+    const s = Storage.getSettings();
+    if (s.secondLocationLat == null || s.secondLocationLon == null) {
+      settingsLocation2Picker?.clear();
+      return;
+    }
+
+    settingsLocation2Picker?.setDisplay(buildSecondLocationLabel(s), buildStoredLocationData(s, 'second'));
+  }
+
+  function initSettingsLocation2Picker() {
+    settingsLocation2Picker = LocationPicker.attach({
+      inputId: 'setting-location2-search',
+      listId: 'setting-location2-suggestions',
+      hiddenId: 'setting-location2-data'
+    });
+  }
+
   function setupLocationControls() {
     initSettingsLocationPicker();
+    initSettingsLocation2Picker();
     document.getElementById('btn-save-location').addEventListener('click', saveLocationSettings);
+    document.getElementById('btn-save-location2').addEventListener('click', saveSecondLocationSettings);
+    document.getElementById('btn-clear-location2').addEventListener('click', clearSecondLocationSettings);
+  }
+
+  async function saveSecondLocationSettings() {
+    const selected = settingsLocation2Picker?.getSelected();
+    if (!selected) {
+      alert(I18n.t('selectFromSuggestions'));
+      return;
+    }
+
+    await WeatherUI.applySecondLocation(selected);
+    alert(I18n.t('secondLocationSaved'));
+  }
+
+  async function clearSecondLocationSettings() {
+    await WeatherUI.clearSecondLocation();
+    settingsLocation2Picker?.clear();
   }
 
   async function saveLocationSettings() {
@@ -717,7 +773,9 @@ const SettingsUI = (() => {
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
     updateLanguageButtons(s.language || 'fa');
+    updatePerfModeButtons(s.perfMode || 'auto');
     syncLocationDisplay();
+    syncSecondLocationDisplay();
     updateCalendarTypeHint(s.calendarType);
 
     const toggleGs = document.getElementById('toggle-google-services-visible');
@@ -812,6 +870,7 @@ const SettingsUI = (() => {
     applyTheme(s.theme);
     applyBackgroundSync();
     updateLanguageButtons(s.language || 'fa');
+    applyPerfMode(s.perfMode || 'auto');
   }
 
   async function applyAll() {
@@ -835,5 +894,5 @@ const SettingsUI = (() => {
     syncControlsFromSettings();
   }
 
-  return { init, applyQuick, applyAll, refreshI18n, refreshLocationLabels, updateLanguageButtons, reapplyAppearance };
+  return { init, applyQuick, applyAll, applyPerfMode, refreshI18n, refreshLocationLabels, updateLanguageButtons, updatePerfModeButtons, reapplyAppearance };
 })();
