@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tabyar</title>
   <link rel="icon" type="image/png" href="icons/icon48.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
+  <script>
+    (function () {
+      var low = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!low && navigator.hardwareConcurrency) low = navigator.hardwareConcurrency <= 2;
+      if (!low && navigator.deviceMemory) low = navigator.deviceMemory <= 2;
+      if (low) document.documentElement.classList.add('perf-lite');
+    })();
+  </script>
   <style>
     :root {
       --bg-card: rgba(255, 255, 255, 0.1);
@@ -15,8 +26,8 @@
       --accent: #38bdf8;
       --accent-hover: #7dd3fc;
       --border: rgba(255, 255, 255, 0.2);
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
-      --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.32);
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+      --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.22);
       --search-bg: rgba(255, 255, 255, 0.12);
       --cal-today: #38bdf8;
       --cal-friday: #fb7185;

@@ -241,22 +241,30 @@ const SettingsUI = (() => {
     '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.32)'
   };
 
-  function init() {
-    document.getElementById('btn-settings').addEventListener('click', openSettings);
-    setupTabs();
+  let settingsPanelsRendered = false;
+
+  function ensureSettingsPanels() {
+    if (settingsPanelsRendered) return;
+    settingsPanelsRendered = true;
     renderThemeGrid();
     renderGradientGrid();
     renderWallpaperGallery();
+  }
+
+  function init() {
+    document.getElementById('btn-settings').addEventListener('click', openSettings);
+    setupTabs();
     setupBackgroundControls();
     setupLanguageToggle();
     setupLocationControls();
     setupGoogleServicesControls();
-    renderGoogleServicesSettings();
     setupBackupControls();
   }
 
   function openSettings() {
+    ensureSettingsPanels();
     syncControlsFromSettings();
+    renderGoogleServicesSettings();
     document.getElementById('modal-settings').classList.remove('hidden');
   }
 
@@ -664,9 +672,7 @@ const SettingsUI = (() => {
         BookmarksUI.render();
         CalendarUI.refresh();
         NotesUI.render();
-        renderThemeGrid();
-        renderGradientGrid();
-        renderWallpaperGallery();
+        ensureSettingsPanels();
         syncControlsFromSettings();
       }
     });
@@ -733,39 +739,79 @@ const SettingsUI = (() => {
     body.classList.toggle('glass-theme', themeKey === 'glass');
   }
 
-  async function applyBackground() {
-    const s = Storage.getSettings();
-    const layer = document.getElementById('background-layer');
-
+  function resetBackgroundLayer(layer) {
     layer.style.filter = '';
     layer.style.background = '';
     layer.style.backgroundImage = '';
     layer.style.backgroundSize = '';
     layer.style.backgroundPosition = '';
     layer.classList.remove('bg-loading');
+  }
+
+  async function applyBackgroundImage(s) {
+    const layer = document.getElementById('background-layer');
+    if (!layer || s.bgType !== 'image' || !s.bgImage) return;
+
+    layer.classList.add('bg-loading');
+    try {
+      const src = await WallpaperLoader.resolve(s.bgImage);
+      layer.style.backgroundImage = `url("${src}")`;
+      layer.style.backgroundSize = 'cover';
+      layer.style.backgroundPosition = 'center';
+      layer.style.filter = `blur(${s.bgBlur}px)`;
+      layer.style.setProperty('--bg-overlay-opacity', s.bgOverlay / 100);
+    } catch (err) {
+      console.warn('Tabyar: wallpaper load failed', err);
+    } finally {
+      layer.classList.remove('bg-loading');
+    }
+  }
+
+  function applyBackgroundSync() {
+    const s = Storage.getSettings();
+    const layer = document.getElementById('background-layer');
+    if (!layer) return;
+
+    resetBackgroundLayer(layer);
 
     if (s.bgType === 'gradient') {
-      const gradient = GRADIENTS[s.bgGradient] || GRADIENTS.night;
-      layer.style.background = gradient;
+      layer.style.background = GRADIENTS[s.bgGradient] || GRADIENTS.night;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'color') {
       layer.style.background = s.bgColor;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'image' && s.bgImage) {
-      layer.classList.add('bg-loading');
-      try {
-        const src = await WallpaperLoader.resolve(s.bgImage);
-        layer.style.backgroundImage = `url("${src}")`;
-        layer.style.backgroundSize = 'cover';
-        layer.style.backgroundPosition = 'center';
-        layer.style.filter = `blur(${s.bgBlur}px)`;
-        layer.style.setProperty('--bg-overlay-opacity', s.bgOverlay / 100);
-      } catch (err) {
-        console.warn('Tabyar: wallpaper load failed', err);
-      } finally {
-        layer.classList.remove('bg-loading');
-      }
+      layer.style.background = GRADIENTS.night;
+      layer.style.setProperty('--bg-overlay-opacity', '0');
+      applyBackgroundImage(s);
     }
+  }
+
+  async function applyBackground() {
+    const s = Storage.getSettings();
+    const layer = document.getElementById('background-layer');
+    if (!layer) return;
+
+    resetBackgroundLayer(layer);
+
+    if (s.bgType === 'gradient') {
+      layer.style.background = GRADIENTS[s.bgGradient] || GRADIENTS.night;
+      layer.style.setProperty('--bg-overlay-opacity', '0');
+    } else if (s.bgType === 'color') {
+      layer.style.background = s.bgColor;
+      layer.style.setProperty('--bg-overlay-opacity', '0');
+    } else if (s.bgType === 'image' && s.bgImage) {
+      layer.style.background = GRADIENTS.night;
+      layer.style.setProperty('--bg-overlay-opacity', '0');
+      await applyBackgroundImage(s);
+    }
+  }
+
+  function applyQuick() {
+    const s = Storage.getSettings();
+    applyTheme(s.theme);
+    applyBackgroundSync();
+    updateLanguageButtons(s.language || 'fa');
   }
 
   async function applyAll() {
@@ -782,11 +828,12 @@ const SettingsUI = (() => {
   }
 
   function refreshI18n() {
+    ensureSettingsPanels();
     renderThemeGrid();
     renderWallpaperGallery();
     renderGoogleServicesSettings();
     syncControlsFromSettings();
   }
 
-  return { init, applyAll, refreshI18n, refreshLocationLabels, updateLanguageButtons, reapplyAppearance };
+  return { init, applyQuick, applyAll, refreshI18n, refreshLocationLabels, updateLanguageButtons, reapplyAppearance };
 })();
