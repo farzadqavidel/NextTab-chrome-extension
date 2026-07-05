@@ -17,6 +17,10 @@ const CalendarUI = (() => {
     return I18n.getLang();
   }
 
+  function getRegionalLang() {
+    return I18n.getRegionalLang();
+  }
+
   function gregorianToPrimary(g) {
     const type = getCalendarType();
     if (type === 'jalali') return Jalali.gregorianToJalali(g.year, g.month, g.day);
@@ -136,7 +140,7 @@ const CalendarUI = (() => {
 
   function getEventsForDate(g) {
     const type = getCalendarType();
-    const lang = getLang();
+    const lang = getRegionalLang();
 
     if (type === 'gregorian') {
       return PersianEvents.getGregorianEvents(g.year, g.month, g.day, lang);
@@ -151,7 +155,7 @@ const CalendarUI = (() => {
 
   function getDayFlags(g) {
     const type = getCalendarType();
-    const lang = getLang();
+    const lang = getRegionalLang();
     const weekday = new Date(g.year, g.month - 1, g.day).getDay();
 
     let weekendClass = '';
@@ -197,9 +201,9 @@ const CalendarUI = (() => {
 
     let events = getEventsForDate(g);
     if (type === 'gregorian' && date.getDay() === 0) {
-      events = [{ title: I18n.t('sundayHoliday'), type: 'holiday' }, ...events];
+      events = [{ title: I18n.getRegionalHolidayLabel('sundayHoliday'), type: 'holiday' }, ...events];
     } else if (type !== 'gregorian' && date.getDay() === 5) {
-      events = [{ title: I18n.t('fridayHoliday'), type: 'holiday' }, ...events];
+      events = [{ title: I18n.getRegionalHolidayLabel('fridayHoliday'), type: 'holiday' }, ...events];
     }
     if (events.length === 0) {
       els.eventsList.innerHTML = `<li class="no-events">${I18n.t('noOccasion')}</li>`;
