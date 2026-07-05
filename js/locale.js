@@ -13,11 +13,11 @@ const Locale = (() => {
     return navigator.language || 'en-US';
   }
 
-  function getRegionalLocale() {
-    const code = ((typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '') || '').toUpperCase();
+  function getRegionalLocale(countryCode) {
+    const code = ((countryCode != null ? countryCode : (typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '')) || '').toUpperCase();
     if (code === 'IR' || code === 'AF') return 'fa-IR';
     const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
-    if (cal === 'jalali' || cal === 'hijri') return 'fa-IR';
+    if (!countryCode && (cal === 'jalali' || cal === 'hijri')) return 'fa-IR';
     try {
       const sys = navigator.language || 'en-US';
       return sys.startsWith('en') ? sys : 'en-US';
@@ -26,8 +26,32 @@ const Locale = (() => {
     }
   }
 
-  function getTimeLocale() {
-    return getRegionalLocale();
+  function getTimeLocale(countryCode) {
+    return getRegionalLocale(countryCode);
+  }
+
+  function shouldUsePersianDigits(countryCode) {
+    const code = ((countryCode != null ? countryCode : (typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '')) || '').toUpperCase();
+    if (code === 'IR' || code === 'AF') return true;
+    const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
+    return cal === 'jalali' || cal === 'hijri';
+  }
+
+  function formatClockForZone(date, timezone, countryCode) {
+    const formatted = new Intl.DateTimeFormat(getTimeLocale(countryCode), {
+      timeZone: timezone || getTimezone(),
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date || new Date());
+
+    if (shouldUsePersianDigits(countryCode) && typeof Jalali !== 'undefined') {
+      return Jalali.toPersianDigits(formatted);
+    }
+    return formatted;
+  }
+
+  function formatClock(date) {
+    return formatClockForZone(date, getTimezone());
   }
 
   function formatDateISO(date, timeZone) {
@@ -37,22 +61,6 @@ const Locale = (() => {
       month: '2-digit',
       day: '2-digit'
     }).format(date || new Date());
-  }
-
-  function formatClock(date) {
-    const formatted = new Intl.DateTimeFormat(getTimeLocale(), {
-      timeZone: getTimezone(),
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date || new Date());
-
-    const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
-    const code = ((typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '') || '').toUpperCase();
-    const usePersianDigits = cal === 'jalali' || cal === 'hijri' || code === 'IR' || code === 'AF';
-    if (usePersianDigits && typeof Jalali !== 'undefined') {
-      return Jalali.toPersianDigits(formatted);
-    }
-    return formatted;
   }
 
   function offsetDateISO(isoDate, days) {
@@ -75,6 +83,7 @@ const Locale = (() => {
     getTimeLocale,
     formatDateISO,
     formatClock,
+    formatClockForZone,
     offsetDateISO,
     timezoneLabel
   };

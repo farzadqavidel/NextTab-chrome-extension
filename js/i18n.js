@@ -95,6 +95,11 @@ const I18n = (() => {
       darkMode: 'دارک مود',
       lightMode: 'لایت مود',
       colorTheme: 'تم رنگی',
+      perfModeTitle: 'حالت عملکرد',
+      perfModeDesc: 'برای سیستم‌های ضعیف‌تر، افکت‌های سنگین غیرفعال می‌شود.',
+      perfModeAuto: 'خودکار',
+      perfModeLite: 'سبک',
+      perfModeFull: 'کامل',
       bgType: 'نوع پس‌زمینه',
       gradient: 'گرادیانت',
       solidColor: 'رنگ ساده',
@@ -181,7 +186,12 @@ const I18n = (() => {
       calendarJalali: 'شمسی',
       calendarGregorian: 'میلادی',
       calendarHijri: 'قمری',
-      selectFromSuggestions: 'لطفاً یک مورد از لیست پیشنهادها را انتخاب کنید.'
+      selectFromSuggestions: 'لطفاً یک مورد از لیست پیشنهادها را انتخاب کنید.',
+      secondLocation: 'کشور دوم',
+      secondLocationDesc: 'نمایش آب‌وهوا و ساعت یک شهر دیگر کنار محل اصلی (اختیاری).',
+      saveSecondLocation: 'ذخیره کشور دوم',
+      clearSecondLocation: 'حذف کشور دوم',
+      secondLocationSaved: 'کشور دوم ذخیره شد.'
     },
     en: {
       settings: 'Settings',
@@ -278,6 +288,11 @@ const I18n = (() => {
       darkMode: 'Dark mode',
       lightMode: 'Light mode',
       colorTheme: 'Color theme',
+      perfModeTitle: 'Performance mode',
+      perfModeDesc: 'Disables heavy visual effects on weaker systems.',
+      perfModeAuto: 'Auto',
+      perfModeLite: 'Lite',
+      perfModeFull: 'Full',
       bgType: 'Background type',
       gradient: 'Gradient',
       solidColor: 'Solid color',
@@ -364,7 +379,12 @@ const I18n = (() => {
       calendarJalali: 'Solar (Jalali)',
       calendarGregorian: 'Gregorian',
       calendarHijri: 'Hijri',
-      selectFromSuggestions: 'Please select an item from the suggestions list.'
+      selectFromSuggestions: 'Please select an item from the suggestions list.',
+      secondLocation: 'Second location',
+      secondLocationDesc: 'Show weather and time for another city next to your main location (optional).',
+      saveSecondLocation: 'Save second location',
+      clearSecondLocation: 'Remove second location',
+      secondLocationSaved: 'Second location saved.'
     }
   };
 
@@ -479,7 +499,8 @@ const I18n = (() => {
   }
 
   function getGregorianMonthName(monthIndex) {
-    return GREGORIAN_MONTHS[lang]?.[monthIndex] || GREGORIAN_MONTHS.fa[monthIndex];
+    const labelLang = getRegionalLang();
+    return GREGORIAN_MONTHS[labelLang]?.[monthIndex] || GREGORIAN_MONTHS.fa[monthIndex];
   }
 
   function getHijriMonthName(monthIndex) {
@@ -539,6 +560,7 @@ const I18n = (() => {
 
     if (typeof SettingsUI !== 'undefined') {
       SettingsUI.updateLanguageButtons?.(lang);
+      SettingsUI.updatePerfModeButtons?.(Storage.getSettings().perfMode || 'auto');
     }
   }
 
@@ -549,9 +571,6 @@ const I18n = (() => {
       SettingsUI.reapplyAppearance?.();
     }
     applyDom();
-    if (typeof SettingsUI !== 'undefined') {
-      await SettingsUI.refreshLocationLabels?.();
-    }
     document.dispatchEvent(new CustomEvent('tabyar:language-changed'));
     if (typeof CalendarUI !== 'undefined') CalendarUI.refresh();
     if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
@@ -560,6 +579,7 @@ const I18n = (() => {
     if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
     if (typeof WeatherUI !== 'undefined') WeatherUI.refresh?.();
     SettingsUI.updateLanguageButtons?.(lang);
+    SettingsUI.updatePerfModeButtons?.(Storage.getSettings().perfMode || 'auto');
   }
 
   async function toggleLanguage() {

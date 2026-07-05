@@ -162,6 +162,11 @@ body.lang-en {
   contain: layout style;
 }
 
+.dashboard.has-second-location {
+  grid-template-columns: 320px minmax(360px, 500px) 250px;
+  max-width: 1140px;
+}
+
 .dashboard.loaded {
   opacity: 1;
 }
@@ -187,17 +192,79 @@ body.lang-en {
   justify-self: center;
 }
 
+.dashboard.has-second-location .col-left {
+  max-width: 320px;
+}
+
 .day-info-card {
   padding: 18px 20px;
   flex-shrink: 0;
 }
 
 .day-info-top {
+  margin-bottom: 14px;
+}
+
+.locations-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.day-info-card.has-second-location .locations-strip {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.location-unit {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.location-unit-secondary {
+  border-inline-start: 1px solid var(--border);
+  padding-inline-start: 10px;
+}
+
+.day-info-card.has-second-location .weather-widget {
+  min-width: 58px;
+  padding: 6px 8px;
+}
+
+.day-info-card.has-second-location .weather-desc {
+  max-width: 62px;
+  font-size: 9px;
+}
+
+.day-info-card.has-second-location .day-clock {
+  font-size: 22px;
+}
+
+.day-info-card.has-second-location .day-clock-secondary {
+  font-size: 20px;
+}
+
+.day-info-card.has-second-location .day-date,
+.day-info-card.has-second-location .day-weekday,
+.day-info-card.has-second-location .day-location-name {
+  font-size: 10px;
+}
+
+.day-clock-secondary {
+  font-size: 24px;
+}
+
+.day-location-name {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .weather-block {
@@ -380,7 +447,7 @@ body.lang-en {
 .wf-label { color: var(--text-secondary); }
 .wf-temp { font-weight: 600; white-space: nowrap; }
 
-.day-info-meta { text-align: left; flex: 1; min-width: 0; }
+.day-info-meta { text-align: start; flex: 1; min-width: 0; }
 
 .day-clock {
   display: block;

@@ -25,6 +25,7 @@ const Storage = (() => {
       compactBookmarks: false,
       bookmarkSize: 'medium',
       notesBlurred: false,
+      perfMode: 'auto',
       language: 'fa',
       welcomeShown: false,
       onboardingComplete: false,
@@ -35,6 +36,12 @@ const Storage = (() => {
       calendarType: 'jalali',
       locationLat: null,
       locationLon: null,
+      secondCity: '',
+      secondCountry: '',
+      secondCountryCode: '',
+      secondTimezone: '',
+      secondLocationLat: null,
+      secondLocationLon: null,
       googleServicesVisible: true,
       enabledGoogleServices: ['gmail', 'drive', 'maps', 'youtube', 'translate', 'calendar', 'photos']
     }
@@ -86,6 +93,9 @@ const Storage = (() => {
       merged.settings.colorMode = 'dark';
       if (!VALID_GRADIENTS.has(merged.settings.bgGradient)) {
         merged.settings.bgGradient = 'midnight';
+      }
+      if (!['auto', 'lite', 'full'].includes(merged.settings.perfMode)) {
+        merged.settings.perfMode = 'auto';
       }
       if (merged.settings.bgImage && /\/images\/wallpapers\/\d+\.jpg$/i.test(merged.settings.bgImage)) {
         merged.settings.bgImage = '';

@@ -13,10 +13,6 @@ const CalendarUI = (() => {
     return Storage.getSettings().countryCode || '';
   }
 
-  function getLang() {
-    return I18n.getLang();
-  }
-
   function getRegionalLang() {
     return I18n.getRegionalLang();
   }
@@ -53,6 +49,9 @@ const CalendarUI = (() => {
     els.next = document.getElementById('cal-next');
     els.goToday = document.getElementById('cal-go-today');
     els.dayClock = document.getElementById('day-clock');
+    els.dayClock2 = document.getElementById('day-clock-2');
+    els.dayLocationName2 = document.getElementById('day-location-name-2');
+    els.locationUnitSecondary = document.getElementById('location-unit-secondary');
     els.dayDate = document.getElementById('day-date');
     els.dayWeekday = document.getElementById('day-weekday');
     els.eventsList = document.getElementById('day-events-list');
@@ -121,7 +120,7 @@ const CalendarUI = (() => {
   }
 
   function formatGregorianDisplay(g) {
-    if (getLang() === 'fa') {
+    if (getRegionalLang() === 'fa') {
       return PersianEvents.formatGregorianFromGregorian(g.year, g.month, g.day);
     }
     const monthName = I18n.getGregorianMonthName(g.month - 1);
@@ -334,6 +333,33 @@ const CalendarUI = (() => {
 
   function updateClock() {
     els.dayClock.textContent = Locale.formatClock(new Date());
+    updateSecondaryClock();
+  }
+
+  function updateSecondaryClock() {
+    const s = Storage.getSettings();
+    const hasSecond = s.secondLocationLat != null && s.secondLocationLon != null;
+    const card = document.querySelector('.day-info-card');
+    const dashboard = document.getElementById('dashboard');
+
+    if (els.locationUnitSecondary) {
+      els.locationUnitSecondary.classList.toggle('hidden', !hasSecond);
+    }
+    if (card) card.classList.toggle('has-second-location', hasSecond);
+    if (dashboard) dashboard.classList.toggle('has-second-location', hasSecond);
+
+    if (!hasSecond || !els.dayClock2) return;
+
+    els.dayClock2.textContent = Locale.formatClockForZone(
+      new Date(),
+      s.secondTimezone,
+      s.secondCountryCode
+    );
+
+    if (els.dayLocationName2) {
+      const sep = I18n.getRegionalLang() === 'fa' ? '، ' : ', ';
+      els.dayLocationName2.textContent = [s.secondCity, s.secondCountry].filter(Boolean).join(sep);
+    }
   }
 
   function refresh() {

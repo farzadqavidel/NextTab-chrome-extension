@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
   SettingsUI.applyQuick();
+  if (window.TabyarPerf) {
+    TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
+  }
   document.getElementById('dashboard').classList.add('loaded');
 
   CalendarUI.init();
@@ -95,16 +98,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function syncStoredLocationLanguage() {
   const s = Storage.getSettings();
   if (s.locationLat == null || s.locationLon == null) return;
+  if (s.city && s.country) return;
 
   const resolved = await LocationPicker.resolveLocation(s.locationLat, s.locationLon);
   if (!resolved) return;
 
-  if (resolved.name !== s.city || resolved.country !== s.country) {
-    await Storage.updateSettings({
-      city: resolved.name,
-      country: resolved.country
-    });
-  }
+  await Storage.updateSettings({
+    city: resolved.name,
+    country: resolved.country
+  });
 }
 
 function updateOnboardingLangButtons(lang) {
