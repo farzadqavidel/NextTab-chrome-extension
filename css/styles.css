@@ -2162,14 +2162,25 @@ body.light-mode .field-select option {
   display: inline;
 }
 
-.welcome-body a {
+.welcome-body a,
+.welcome-body .inline-link-btn {
   color: var(--accent);
   text-decoration: none;
   font-weight: 600;
 }
 
-.welcome-body a:hover {
+.welcome-body a:hover,
+.welcome-body .inline-link-btn:hover {
   text-decoration: underline;
+}
+
+.inline-link-btn {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
 }
 
 .welcome-actions {
