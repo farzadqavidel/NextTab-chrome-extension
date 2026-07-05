@@ -399,9 +399,19 @@ const I18n = (() => {
     95: '⛈️', 96: '⛈️', 99: '⛈️'
   };
 
-  const CAL_WEEKDAYS = {
+  const CAL_WEEKDAYS_SAT_START = {
+    fa: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
+    en: ['Sa', 'Su', 'Mo', 'Tu', 'We', 'Th', 'Fr']
+  };
+
+  const CAL_WEEKDAYS_SUN_START = {
     fa: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
     en: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  };
+
+  const CAL_WEEKDAYS_MON_START = {
+    fa: ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'],
+    en: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
   };
 
   const WEEKDAY_NAMES = {
@@ -415,10 +425,30 @@ const I18n = (() => {
       'July', 'August', 'September', 'October', 'November', 'December']
   };
 
-  const CAL_WEEKDAYS_MON = {
-    fa: ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'],
-    en: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-  };
+  function getCalendarSettings() {
+    const settings = Storage.getSettings();
+    return {
+      calendarType: settings.calendarType || 'jalali',
+      countryCode: settings.countryCode || ''
+    };
+  }
+
+  function usesRegionalCalendar() {
+    const { calendarType } = getCalendarSettings();
+    return calendarType === 'jalali' || calendarType === 'hijri';
+  }
+
+  function getRegionalLang() {
+    if (usesRegionalCalendar()) return 'fa';
+    const code = (getCalendarSettings().countryCode || '').toUpperCase();
+    if (code === 'IR' || code === 'AF') return 'fa';
+    return lang;
+  }
+
+  function getRegionalHolidayLabel(key) {
+    const regionalLang = getRegionalLang();
+    return STRINGS[regionalLang]?.[key] || STRINGS.fa[key] || key;
+  }
 
   let lang = 'fa';
 
@@ -437,7 +467,8 @@ const I18n = (() => {
   }
 
   function getWmo(code) {
-    const label = WMO[lang]?.[code] || WMO.fa[code] || (lang === 'en' ? 'Unknown' : 'نامشخص');
+    const labelLang = getRegionalLang();
+    const label = WMO[labelLang]?.[code] || WMO.fa[code] || (labelLang === 'en' ? 'Unknown' : 'نامشخص');
     const icon = WMO_ICONS[code] || '🌡️';
     return { icon, label };
   }
@@ -456,22 +487,32 @@ const I18n = (() => {
   }
 
   function getCalendarWeekdays(calendarType, countryCode) {
+    const labels = CAL_WEEKDAYS_SAT_START;
     if (RegionHelper.weekStartsOnMonday(calendarType, countryCode)) {
-      return CAL_WEEKDAYS_MON[lang] || CAL_WEEKDAYS_MON.fa;
+      return CAL_WEEKDAYS_MON_START[lang] || CAL_WEEKDAYS_MON_START.fa;
     }
-    return CAL_WEEKDAYS[lang] || CAL_WEEKDAYS.fa;
+    if (calendarType === 'gregorian') {
+      return CAL_WEEKDAYS_SUN_START[lang] || CAL_WEEKDAYS_SUN_START.fa;
+    }
+    return labels[lang] || labels.fa;
+  }
+
+  function getWeekdayName(dayIndex) {
+    if (usesRegionalCalendar()) {
+      return Jalali.PERSIAN_WEEKDAYS[dayIndex];
+    }
+    return WEEKDAY_NAMES[lang]?.[dayIndex] || WEEKDAY_NAMES.en[dayIndex];
+  }
+
+  function formatDigits(n) {
+    if (usesRegionalCalendar() || lang === 'fa') {
+      return Jalali.toPersianDigits(n);
+    }
+    return String(n);
   }
 
   function getMonthName(monthIndex) {
     return Jalali.PERSIAN_MONTHS[monthIndex];
-  }
-
-  function getWeekdayName(dayIndex) {
-    return WEEKDAY_NAMES[lang]?.[dayIndex] || WEEKDAY_NAMES.fa[dayIndex];
-  }
-
-  function formatDigits(n) {
-    return lang === 'fa' ? Jalali.toPersianDigits(n) : String(n);
   }
 
   function applyDom() {
@@ -517,8 +558,7 @@ const I18n = (() => {
     if (typeof BookmarksUI !== 'undefined') BookmarksUI.render();
     if (typeof NotesUI !== 'undefined') NotesUI.render();
     if (typeof SearchUI !== 'undefined') SearchUI.refresh?.();
-    if (typeof WeatherUI !== 'undefined') WeatherUI.reload?.();
-    if (typeof GoogleServicesUI !== 'undefined') GoogleServicesUI.render?.();
+    if (typeof WeatherUI !== 'undefined') WeatherUI.refresh?.();
     SettingsUI.updateLanguageButtons?.(lang);
   }
 
@@ -553,6 +593,8 @@ const I18n = (() => {
     getHijriMonthName,
     getCalendarWeekdays,
     getWeekdayName,
+    getRegionalLang,
+    getRegionalHolidayLabel,
     formatDigits,
     applyDom,
     setLanguage,

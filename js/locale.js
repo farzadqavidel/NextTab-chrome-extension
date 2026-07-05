@@ -13,11 +13,21 @@ const Locale = (() => {
     return navigator.language || 'en-US';
   }
 
+  function getRegionalLocale() {
+    const code = ((typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '') || '').toUpperCase();
+    if (code === 'IR' || code === 'AF') return 'fa-IR';
+    const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
+    if (cal === 'jalali' || cal === 'hijri') return 'fa-IR';
+    try {
+      const sys = navigator.language || 'en-US';
+      return sys.startsWith('en') ? sys : 'en-US';
+    } catch {
+      return 'en-US';
+    }
+  }
+
   function getTimeLocale() {
-    const uiLang = typeof I18n !== 'undefined' ? I18n.getLang() : 'fa';
-    if (uiLang === 'fa') return 'fa-IR';
-    const sys = getSystemLocale();
-    return sys.startsWith('en') ? sys : 'en-US';
+    return getRegionalLocale();
   }
 
   function formatDateISO(date, timeZone) {
@@ -36,7 +46,10 @@ const Locale = (() => {
       minute: '2-digit'
     }).format(date || new Date());
 
-    if (typeof I18n !== 'undefined' && I18n.getLang() === 'fa') {
+    const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
+    const code = ((typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '') || '').toUpperCase();
+    const usePersianDigits = cal === 'jalali' || cal === 'hijri' || code === 'IR' || code === 'AF';
+    if (usePersianDigits && typeof Jalali !== 'undefined') {
       return Jalali.toPersianDigits(formatted);
     }
     return formatted;
@@ -58,6 +71,7 @@ const Locale = (() => {
   return {
     getTimezone,
     getSystemLocale,
+    getRegionalLocale,
     getTimeLocale,
     formatDateISO,
     formatClock,
