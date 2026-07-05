@@ -1,8 +1,8 @@
 # Tabyar
 
-**Your personal New Tab — calendar, bookmarks, weather, notes, and themes in one beautiful page.**
+**Your personal New Tab — calendar, bookmarks, weather, notes, Google services, and themes in one beautiful page.**
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
 [![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](#)
 
@@ -21,9 +21,9 @@
 ## Overview
 
 **Tabyar** replaces Chrome’s default New Tab with a customizable dashboard designed for daily use.  
-It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**, **notes**, and rich **appearance settings** — all stored locally in your browser.
+It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**, **Google search**, **weather**, **notes**, **Google services shortcuts**, and rich **appearance settings** — all stored locally in your browser.
 
-> **Version:** `1.1.0`
+> **Version:** `1.4.0`
 
 ---
 
@@ -33,7 +33,7 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 |-------|------------|
 | Extension core | **HTML5**, **CSS3**, **JavaScript** (Manifest V3) |
 | Storage | Chrome `storage.local` + IndexedDB (wallpapers) |
-| Calendar | Custom Jalali & Hijri algorithms |
+| Calendar | Custom Jalali, Hijri & Gregorian algorithms |
 | Weather | [Open-Meteo API](https://open-meteo.com/) |
 | Fonts | [Vazirmatn](https://fonts.google.com/) via Google Fonts |
 
@@ -42,26 +42,36 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 ## Features
 
 ### Calendar
-- Accurate **Jalali (Persian) calendar** with month navigation
+- **Regional calendar** — Jalali (Iran/Afghanistan), Hijri (Arab & Muslim countries), or Gregorian (worldwide)
+- Calendar type is **set automatically** based on your country
 - Live clock and today’s date — follows your **system timezone and locale**
-- Gregorian & Hijri date display
-- Iranian occasions & holidays
-- Fridays highlighted
+- Secondary clock for an optional **second location**
+- Gregorian, Jalali & Hijri date display side by side
+- Iranian, Hijri & international occasions & holidays
+- Fridays / Sundays highlighted based on region
 
 ### Bookmarks
 - Unlimited bookmarks in folder groups with custom colors
 - Default group plus custom groups; navigate with back button
 - Auto favicon loading with letter fallback
 - Right-click to edit, delete, or open in a new tab
+- **Import from Chrome** — transfer all Chrome bookmarks with folder structure
 
 ### Search
 - Google search bar (text, voice*, image search)
+- **Search history** — recent queries saved locally, filterable and removable
 - Opens results in the same tab
 
 ### Weather
-- Current weather for your location (GPS or system timezone)
+- Current weather for your location (GPS or city search)
+- Optional **second location** — dual weather widgets side by side
 - Multi-day forecast modal with correct local dates
 - Powered by Open-Meteo
+
+### Google Services
+- Quick-access tiles for **Gmail, Drive, Maps, YouTube, Translate, Calendar & Photos**
+- Show/hide the panel and pick which services appear
+- Configurable in Settings → General
 
 ### Notes
 - Quick notes panel with trash & restore
@@ -72,6 +82,7 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
 - **Color themes:** Midnight, Ocean, Forest, Lavender, Glass *(default)*
 - **Backgrounds:** gradients, solid colors, image URL, upload, or curated 4K wallpapers
 - Blur & overlay controls for background images
+- **Performance mode:** Auto / Lite / Full — disables heavy effects on weaker systems
 - **Languages:** Persian (FA) & English (EN)
 - Export / import all data as JSON
 - Reset to defaults
@@ -80,7 +91,17 @@ It combines a **Jalali calendar**, **bookmarks**, **Google search**, **weather**
   <img src="Picture/setting.png" alt="Tabyar settings panel" width="620"/>
 </p>
 
-<p align="center"><em>Settings — themes, backgrounds & backup</em></p>
+<p align="center"><em>Settings — location, themes & Google services</em></p>
+
+### First-time Setup
+- **Onboarding wizard** — choose your country, city, and language on first launch
+- **Welcome message** — tips about keeping the extension folder in a stable location and backing up data
+
+<p align="center">
+  <img src="Picture/backup.png" alt="Tabyar backup panel" width="620"/>
+</p>
+
+<p align="center"><em>Backup — export, import & Chrome bookmarks transfer</em></p>
 
 ---
 
@@ -125,9 +146,7 @@ cd Chrome-Extention
 
 4. Select the extension folder (the one containing `manifest.json`)
 
-5. Open a **new tab** — Tabyar is ready
-
-**Enjoy Tabyar!**
+5. Open a **new tab** — complete the onboarding wizard and enjoy Tabyar!
 
 ---
 
@@ -136,12 +155,17 @@ cd Chrome-Extention
 | Action | How |
 |--------|-----|
 | Open settings | Click the **gear icon** (top-right) |
+| Set location | Settings → **General** → search city or country |
+| Add second location | Settings → **General** → Second location |
 | Change theme | Settings → **Appearance** → pick a color theme |
 | Set background | Settings → **Background** → gradient, color, or image |
+| Performance mode | Settings → **Appearance** → Auto / Lite / Full |
+| Toggle Google services | Settings → **General** → Google services |
 | Add bookmark | Open a folder group → click the **+** tile |
-| Add folder group | Bookmarks groups view → click the **+** tile |
+| Import Chrome bookmarks | Settings → **Backup** → Import from Chrome |
 | Weather forecast | Click the **weather widget** (top-left card) |
-| Switch language | Settings → **Language** → فارسی / English |
+| Search history | Focus the search bar or right-click → Show history |
+| Switch language | Settings → **General** → فارسی / English |
 | Backup data | Settings → **Backup** → Export to JSON file |
 | Restore data | Settings → **Backup** → Import from JSON file |
 
@@ -156,23 +180,28 @@ Chrome-Extention/
 ├── manifest.json          # Extension manifest (MV3)
 ├── newtab.html            # New Tab page
 ├── css/
-│   └── styles.css         # All styles
+│   ├── styles.css         # All styles
+│   └── critical.css       # Critical above-the-fold CSS
 ├── js/
-│   ├── app.js             # Bootstrap
+│   ├── app.js             # Bootstrap & onboarding
 │   ├── storage.js         # Data layer
 │   ├── settings.js        # Themes & backgrounds
 │   ├── wallpaper.js       # Wallpaper fetch & cache
 │   ├── background.js      # Service worker
-│   ├── calendar.js        # Jalali calendar UI
+│   ├── calendar.js        # Regional calendar UI
 │   ├── bookmarks.js       # Bookmarks manager
 │   ├── notes.js           # Notes panel
-│   ├── weather.js         # Weather widget
+│   ├── weather.js         # Weather widget (dual location)
+│   ├── search.js          # Google search & history
+│   ├── google-services.js # Google services shortcuts
+│   ├── location-picker.js # City/country search
+│   ├── region.js          # Country → calendar mapping
 │   ├── locale.js          # System timezone & locale helpers
 │   ├── i18n.js            # FA / EN UI strings
 │   ├── jalali.js          # Jalali date math
 │   ├── hijri.js           # Hijri date math
-│   └── events.js          # Occasions data
-├── icons/                 # Extension icons (Ty)
+│   └── events.js          # Occasions & holidays data
+├── icons/                 # Extension icons
 ├── Picture/               # Screenshots for README
 ├── README.md
 └── README-fa.md           # Persian documentation
@@ -185,11 +214,13 @@ Chrome-Extention/
 | Permission | Why |
 |------------|-----|
 | `storage` | Save bookmarks, notes, and settings locally |
+| `bookmarks` | Import Chrome bookmarks with folder structure |
+| `tabs` | Open bookmark links in new tabs |
 | `4kwallpapers.com` | Load curated background wallpapers |
 | `api.open-meteo.com` | Weather data |
 | `geocoding-api.open-meteo.com` | City name from coordinates / timezone |
 
-No data is sent to third-party servers except weather, geocoding, and wallpaper downloads you choose.
+No personal data is sent to third-party servers except weather, geocoding, and wallpaper downloads you choose.
 
 ---
 
@@ -206,6 +237,7 @@ No data is sent to third-party servers except weather, geocoding, and wallpaper 
 
 - First load may require internet for **Google Fonts** and **weather**
 - Voice search depends on browser support for Web Speech API
+- Calendar type is auto-detected from your country; change location in settings to switch
 - For a clean default experience, use **Reset all data** in settings
 
 ---
@@ -219,5 +251,5 @@ If you find Tabyar useful, consider starring the repository on GitHub.
 ---
 
 <p align="center">
-  <strong>Tabyar</strong> · v1.1.0 · Made with care for a better New Tab
+  <strong>Tabyar</strong> · v1.4.0 · Made with care for a better New Tab
 </p>
