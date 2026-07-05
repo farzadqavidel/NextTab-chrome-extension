@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
-  await syncStoredLocationLanguage();
-  await SettingsUI.applyAll();
+  SettingsUI.applyQuick();
+  document.getElementById('dashboard').classList.add('loaded');
+
   CalendarUI.init();
   BookmarksUI.init();
   NotesUI.init();
@@ -10,14 +11,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   SearchUI.init();
   GoogleServicesUI.init();
 
+  syncStoredLocationLanguage().catch(() => {});
+
   if (Storage.getSettings().onboardingComplete) {
     WeatherUI.init();
     showWelcomeIfNeeded();
   } else {
     await showOnboardingFlow();
   }
-
-  document.getElementById('dashboard').classList.add('loaded');
 
   const searchInput = document.getElementById('search-input');
   const searchForm = document.getElementById('search-form');
