@@ -163,8 +163,8 @@ body.lang-en {
 }
 
 .dashboard.has-second-location {
-  grid-template-columns: 320px minmax(360px, 500px) 250px;
-  max-width: 1140px;
+  grid-template-columns: 420px minmax(340px, 480px) 250px;
+  max-width: 1180px;
 }
 
 .dashboard.loaded {
@@ -193,12 +193,13 @@ body.lang-en {
 }
 
 .dashboard.has-second-location .col-left {
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .day-info-card {
   padding: 18px 20px;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .day-info-top {
@@ -206,51 +207,106 @@ body.lang-en {
 }
 
 .locations-strip {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   width: 100%;
-}
-
-.day-info-card.has-second-location .locations-strip {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
 }
 
 .location-unit {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  flex: 1;
   min-width: 0;
 }
 
-.location-unit-secondary {
-  border-inline-start: 1px solid var(--border);
-  padding-inline-start: 10px;
+/* ── Dual location layout ── */
+.day-info-card.has-second-location {
+  padding-inline: 16px;
+}
+
+.day-info-card.has-second-location .locations-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 20px;
+  align-items: stretch;
+  position: relative;
+}
+
+.day-info-card.has-second-location .locations-strip::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 50%;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.day-info-card.has-second-location .location-unit {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 6px;
+}
+
+.day-info-card.has-second-location .location-unit-secondary {
+  border: none;
+  padding-inline: 6px;
+}
+
+.day-info-card.has-second-location .weather-block {
+  width: 100%;
+  justify-content: center;
 }
 
 .day-info-card.has-second-location .weather-widget {
-  min-width: 58px;
-  padding: 6px 8px;
+  width: 100%;
+  max-width: 96px;
+  min-width: 0;
+  padding: 8px 10px;
 }
 
-.day-info-card.has-second-location .weather-desc {
-  max-width: 62px;
-  font-size: 9px;
-}
-
-.day-info-card.has-second-location .day-clock {
+.day-info-card.has-second-location .weather-icon {
   font-size: 22px;
 }
 
+.day-info-card.has-second-location .weather-temp {
+  font-size: 14px;
+}
+
+.day-info-card.has-second-location .weather-desc {
+  max-width: 100%;
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.day-info-card.has-second-location .day-info-meta {
+  text-align: center;
+  width: 100%;
+}
+
+.day-info-card.has-second-location .day-clock {
+  font-size: 24px;
+}
+
 .day-info-card.has-second-location .day-clock-secondary {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .day-info-card.has-second-location .day-date,
 .day-info-card.has-second-location .day-weekday,
 .day-info-card.has-second-location .day-location-name {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .day-clock-secondary {
