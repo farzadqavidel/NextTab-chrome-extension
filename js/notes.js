@@ -57,7 +57,7 @@ const NotesUI = (() => {
   async function moveAllToTrash() {
     const count = Storage.getNotes().length;
     if (count === 0) return;
-    if (!confirm(I18n.t('deleteAllNotesConfirm'))) return;
+    if (!(await TabyarUI.confirm(I18n.t('deleteAllNotesConfirm'), { danger: true }))) return;
     await Storage.moveAllNotesToTrash();
     render();
   }
@@ -65,7 +65,7 @@ const NotesUI = (() => {
   async function emptyTrash() {
     const count = Storage.getTrashedNotes().length;
     if (count === 0) return;
-    if (!confirm(I18n.t('emptyTrashConfirm'))) return;
+    if (!(await TabyarUI.confirm(I18n.t('emptyTrashConfirm'), { danger: true }))) return;
     await Storage.emptyTrash();
     render();
   }
@@ -199,14 +199,14 @@ const NotesUI = (() => {
   }
 
   async function deleteNote(id) {
-    if (confirm(I18n.t('deleteNoteConfirm'))) {
+    if (await TabyarUI.confirm(I18n.t('deleteNoteConfirm'), { danger: true })) {
       await Storage.moveNoteToTrash(id);
       render();
     }
   }
 
   async function permanentlyDeleteNote(id) {
-    if (confirm(I18n.t('permanentDeleteConfirm'))) {
+    if (await TabyarUI.confirm(I18n.t('permanentDeleteConfirm'), { danger: true })) {
       await Storage.permanentlyDeleteNote(id);
       render();
     }

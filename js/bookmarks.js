@@ -110,8 +110,8 @@ const BookmarksUI = (() => {
     let deleteBookmarks = false;
 
     if (bookmarkCount > 0) {
-      deleteBookmarks = confirm(I18n.t('deleteGroupWithBookmarksConfirm'));
-    } else if (!confirm(I18n.t('deleteGroupConfirm'))) {
+      deleteBookmarks = await TabyarUI.confirm(I18n.t('deleteGroupWithBookmarksConfirm'), { danger: true });
+    } else if (!(await TabyarUI.confirm(I18n.t('deleteGroupConfirm'), { danger: true }))) {
       return;
     }
 
@@ -300,7 +300,7 @@ const BookmarksUI = (() => {
     const folderId = document.getElementById('bookmark-folder').value || 'default';
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      alert(I18n.t('invalidUrl'));
+      TabyarUI.alert(I18n.t('invalidUrl'), { type: 'error' });
       return;
     }
 
@@ -331,7 +331,7 @@ const BookmarksUI = (() => {
   }
 
   async function deleteBookmark(id) {
-    if (confirm(I18n.t('deleteBookmarkConfirm'))) {
+    if (await TabyarUI.confirm(I18n.t('deleteBookmarkConfirm'), { danger: true })) {
       await Storage.deleteBookmark(id);
       render();
     }

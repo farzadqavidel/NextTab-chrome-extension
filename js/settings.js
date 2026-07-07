@@ -420,12 +420,12 @@ const SettingsUI = (() => {
   async function saveSecondLocationSettings() {
     const selected = settingsLocation2Picker?.getSelected();
     if (!selected) {
-      alert(I18n.t('selectFromSuggestions'));
+      TabyarUI.alert(I18n.t('selectFromSuggestions'), { type: 'warning' });
       return;
     }
 
     await WeatherUI.applySecondLocation(selected);
-    alert(I18n.t('secondLocationSaved'));
+    TabyarUI.alert(I18n.t('secondLocationSaved'), { type: 'success' });
   }
 
   async function clearSecondLocationSettings() {
@@ -454,13 +454,13 @@ const SettingsUI = (() => {
 
     const selected = settingsLocationPicker?.getSelected();
     if (!selected) {
-      alert(I18n.t('selectFromSuggestions'));
+      TabyarUI.alert(I18n.t('selectFromSuggestions'), { type: 'warning' });
       return;
     }
 
     await WeatherUI.applyLocation(selected);
     updateCalendarTypeHint();
-    alert(I18n.t('locationSaved'));
+    TabyarUI.alert(I18n.t('locationSaved'), { type: 'success' });
   }
 
   function setupGoogleServicesControls() {
@@ -671,7 +671,7 @@ const SettingsUI = (() => {
   async function applyBgFromUrl() {
     const url = document.getElementById('bg-image-url').value.trim();
     if (!url) {
-      alert(I18n.t('invalidImageUrl'));
+      TabyarUI.alert(I18n.t('invalidImageUrl'), { type: 'error' });
       return;
     }
     await Storage.updateSettings({ bgImage: url, bgType: 'image' });
@@ -711,9 +711,9 @@ const SettingsUI = (() => {
           BookmarksUI.render();
           CalendarUI.refresh();
           NotesUI.render();
-          alert(I18n.t('importDataSuccess'));
+          TabyarUI.alert(I18n.t('importDataSuccess'), { type: 'success' });
         } catch {
-          alert(I18n.t('invalidFile'));
+          TabyarUI.alert(I18n.t('invalidFile'), { type: 'error' });
         }
         e.target.value = '';
       };
@@ -721,7 +721,7 @@ const SettingsUI = (() => {
     });
 
     document.getElementById('btn-reset-data').addEventListener('click', async () => {
-      if (confirm(I18n.t('resetConfirm'))) {
+      if (await TabyarUI.confirm(I18n.t('resetConfirm'), { danger: true })) {
         await Storage.resetAll();
         await applyAll();
         I18n.applyDom();
@@ -737,7 +737,7 @@ const SettingsUI = (() => {
   }
 
   async function importChromeBookmarks() {
-    if (!confirm(I18n.t('importChromeConfirm'))) return;
+    if (!(await TabyarUI.confirm(I18n.t('importChromeConfirm')))) return;
 
     try {
       const tree = await new Promise((resolve, reject) => {
@@ -748,10 +748,10 @@ const SettingsUI = (() => {
       });
       await Storage.importBookmarkTree(tree);
       BookmarksUI.render();
-      alert(I18n.t('importSuccess'));
+      TabyarUI.alert(I18n.t('importSuccess'), { type: 'success' });
     } catch (err) {
       console.error('Tabyar: bookmark import failed', err);
-      alert(I18n.t('importFailed'));
+      TabyarUI.alert(I18n.t('importFailed'), { type: 'error' });
     }
   }
 
