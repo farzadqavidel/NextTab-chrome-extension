@@ -525,6 +525,28 @@
     <button data-action="delete" data-i18n="delete">حذف</button>
   </div>
 
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay hidden" id="modal-confirm">
+    <div class="modal modal-confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div class="confirm-icon confirm-icon-info" id="confirm-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </div>
+      <h2 class="confirm-title" id="confirm-title">تأیید</h2>
+      <div class="confirm-message" id="confirm-message"></div>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" id="confirm-cancel">انصراف</button>
+        <button type="button" class="btn-primary" id="confirm-ok">تأیید</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
   <script src="js/jalali.js"></script>
   <script src="js/hijri.js"></script>
   <script src="js/events.js"></script>
@@ -532,6 +554,7 @@
   <script src="js/locale.js"></script>
   <script src="js/region.js"></script>
   <script src="js/i18n.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/location-picker.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/weather.js"></script>

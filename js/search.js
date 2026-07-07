@@ -16,9 +16,9 @@ const SearchUI = (() => {
     els.input.addEventListener('contextmenu', showContextMenu);
 
     els.ctxMenu.querySelectorAll('button').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        handleContextAction(btn.dataset.action);
+        await handleContextAction(btn.dataset.action);
         hideContextMenu();
       });
     });
@@ -116,15 +116,16 @@ const SearchUI = (() => {
     els.ctxMenu.classList.add('hidden');
   }
 
-  function handleContextAction(action) {
+  async function handleContextAction(action) {
     if (action === 'show-history') {
       showPanel();
       els.input.focus();
       return;
     }
     if (action === 'clear-history') {
-      if (confirm(I18n.t('clearSearchHistoryConfirm'))) {
-        Storage.clearSearchHistory().then(renderList);
+      if (await TabyarUI.confirm(I18n.t('clearSearchHistoryConfirm'), { danger: true })) {
+        await Storage.clearSearchHistory();
+        renderList();
       }
     }
   }

@@ -20,6 +20,7 @@ window.TabyarPerf = (() => {
 document.addEventListener('DOMContentLoaded', async () => {
   await Storage.load();
   I18n.init();
+  TabyarUI.init();
   SettingsUI.applyQuick();
   TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
   document.getElementById('dashboard').classList.add('loaded');
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   } else {
     voiceBtn.addEventListener('click', () => {
-      alert(I18n.t('voiceNotSupported'));
+      TabyarUI.alert(I18n.t('voiceNotSupported'), { type: 'warning' });
     });
   }
 });
@@ -159,7 +160,7 @@ async function showOnboardingFlow() {
 
       const selected = onboardingPicker.getSelected();
       if (!selected) {
-        alert(I18n.t('selectFromSuggestions'));
+        TabyarUI.alert(I18n.t('selectFromSuggestions'), { type: 'warning' });
         return;
       }
 
