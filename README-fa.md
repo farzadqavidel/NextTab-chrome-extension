@@ -2,7 +2,7 @@
 
 **صفحه New Tab شخصی شما — تقویم، بوکمارک، آب‌وهوا، یادداشت، سرویس‌های گوگل و تم، همه در یک صفحه زیبا.**
 
-[![نسخه](https://img.shields.io/badge/نسخه-1.4.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
+[![نسخه](https://img.shields.io/badge/نسخه-1.5.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
 [![Chrome](https://img.shields.io/badge/افزونه_کروم-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 
 [English README](./README.md)
@@ -10,12 +10,12 @@
 ---
 
 <p align="center">
-  <img src="Picture/Tabyar.png" alt="صفحه New Tab تب‌یار" width="820"/>
+  <img src="Picture/Tabyar.webp" alt="صفحه New Tab تب‌یار" width="820"/>
 </p>
 
 <p align="center"><em>نمای کلی داشبورد Tabyar</em></p>
 
----
+
 
 ## معرفی
 
@@ -23,9 +23,7 @@
 
 این افزونه **تقویم منطقه‌ای** (شمسی، قمری یا میلادی)، **بوکمارک‌ها**، **جستجوی گوگل**، **آب‌وهوا**، **یادداشت‌ها**، **دسترسی سریع به سرویس‌های گوگل** و **تنظیمات ظاهری** را در یک صفحه جمع کرده و همه داده‌ها را **به‌صورت محلی** در مرورگر شما ذخیره می‌کند.
 
-> **نسخه فعلی:** `1.4.0`
 
----
 
 ## با چه زبان‌هایی نوشته شده؟
 
@@ -37,7 +35,7 @@
 | آب‌وهوا | [Open-Meteo API](https://open-meteo.com/) |
 | فونت | [Vazirmatn](https://fonts.google.com/) از Google Fonts |
 
----
+
 
 ## امکانات
 
@@ -69,7 +67,8 @@
 
 ### سرویس‌های گوگل
 - دسترسی سریع به **جیمیل، درایو، نقشه، یوتیوب، ترجمه، تقویم و عکس**
-- نمایش/مخفی کردن پنل و انتخاب سرویس‌های دلخواه
+- به‌صورت **قرص آیکون‌های کوچک کنار نوار جستجو** — بدون اشغال فضای اضافه صفحه
+- نمایش/مخفی کردن و انتخاب سرویس‌های دلخواه
 - قابل تنظیم در تنظیمات → عمومی
 
 ### یادداشت‌ها
@@ -87,7 +86,7 @@
 - بازنشانی به حالت اولیه
 
 <p align="center">
-  <img src="Picture/setting.png" alt="تنظیمات Tabyar" width="620"/>
+  <img src="Picture/setting.webp" alt="تنظیمات Tabyar" width="620"/>
 </p>
 
 <p align="center"><em>پنجره تنظیمات — محل زندگی، تم و سرویس‌های گوگل</em></p>
@@ -97,12 +96,12 @@
 - **پیام خوش‌آمدگویی** — نکات مهم درباره محل نصب افزونه و پشتیبان‌گیری
 
 <p align="center">
-  <img src="Picture/backup.png" alt="پشتیبان‌گیری Tabyar" width="620"/>
+  <img src="Picture/backup.webp" alt="پشتیبان‌گیری Tabyar" width="620"/>
 </p>
 
 <p align="center"><em>بخش ذخیره — خروجی، ورود و ایمپورت بوکمارک کروم</em></p>
 
----
+
 
 ## نصب
 
@@ -111,13 +110,13 @@
 **روش اول — Clone با Git**
 
 ```bash
-git clone https://github.com/farzadqavidel/Chrome-Extention.git
+git clone https://github.com/farzadqavidel/tabyar-chrome-extension.git
 cd Chrome-Extention
 ```
 
 **روش دوم — دانلود ZIP**
 
-1. به [github.com/farzadqavidel/Chrome-Extention](https://github.com/farzadqavidel/Chrome-Extention) بروید
+1. به [Chrome-Extention](https://github.com/farzadqavidel/tabyar-chrome-extension.git) بروید
 2. **Code → Download ZIP** را بزنید
 3. فایل را Extract کنید
 
@@ -206,7 +205,7 @@ Chrome-Extention/
 └── README-fa.md
 ```
 
----
+
 
 ## دسترسی‌ها (Permissions)
 
@@ -221,7 +220,7 @@ Chrome-Extention/
 
 داده‌های شخصی شما به سرور شخص ثالث ارسال نمی‌شود — فقط درخواست آب‌وهوا، ژئوکدینگ و دانلود والپیپری که خودتان انتخاب می‌کنید.
 
----
+
 
 ## توسعه
 
@@ -230,7 +229,7 @@ Chrome-Extention/
 3. روی **Reload** افزونه Tabyar کلیک کنید
 4. یک New Tab باز کنید
 
----
+
 
 ## نکات
 
@@ -239,16 +238,3 @@ Chrome-Extention/
 - نوع تقویم از روی کشور شما تشخیص داده می‌شود؛ با تغییر محل زندگی در تنظیمات قابل تغییر است
 - برای تجربه پیش‌فرض تمیز، از **بازنشانی همه داده‌ها** در تنظیمات استفاده کنید
 
----
-
-## توسعه‌دهنده
-
-[farzadqavidel](https://github.com/farzadqavidel)
-
-اگر Tabyar برایتان مفید بود، ستاره (Star) دادن به مخزن GitHub خیلی کمک می‌کند.
-
----
-
-<p align="center">
-  <strong>Tabyar</strong> · نسخه 1.4.0 · ساخته شده با دقت برای یک New Tab بهتر
-</p>
