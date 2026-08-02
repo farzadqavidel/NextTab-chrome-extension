@@ -4,17 +4,21 @@ const SettingsUI = (() => {
       nameKey: 'themeMidnight',
       accent: '#6366f1',
       dark: {
-        '--bg-card': 'rgba(15, 30, 60, 0.55)',
-        '--bg-card-hover': 'rgba(20, 40, 80, 0.65)',
-        '--text-primary': '#f1f5f9',
-        '--text-secondary': '#94a3b8',
+        '--bg-card': 'rgba(17, 25, 52, 0.5)',
+        '--bg-card-hover': 'rgba(26, 38, 74, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#eef2ff',
+        '--text-secondary': 'rgba(199, 210, 254, 0.6)',
         '--accent': '#6366f1',
         '--accent-hover': '#818cf8',
-        '--border': 'rgba(148, 163, 184, 0.15)',
-        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
-        '--search-bg': 'rgba(15, 30, 60, 0.6)',
+        '--border': 'rgba(148, 163, 184, 0.16)',
+        '--search-bg': 'rgba(13, 20, 45, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(12, 17, 36, 0.9)',
         '--cal-today': '#6366f1',
-        '--cal-friday': '#f87171'
+        '--cal-friday': '#fb7185',
+        '--cal-holiday': '#fb7185'
       },
       light: {
         '--bg-card': '#ffffff',
@@ -38,17 +42,21 @@ const SettingsUI = (() => {
       nameKey: 'themeOcean',
       accent: '#06b6d4',
       dark: {
-        '--bg-card': 'rgba(8, 47, 73, 0.55)',
-        '--bg-card-hover': 'rgba(12, 74, 110, 0.65)',
+        '--bg-card': 'rgba(7, 38, 58, 0.5)',
+        '--bg-card-hover': 'rgba(10, 52, 78, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
         '--text-primary': '#ecfeff',
-        '--text-secondary': '#a5f3fc',
+        '--text-secondary': 'rgba(165, 243, 252, 0.55)',
         '--accent': '#06b6d4',
         '--accent-hover': '#22d3ee',
-        '--border': 'rgba(165, 243, 252, 0.15)',
-        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
-        '--search-bg': 'rgba(8, 47, 73, 0.6)',
+        '--border': 'rgba(125, 211, 252, 0.15)',
+        '--search-bg': 'rgba(6, 32, 50, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(7, 26, 40, 0.9)',
         '--cal-today': '#06b6d4',
-        '--cal-friday': '#fb7185'
+        '--cal-friday': '#fb7185',
+        '--cal-holiday': '#fb7185'
       },
       light: {
         '--bg-card': '#ffffff',
@@ -72,17 +80,21 @@ const SettingsUI = (() => {
       nameKey: 'themeForest',
       accent: '#22c55e',
       dark: {
-        '--bg-card': 'rgba(5, 46, 22, 0.55)',
-        '--bg-card-hover': 'rgba(20, 83, 45, 0.65)',
+        '--bg-card': 'rgba(6, 40, 26, 0.48)',
+        '--bg-card-hover': 'rgba(10, 56, 36, 0.58)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
         '--text-primary': '#ecfdf5',
-        '--text-secondary': '#86efac',
+        '--text-secondary': 'rgba(167, 243, 208, 0.5)',
         '--accent': '#22c55e',
         '--accent-hover': '#4ade80',
         '--border': 'rgba(134, 239, 172, 0.15)',
-        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
-        '--search-bg': 'rgba(5, 46, 22, 0.6)',
+        '--search-bg': 'rgba(5, 34, 20, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(8, 30, 20, 0.9)',
         '--cal-today': '#22c55e',
-        '--cal-friday': '#fbbf24'
+        '--cal-friday': '#fbbf24',
+        '--cal-holiday': '#fbbf24'
       },
       light: {
         '--bg-card': '#ffffff',
@@ -106,17 +118,21 @@ const SettingsUI = (() => {
       nameKey: 'themeLavender',
       accent: '#a78bfa',
       dark: {
-        '--bg-card': 'rgba(46, 16, 101, 0.55)',
-        '--bg-card-hover': 'rgba(76, 29, 149, 0.65)',
-        '--text-primary': '#faf5ff',
-        '--text-secondary': '#c4b5fd',
+        '--bg-card': 'rgba(38, 22, 70, 0.5)',
+        '--bg-card-hover': 'rgba(54, 34, 96, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#f5f3ff',
+        '--text-secondary': 'rgba(196, 181, 253, 0.55)',
         '--accent': '#a78bfa',
         '--accent-hover': '#c4b5fd',
-        '--border': 'rgba(196, 181, 253, 0.15)',
-        '--shadow': '0 8px 32px rgba(0,0,0,0.25)',
-        '--search-bg': 'rgba(46, 16, 101, 0.6)',
+        '--border': 'rgba(196, 181, 253, 0.16)',
+        '--search-bg': 'rgba(32, 18, 60, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(26, 16, 52, 0.9)',
         '--cal-today': '#a78bfa',
-        '--cal-friday': '#f472b6'
+        '--cal-friday': '#f472b6',
+        '--cal-holiday': '#f472b6'
       },
       light: {
         '--bg-card': '#ffffff',
@@ -140,21 +156,21 @@ const SettingsUI = (() => {
       nameKey: 'themeGlass',
       accent: '#38bdf8',
       dark: {
-        '--bg-card': 'rgba(255, 255, 255, 0.1)',
-        '--bg-card-hover': 'rgba(255, 255, 255, 0.16)',
-        '--surface-muted': 'rgba(255, 255, 255, 0.07)',
+        '--bg-card': 'rgba(255, 255, 255, 0.075)',
+        '--bg-card-hover': 'rgba(255, 255, 255, 0.13)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.06)',
         '--text-primary': '#f8fafc',
-        '--text-secondary': 'rgba(248, 250, 252, 0.7)',
+        '--text-secondary': 'rgba(226, 232, 240, 0.66)',
         '--accent': '#38bdf8',
         '--accent-hover': '#7dd3fc',
-        '--border': 'rgba(255, 255, 255, 0.2)',
-        '--shadow': '0 8px 32px rgba(0, 0, 0, 0.22)',
-        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.32)',
-        '--search-bg': 'rgba(255, 255, 255, 0.12)',
+        '--border': 'rgba(255, 255, 255, 0.14)',
+        '--search-bg': 'rgba(255, 255, 255, 0.08)',
         '--cal-today': '#38bdf8',
         '--cal-friday': '#fb7185',
-        '--tile-bg': 'rgba(255, 255, 255, 0.12)',
-        '--input-bg': 'rgba(255, 255, 255, 0.1)'
+        '--cal-holiday': '#fb7185',
+        '--tile-bg': 'rgba(255, 255, 255, 0.08)',
+        '--input-bg': 'rgba(255, 255, 255, 0.07)',
+        '--panel-bg': 'rgba(13, 19, 32, 0.82)'
       },
       light: {
         '--bg-card': 'rgba(255, 255, 255, 0.48)',
@@ -177,13 +193,13 @@ const SettingsUI = (() => {
   };
 
   const GRADIENTS = {
-    midnight: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-    ocean: 'linear-gradient(135deg, #0c4a6e 0%, #164e63 50%, #0e7490 100%)',
-    aurora: 'linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #0e7490 100%)',
-    sunset: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #9a3412 100%)',
-    forest: 'linear-gradient(135deg, #052e16 0%, #14532d 50%, #166534 100%)',
-    lavender: 'linear-gradient(135deg, #2e1065 0%, #4c1d95 50%, #6b21a8 100%)',
-    night: 'linear-gradient(180deg, #020617 0%, #0f172a 40%, #1e293b 100%)'
+    midnight: 'radial-gradient(ellipse 120% 100% at 20% 0%, rgba(99, 102, 241, 0.32), transparent 55%), radial-gradient(ellipse 100% 90% at 80% 100%, rgba(49, 46, 129, 0.55), transparent 60%), linear-gradient(160deg, #0b1030 0%, #131a44 55%, #0a0e26 100%)',
+    ocean: 'radial-gradient(ellipse 120% 100% at 80% 0%, rgba(34, 211, 238, 0.2), transparent 55%), radial-gradient(ellipse 110% 90% at 15% 100%, rgba(8, 145, 178, 0.25), transparent 60%), linear-gradient(165deg, #041e2e 0%, #083344 55%, #052434 100%)',
+    aurora: 'radial-gradient(ellipse 100% 80% at 10% 10%, rgba(167, 139, 250, 0.28), transparent 55%), radial-gradient(ellipse 110% 90% at 90% 20%, rgba(45, 212, 191, 0.18), transparent 55%), radial-gradient(ellipse 120% 100% at 50% 110%, rgba(99, 102, 241, 0.22), transparent 60%), linear-gradient(180deg, #0d0a26 0%, #151032 60%, #0b1626 100%)',
+    sunset: 'radial-gradient(ellipse 110% 90% at 80% 0%, rgba(251, 113, 133, 0.2), transparent 55%), radial-gradient(ellipse 120% 100% at 15% 100%, rgba(249, 115, 22, 0.2), transparent 55%), linear-gradient(160deg, #2a0a12 0%, #431407 60%, #1c0a06 100%)',
+    forest: 'radial-gradient(ellipse 120% 100% at 20% 0%, rgba(52, 211, 153, 0.16), transparent 55%), radial-gradient(ellipse 100% 90% at 85% 100%, rgba(21, 128, 61, 0.22), transparent 60%), linear-gradient(165deg, #04150d 0%, #0a2b1c 55%, #04150d 100%)',
+    lavender: 'radial-gradient(ellipse 120% 100% at 20% 0%, rgba(167, 139, 250, 0.24), transparent 55%), radial-gradient(ellipse 100% 90% at 85% 100%, rgba(217, 70, 239, 0.14), transparent 55%), linear-gradient(160deg, #170b33 0%, #2b1555 55%, #150a2e 100%)',
+    night: 'radial-gradient(ellipse 120% 90% at 15% 0%, rgba(99, 102, 241, 0.16), transparent 55%), radial-gradient(ellipse 100% 80% at 85% 100%, rgba(56, 189, 248, 0.10), transparent 55%), linear-gradient(180deg, #05070f 0%, #0a0f1e 45%, #101527 100%)'
   };
 
   const WALLPAPERS = {
@@ -235,10 +251,12 @@ const SettingsUI = (() => {
   };
 
   const BASE_DARK_VARS = {
-    '--surface-muted': 'rgba(255, 255, 255, 0.07)',
-    '--tile-bg': 'rgba(255, 255, 255, 0.12)',
-    '--input-bg': 'rgba(255, 255, 255, 0.1)',
-    '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.32)'
+    '--surface-muted': 'rgba(255, 255, 255, 0.06)',
+    '--tile-bg': 'rgba(255, 255, 255, 0.07)',
+    '--input-bg': 'rgba(255, 255, 255, 0.07)',
+    '--panel-bg': 'rgba(13, 19, 32, 0.9)',
+    '--shadow': '0 1px 2px rgba(2, 6, 23, 0.25), 0 12px 32px -8px rgba(2, 6, 23, 0.45)',
+    '--shadow-hover': '0 2px 4px rgba(2, 6, 23, 0.3), 0 20px 48px -12px rgba(2, 6, 23, 0.55)'
   };
 
   let settingsPanelsRendered = false;

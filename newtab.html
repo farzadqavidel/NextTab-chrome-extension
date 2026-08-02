@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="icons/icon48.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/critical.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -32,162 +32,165 @@
   <div class="page-shell">
     <div class="dashboard" id="dashboard">
 
-      <!-- Left Column -->
-      <aside class="col-left">
-        <div class="card day-info-card">
-          <div class="day-info-top">
-            <div class="locations-strip">
-              <div class="location-unit">
-                <div class="weather-block">
-                  <button type="button" class="weather-widget" id="weather-widget" data-weather-slot="primary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
-                    <span class="weather-icon" id="weather-icon" aria-hidden="true">🌡️</span>
-                    <span class="weather-temp" id="weather-temp">—°</span>
-                    <span class="weather-desc" id="weather-desc">...</span>
-                  </button>
-                </div>
-                <div class="day-info-meta">
-                  <span id="day-clock" class="day-clock">۰۰:۰۰</span>
-                  <span id="day-date" class="day-date"></span>
-                  <span id="day-weekday" class="day-weekday"></span>
-                </div>
-              </div>
-              <div class="location-unit location-unit-secondary hidden" id="location-unit-secondary">
-                <div class="weather-block">
-                  <button type="button" class="weather-widget" id="weather-widget-2" data-weather-slot="secondary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
-                    <span class="weather-icon" id="weather-icon-2" aria-hidden="true">🌡️</span>
-                    <span class="weather-temp" id="weather-temp-2">—°</span>
-                    <span class="weather-desc" id="weather-desc-2">...</span>
-                  </button>
-                </div>
-                <div class="day-info-meta">
-                  <span id="day-clock-2" class="day-clock day-clock-secondary">۰۰:۰۰</span>
-                  <span id="day-location-name-2" class="day-location-name"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="day-events">
-            <h3 class="section-label" data-i18n="occasions">مناسبت‌ها</h3>
-            <ul id="day-events-list" class="day-events-list"></ul>
-          </div>
-        </div>
-
-        <div class="card calendar-card">
-          <div class="calendar-header">
-            <button id="cal-prev" class="cal-nav" data-i18n-aria="calPrev" aria-label="ماه قبل">‹</button>
-            <div class="cal-title">
-              <span id="cal-month-name"></span>
-              <span id="cal-year"></span>
-            </div>
-            <button id="cal-next" class="cal-nav" data-i18n-aria="calNext" aria-label="ماه بعد">›</button>
-          </div>
-          <div class="cal-weekdays">
-            <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span>
-          </div>
-          <div class="cal-days" id="cal-days"></div>
-          <div class="cal-other-dates" id="cal-other-dates"></div>
-          <button id="cal-go-today" class="cal-today-btn" data-i18n="calGoToday">برو به امروز</button>
-        </div>
-      </aside>
-
-      <!-- Center Column -->
-      <main class="col-center">
-        <div class="search-wrapper">
-          <form id="search-form" class="search-form" action="https://www.google.com/search" method="GET" target="_self">
-            <div class="search-box">
-              <button type="submit" class="search-google-btn" data-i18n-aria="searchGoogle" aria-label="جستجو در گوگل">
-                <svg viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-              </button>
-              <input type="text" name="q" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجو در گوگل..." autocomplete="off">
-              <div class="search-actions">
-                <button type="button" id="btn-search-image" class="search-action-btn" data-i18n-aria="searchImage" aria-label="جستجوی تصویر">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                    <circle cx="12" cy="13" r="4"/>
-                  </svg>
-                </button>
-                <button type="button" id="btn-search-voice" class="search-action-btn" data-i18n-aria="searchVoice" aria-label="جستجوی صوتی">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </form>
-          <div id="search-history" class="search-history hidden">
-            <ul id="search-history-list" class="search-history-list"></ul>
-          </div>
-          <input type="file" id="search-image-input" accept="image/*" capture="environment" class="hidden">
-        </div>
-
-        <section class="card google-services-card">
-          <h3 class="section-label google-services-title" data-i18n="googleServices">سرویس‌های گوگل</h3>
-          <div class="google-services-grid" id="google-services-grid"></div>
-        </section>
-
-        <section class="card bookmarks-card">
-          <div class="bookmarks-header">
-            <button id="btn-bm-back" class="bm-back-btn hidden" type="button" data-i18n-aria="back" aria-label="بازگشت">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
-              </svg>
-              <span id="bm-back-label" data-i18n="back">بازگشت</span>
-            </button>
-          </div>
-          <div class="bookmarks-body">
-            <div class="bookmarks-grid" id="bookmarks-grid"></div>
-          </div>
-        </section>
-      </main>
-
-      <!-- Right Column: Notes -->
-      <aside class="col-right">
-        <div class="card notes-card" id="notes-card">
-          <div class="notes-header">
-            <h3 class="notes-title" id="notes-title">یادداشت</h3>
-            <div class="notes-toolbar">
-              <button id="btn-notes-trash" class="toolbar-btn" data-i18n-title="notesTrash" title="سطل زباله" data-i18n-aria="notesTrash" aria-label="سطل زباله">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                  <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
-                </svg>
-                <span class="trash-badge hidden"></span>
-              </button>
-              <button id="btn-notes-expand" class="toolbar-btn" data-i18n-title="expandNotes" title="نمایش بزرگ‌تر" data-i18n-aria="expandNotes" aria-label="نمایش بزرگ‌تر">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
-                </svg>
-              </button>
-              <button id="btn-notes-blur" class="toolbar-btn" data-i18n-title="hideNotes" title="مخفی کردن یادداشت‌ها" data-i18n-aria="hideNotes" aria-label="مخفی کردن">
-              <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg class="icon-hide hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
+      <!-- Bento: Top row (search + Google services pill) -->
+      <div class="top-row">
+      <div class="search-wrapper">
+        <form id="search-form" class="search-form" action="https://www.google.com/search" method="GET" target="_self">
+          <div class="search-box">
+            <button type="submit" class="search-google-btn" data-i18n-aria="searchGoogle" aria-label="جستجو در گوگل">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
             </button>
+            <input type="text" name="q" id="search-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجو در گوگل..." autocomplete="off">
+            <div class="search-actions">
+              <button type="button" id="btn-search-image" class="search-action-btn" data-i18n-aria="searchImage" aria-label="جستجوی تصویر">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </button>
+              <button type="button" id="btn-search-voice" class="search-action-btn" data-i18n-aria="searchVoice" aria-label="جستجوی صوتی">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </button>
             </div>
           </div>
-          <div class="notes-content" id="notes-content">
-            <div class="notes-list" id="notes-list"></div>
-          </div>
-          <form id="form-note" class="note-form">
-            <input type="text" id="note-input" data-i18n-placeholder="notePlaceholder" placeholder="نوشتن یادداشت جدید..." autocomplete="off">
-            <button type="submit" class="note-add-btn" data-i18n-aria="addNote" aria-label="افزودن یادداشت">+</button>
-          </form>
+        </form>
+        <div id="search-history" class="search-history hidden">
+          <ul id="search-history-list" class="search-history-list"></ul>
         </div>
-      </aside>
+        <input type="file" id="search-image-input" accept="image/*" capture="environment" class="hidden">
+      </div>
+
+      <!-- Bento: Google services pill -->
+      <section class="card google-services-card">
+        <h3 class="section-label google-services-title" data-i18n="googleServices">سرویس‌های گوگل</h3>
+        <div class="google-services-grid" id="google-services-grid"></div>
+      </section>
+      </div>
+
+      <!-- Bento: Day info (clock, weather, events) -->
+      <div class="card day-info-card">
+        <div class="day-info-top">
+          <div class="locations-strip">
+            <div class="location-unit">
+              <div class="weather-block">
+                <button type="button" class="weather-widget" id="weather-widget" data-weather-slot="primary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
+                  <span class="weather-icon" id="weather-icon" aria-hidden="true">🌡️</span>
+                  <span class="weather-temp" id="weather-temp">—°</span>
+                  <span class="weather-desc" id="weather-desc">...</span>
+                </button>
+              </div>
+              <div class="day-info-meta">
+                <span id="day-clock" class="day-clock">۰۰:۰۰</span>
+                <span id="day-date" class="day-date"></span>
+                <span id="day-weekday" class="day-weekday"></span>
+              </div>
+            </div>
+            <div class="location-unit location-unit-secondary hidden" id="location-unit-secondary">
+              <div class="weather-block">
+                <button type="button" class="weather-widget" id="weather-widget-2" data-weather-slot="secondary" data-i18n-title="weatherClick" title="کلیک برای پیش‌بینی">
+                  <span class="weather-icon" id="weather-icon-2" aria-hidden="true">🌡️</span>
+                  <span class="weather-temp" id="weather-temp-2">—°</span>
+                  <span class="weather-desc" id="weather-desc-2">...</span>
+                </button>
+              </div>
+              <div class="day-info-meta">
+                <span id="day-clock-2" class="day-clock day-clock-secondary">۰۰:۰۰</span>
+                <span id="day-location-name-2" class="day-location-name"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="day-events">
+          <h3 class="section-label" data-i18n="occasions">مناسبت‌ها</h3>
+          <ul id="day-events-list" class="day-events-list"></ul>
+        </div>
+      </div>
+
+      <!-- Bento: Calendar -->
+      <div class="card calendar-card">
+        <div class="calendar-header">
+          <button id="cal-prev" class="cal-nav" data-i18n-aria="calPrev" aria-label="ماه قبل">‹</button>
+          <div class="cal-title">
+            <span id="cal-month-name"></span>
+            <span id="cal-year"></span>
+          </div>
+          <button id="cal-next" class="cal-nav" data-i18n-aria="calNext" aria-label="ماه بعد">›</button>
+        </div>
+        <div class="cal-weekdays">
+          <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span>
+        </div>
+        <div class="cal-days" id="cal-days"></div>
+        <div class="cal-other-dates" id="cal-other-dates"></div>
+        <button id="cal-go-today" class="cal-today-btn" data-i18n="calGoToday">برو به امروز</button>
+      </div>
+
+      <!-- Bento: Bookmarks -->
+      <section class="card bookmarks-card">
+        <div class="bookmarks-header">
+          <button id="btn-bm-back" class="bm-back-btn hidden" type="button" data-i18n-aria="back" aria-label="بازگشت">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+            </svg>
+            <span id="bm-back-label" data-i18n="back">بازگشت</span>
+          </button>
+        </div>
+        <div class="bookmarks-body">
+          <div class="bookmarks-grid" id="bookmarks-grid"></div>
+        </div>
+      </section>
+
+      <!-- Bento: Notes (tall side panel) -->
+      <div class="card notes-card" id="notes-card">
+        <div class="notes-header">
+          <h3 class="notes-title" id="notes-title">یادداشت</h3>
+          <div class="notes-toolbar">
+            <button id="btn-notes-trash" class="toolbar-btn" data-i18n-title="notesTrash" title="سطل زباله" data-i18n-aria="notesTrash" aria-label="سطل زباله">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              <span class="trash-badge hidden"></span>
+            </button>
+            <button id="btn-notes-expand" class="toolbar-btn" data-i18n-title="expandNotes" title="نمایش بزرگ‌تر" data-i18n-aria="expandNotes" aria-label="نمایش بزرگ‌تر">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
+              </svg>
+            </button>
+            <button id="btn-notes-blur" class="toolbar-btn" data-i18n-title="hideNotes" title="مخفی کردن یادداشت‌ها" data-i18n-aria="hideNotes" aria-label="مخفی کردن">
+            <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="icon-hide hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+          </div>
+        </div>
+        <div class="notes-content" id="notes-content">
+          <div class="notes-list" id="notes-list"></div>
+        </div>
+        <form id="form-note" class="note-form">
+          <input type="text" id="note-input" data-i18n-placeholder="notePlaceholder" placeholder="نوشتن یادداشت جدید..." autocomplete="off">
+          <button type="submit" class="note-add-btn" data-i18n-aria="addNote" aria-label="افزودن یادداشت">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+        </form>
+      </div>
 
     </div>
   </div>
