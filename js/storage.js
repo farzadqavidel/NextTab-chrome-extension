@@ -1,6 +1,26 @@
 const Storage = (() => {
-  const VALID_THEMES = new Set(['midnight', 'ocean', 'forest', 'lavender', 'glass']);
-  const VALID_GRADIENTS = new Set(['midnight', 'ocean', 'aurora', 'sunset', 'forest', 'lavender', 'night']);
+  // Fallback lists. The real source of truth is SettingsUI (js/settings.js),
+  // which is queried at runtime so newly added themes never get reset on reload.
+  const FALLBACK_THEMES = ['midnight', 'ocean', 'forest', 'lavender', 'sunset', 'crimson',
+    'amber', 'emerald', 'rose', 'slate', 'coffee', 'cyberpunk', 'glass'];
+  const FALLBACK_GRADIENTS = ['midnight', 'ocean', 'aurora', 'sunset', 'forest', 'lavender',
+    'crimson', 'amber', 'emerald', 'rose', 'slate', 'coffee', 'cyberpunk', 'mono', 'night'];
+
+  function validThemes() {
+    try {
+      const keys = SettingsUI.getThemeKeys();
+      if (Array.isArray(keys) && keys.length) return new Set(keys);
+    } catch (err) { /* SettingsUI not ready yet */ }
+    return new Set(FALLBACK_THEMES);
+  }
+
+  function validGradients() {
+    try {
+      const keys = SettingsUI.getGradientKeys();
+      if (Array.isArray(keys) && keys.length) return new Set(keys);
+    } catch (err) { /* SettingsUI not ready yet */ }
+    return new Set(FALLBACK_GRADIENTS);
+  }
 
   const DEFAULT_DATA = {
     bookmarks: [],
@@ -43,6 +63,8 @@ const Storage = (() => {
       secondLocationLat: null,
       secondLocationLon: null,
       googleServicesVisible: true,
+      topSitesVisible: true,
+      hiddenTopSites: [],
       enabledGoogleServices: ['gmail', 'drive', 'maps', 'youtube', 'translate', 'calendar', 'photos']
     }
   };
@@ -87,12 +109,12 @@ const Storage = (() => {
     if (Array.isArray(data.searchHistory)) merged.searchHistory = data.searchHistory;
     if (data.settings) {
       merged.settings = { ...merged.settings, ...data.settings };
-      if (merged.settings.theme === 'light' || !VALID_THEMES.has(merged.settings.theme)) {
-        merged.settings.theme = 'midnight';
+      if (merged.settings.theme === 'light' || !validThemes().has(merged.settings.theme)) {
+        merged.settings.theme = DEFAULT_DATA.settings.theme;
       }
       merged.settings.colorMode = 'dark';
-      if (!VALID_GRADIENTS.has(merged.settings.bgGradient)) {
-        merged.settings.bgGradient = 'midnight';
+      if (!validGradients().has(merged.settings.bgGradient)) {
+        merged.settings.bgGradient = DEFAULT_DATA.settings.bgGradient || 'midnight';
       }
       if (!['auto', 'lite', 'full'].includes(merged.settings.perfMode)) {
         merged.settings.perfMode = 'auto';
@@ -460,10 +482,52 @@ const Storage = (() => {
     return structuredClone(cache);
   }
 
+  /**
+   * chrome.topSites is read-only, so "removing" an entry means remembering it
+   * in a local block list that the renderer filters against.
+   */
+  function getHiddenTopSites() {
+    const list = getSettings().hiddenTopSites;
+    return Array.isArray(list) ? list : [];
+  }
+
+  /** Normalised key for comparing top sites (scheme/www/trailing slash agnostic). */
+  function topSiteKey(url) {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./, '');
+      const path = u.pathname.replace(/\/$/, '');
+      return (host + path).toLowerCase();
+    } catch {
+      return String(url || '').trim().toLowerCase();
+    }
+  }
+
+  async function hideTopSite(url) {
+    const key = topSiteKey(url);
+    if (!key) return;
+    const hidden = getHiddenTopSites();
+    if (hidden.includes(key)) return;
+    await updateSettings({ hiddenTopSites: [...hidden, key] });
+  }
+
+  async function clearHiddenTopSites() {
+    await updateSettings({ hiddenTopSites: [] });
+  }
+
+  function isTopSiteHidden(url) {
+    return getHiddenTopSites().includes(topSiteKey(url));
+  }
+
   return {
     load,
     save,
     getData,
+    getHiddenTopSites,
+    hideTopSite,
+    clearHiddenTopSites,
+    isTopSiteHidden,
+    topSiteKey,
     getSettings,
     updateSettings,
     getSelectedDay,

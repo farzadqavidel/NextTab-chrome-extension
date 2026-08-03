@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   SettingsUI.init();
   SearchUI.init();
   GoogleServicesUI.init();
+  TopSitesUI.init();
 
   syncStoredLocationLanguage().catch(() => {});
 
@@ -178,6 +179,7 @@ async function showOnboardingFlow() {
       CalendarUI.refresh();
       WeatherUI.init();
       GoogleServicesUI.render();
+      TopSitesUI.render();
       showWelcomeIfNeeded();
       resolve();
     }, { once: true });

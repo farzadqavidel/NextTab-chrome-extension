@@ -1,6 +1,4 @@
 const GoogleServicesUI = (() => {
-  const DEFAULT_FAVICON = 'icons/default-favicon.png';
-
   const SERVICES = [
     { id: 'gmail', url: 'https://mail.google.com', icon: 'mail.google.com', nameKey: 'googleGmail' },
     { id: 'drive', url: 'https://drive.google.com', icon: 'drive.google.com', nameKey: 'googleDrive' },
@@ -43,19 +41,13 @@ const GoogleServicesUI = (() => {
     grid.innerHTML = visibleServices.map((service) => `
       <a href="${service.url}" class="gs-tile" title="${I18n.t(service.nameKey)}">
         <span class="gs-tile-icon">
-          <img src="https://www.google.com/s2/favicons?domain=${service.icon}&sz=64" alt="" loading="lazy" data-default-favicon="${DEFAULT_FAVICON}">
+          ${Favicon.imgHtml('https://' + service.icon, I18n.t(service.nameKey))}
         </span>
         <span class="gs-tile-label">${I18n.t(service.nameKey)}</span>
       </a>
     `).join('');
 
-    grid.querySelectorAll('img').forEach((img) => {
-      img.addEventListener('error', () => {
-        if (img.dataset.fallbackApplied === 'true') return;
-        img.dataset.fallbackApplied = 'true';
-        img.src = DEFAULT_FAVICON;
-      });
-    });
+    Favicon.bindAll(grid, 'img');
   }
 
   function getServices() {

@@ -16,7 +16,6 @@ const BookmarksUI = (() => {
   };
 
   const FOLDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
-  const DEFAULT_FAVICON = 'icons/default-favicon.png';
 
   function init() {
     els.grid = document.getElementById('bookmarks-grid');
@@ -86,6 +85,7 @@ const BookmarksUI = (() => {
         if (!contextTarget) return;
         if (contextTarget.type === 'bookmark') {
           if (action === 'open-new-tab') openBookmarkInNewTab(contextTarget.id);
+          if (action === 'copy-link') copyBookmarkLink(contextTarget.id);
           if (action === 'edit') openBookmarkModal(contextTarget.id);
           if (action === 'delete') deleteBookmark(contextTarget.id);
         } else if (contextTarget.type === 'folder') {
@@ -97,9 +97,67 @@ const BookmarksUI = (() => {
     });
   }
 
+  // Schemes we allow users to bookmark. file:// is included so local pages
+  // like file:///D:/app/index.html can be saved.
+  const SUPPORTED_SCHEMES = ['http://', 'https://', 'file://', 'ftp://', 'chrome://', 'edge://', 'about:'];
+
+  function isSupportedUrl(url) {
+    const value = (url || '').trim().toLowerCase();
+    return SUPPORTED_SCHEMES.some((scheme) => value.startsWith(scheme));
+  }
+
+  function isFileUrl(url) {
+    return /^file:\/\//i.test((url || '').trim());
+  }
+
+  /**
+   * Chrome blocks plain navigation from an extension page to file:// URLs, so
+   * a normal <a href> click silently does nothing. chrome.tabs.create works,
+   * but only when the extension has "Allow access to file URLs" enabled.
+   */
+  function openUrl(url, { newTab = true } = {}) {
+    if (!url) return;
+
+    if (isFileUrl(url) && typeof chrome !== 'undefined' && chrome.tabs?.create) {
+      chrome.tabs.create({ url }, () => {
+        if (chrome.runtime.lastError) {
+          TabyarUI.alert(I18n.t('fileAccessNeeded'), { type: 'warning' });
+        }
+      });
+      return;
+    }
+
+    if (newTab) window.open(url, '_blank');
+    else window.location.href = url;
+  }
+
   function openBookmarkInNewTab(id) {
     const bm = Storage.getData().bookmarks.find((b) => b.id === id);
-    if (bm) window.open(bm.url, '_blank');
+    if (bm) openUrl(bm.url, { newTab: true });
+  }
+
+  async function copyBookmarkLink(id) {
+    const bm = Storage.getData().bookmarks.find((b) => b.id === id);
+    if (!bm) return;
+    try {
+      await navigator.clipboard.writeText(bm.url);
+      TabyarUI.alert(I18n.t('linkCopied'), { type: 'success' });
+    } catch {
+      // Clipboard API can be unavailable; fall back to a temp textarea.
+      const ta = document.createElement('textarea');
+      ta.value = bm.url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        TabyarUI.alert(I18n.t('linkCopied'), { type: 'success' });
+      } catch {
+        TabyarUI.alert(I18n.t('copyFailed'), { type: 'error' });
+      }
+      document.body.removeChild(ta);
+    }
   }
 
   async function deleteFolder(folderId) {
@@ -299,7 +357,7 @@ const BookmarksUI = (() => {
     const url = document.getElementById('bookmark-url').value.trim();
     const folderId = document.getElementById('bookmark-folder').value || 'default';
 
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (!isSupportedUrl(url)) {
       TabyarUI.alert(I18n.t('invalidUrl'), { type: 'error' });
       return;
     }
@@ -337,21 +395,11 @@ const BookmarksUI = (() => {
     }
   }
 
-  function getFaviconUrl(url) {
-    try {
-      const domain = new URL(url).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    } catch {
-      return DEFAULT_FAVICON;
-    }
-  }
-
   function buildBookmarkTileHtml(bm) {
-    const favicon = getFaviconUrl(bm.url);
     return `
       <a href="${escapeHtml(bm.url)}" class="bm-tile bm-tile-link" data-id="${bm.id}" title="${escapeHtml(bm.title)}">
         <div class="bm-tile-icon">
-          <img src="${favicon}" alt="" loading="lazy" data-default-favicon="${DEFAULT_FAVICON}">
+          ${Favicon.imgHtml(bm.url, bm.title)}
         </div>
         <span class="bm-tile-label">${escapeHtml(bm.title)}</span>
       </a>
@@ -395,16 +443,17 @@ const BookmarksUI = (() => {
   }
 
   function bindBookmarkTiles() {
-    els.grid.querySelectorAll('.bm-tile-link img').forEach((img) => {
-      img.addEventListener('error', () => {
-        const defaultSrc = img.dataset.defaultFavicon || DEFAULT_FAVICON;
-        if (img.dataset.fallbackApplied === 'true') return;
-        img.dataset.fallbackApplied = 'true';
-        img.src = defaultSrc;
-      });
-    });
+    Favicon.bindAll(els.grid, '.bm-tile-link img');
 
     els.grid.querySelectorAll('.bm-tile-link').forEach((item) => {
+      // file:// links can't be followed directly from an extension page.
+      item.addEventListener('click', (e) => {
+        const href = item.getAttribute('href');
+        if (!isFileUrl(href)) return;
+        e.preventDefault();
+        openUrl(href, { newTab: false });
+      });
+
       item.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
