@@ -7,7 +7,7 @@
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
-  "permissions": ["storage", "bookmarks", "tabs"],
+  "permissions": ["storage", "bookmarks", "tabs", "topSites"],
   "background": {
     "service_worker": "js/background.js"
   },
