@@ -14,12 +14,6 @@
 <body class="dark-mode glass-theme">
   <div id="background-layer"></div>
 
-  <a id="btn-github" class="github-fab" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-    </svg>
-  </a>
-
   <div class="top-fab-group">
     <button id="btn-settings" class="settings-fab" data-i18n-title="settings" data-i18n-aria="settings" title="تنظیمات" aria-label="تنظیمات">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -34,6 +28,12 @@
 
       <!-- Bento: Top row (search + Google services pill) -->
       <div class="top-row">
+      <!-- Bento: Most visited pill (mirrors Google services on the other side) -->
+      <section class="card top-sites-card hidden">
+        <h3 class="section-label google-services-title" data-i18n="topSites">پربازدیدها</h3>
+        <div class="google-services-grid" id="top-sites-grid"></div>
+      </section>
+
       <div class="search-wrapper">
         <form id="search-form" class="search-form" action="https://www.google.com/search" method="GET" target="_self">
           <div class="search-box">
@@ -259,7 +259,7 @@
         </div>
         <div class="form-group">
           <label for="bookmark-url" data-i18n="url">آدرس (URL)</label>
-          <input type="url" id="bookmark-url" class="field-input" required placeholder="https://example.com">
+          <input type="text" id="bookmark-url" class="field-input" required dir="ltr" placeholder="https://example.com">
         </div>
         <div class="form-group">
           <label for="bookmark-folder" data-i18n="folder">پوشه</label>
@@ -320,6 +320,7 @@
         <button class="settings-tab" data-tab="appearance" data-i18n="tabAppearance">ظاهر</button>
         <button class="settings-tab" data-tab="background" data-i18n="tabBackground">پس‌زمینه</button>
         <button class="settings-tab" data-tab="backup" data-i18n="tabBackup">ذخیره</button>
+        <button class="settings-tab" data-tab="about" data-i18n="tabAbout">درباره ما</button>
       </div>
       <div class="settings-content">
         <div class="settings-panel active" id="panel-general">
@@ -359,6 +360,17 @@
           </label>
           <p class="settings-desc" data-i18n="googleServicesSettings">سرویس‌هایی که می‌خواهید در صفحه نمایش داده شوند را انتخاب کنید.</p>
           <div id="google-services-settings" class="service-toggle-list"></div>
+          <hr class="settings-divider">
+          <h3 data-i18n="topSites">پربازدیدها</h3>
+          <p class="settings-desc" data-i18n="topSitesDesc">پربازدیدترین سایت‌های شما کنار نوار جستجو نمایش داده می‌شود.</p>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-top-sites-visible">
+            <span data-i18n="showTopSites">نمایش سایت‌های پربازدید</span>
+          </label>
+          <div class="backup-actions">
+            <button type="button" id="btn-restore-top-sites" class="btn-soft" data-i18n="restoreTopSites">بازگرداندن سایت‌های حذف‌شده</button>
+          </div>
+          <p class="settings-hint" data-i18n="restoreTopSitesHint">با راست‌کلیک روی هر آیکون می‌توانید آن را از لیست حذف کنید.</p>
         </div>
         <div class="settings-panel" id="panel-appearance">
           <h3 data-i18n="colorTheme">تم رنگی</h3>
@@ -467,6 +479,38 @@
           <hr class="settings-divider">
           <button type="button" id="btn-reset-data" class="btn-danger" data-i18n="resetAll">بازنشانی همه داده‌ها</button>
         </div>
+        <div class="settings-panel" id="panel-about">
+          <div class="about-hero">
+            <img src="icons/icon128.png" alt="Tabyar" class="about-logo">
+            <div class="about-hero-text">
+              <h3 data-i18n="aboutTitle">درباره تبیار</h3>
+              <span class="about-version"><span data-i18n="aboutVersion">نسخه</span> <b id="about-version-number">1.0.0</b></span>
+            </div>
+          </div>
+          <p class="settings-desc" data-i18n="aboutDesc">تبیار یک صفحه تب جدید فارسی، سریع و متن‌باز برای مرورگر کروم است؛ با تقویم شمسی، آب‌وهوا، بوکمارک، یادداشت و کلی امکانات دیگر.</p>
+          <hr class="settings-divider">
+          <h3 data-i18n="aboutRepoTitle">مخزن گیت‌هاب</h3>
+          <div class="about-star-card">
+            <span class="about-star-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26 6.85.72-5.11 4.6 1.44 6.72L12 16.9l-6.08 3.4 1.44-6.72L2.25 8.98l6.85-.72L12 2z"/></svg>
+            </span>
+            <p data-i18n="aboutStar">اگر این افزونه برایتان مفید بود، لطفاً به مخزن ما در گیت‌هاب ستاره ⭐ بدهید. حمایت شما انگیزه‌ی ادامه‌ی توسعه است!</p>
+          </div>
+          <a class="about-repo-link" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span class="about-repo-text">
+              <b>farzadqavidel/tabyar-chrome-extension</b>
+              <small data-i18n="aboutOpenRepo">مشاهده در گیت‌هاب</small>
+            </span>
+          </a>
+          <div class="backup-actions about-actions">
+            <a class="btn-primary about-btn" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer" data-i18n="aboutStarBtn">ستاره دادن به پروژه</a>
+            <a class="btn-soft about-btn" href="https://github.com/farzadqavidel/tabyar-chrome-extension/issues" target="_blank" rel="noopener noreferrer" data-i18n="aboutIssue">گزارش مشکل یا پیشنهاد</a>
+          </div>
+          <hr class="settings-divider">
+          <h3 data-i18n="aboutDeveloper">توسعه‌دهنده</h3>
+          <a class="about-dev-link" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer">@farzadqavidel</a>
+        </div>
       </div>
     </div>
   </div>
@@ -518,8 +562,13 @@
     <button type="button" data-action="clear-history" data-i18n="clearSearchHistory">حذف همه جستجوها</button>
   </div>
 
+  <div class="context-menu hidden" id="top-sites-context-menu">
+    <button type="button" data-action="remove-top-site" data-i18n="removeFromList">حذف از این لیست</button>
+  </div>
+
   <div class="context-menu hidden" id="context-menu">
     <button data-action="open-new-tab" data-i18n="openNewTab" class="ctx-bookmark-only">باز کردن در تب جدید</button>
+    <button data-action="copy-link" data-i18n="copyLinkAddress" class="ctx-bookmark-only">کپی آدرس لینک</button>
     <button data-action="toggle-done" data-i18n="markDone" class="ctx-note-only hidden">تیک زدن</button>
     <button data-action="restore" data-i18n="restoreNote" class="ctx-trash-only hidden">بازیابی</button>
     <button data-action="delete-all-notes" data-i18n="deleteAllNotes" class="ctx-note-only hidden">حذف همه یادداشت‌ها</button>
@@ -554,6 +603,7 @@
   <script src="js/hijri.js"></script>
   <script src="js/events.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/favicon.js"></script>
   <script src="js/locale.js"></script>
   <script src="js/region.js"></script>
   <script src="js/i18n.js"></script>
@@ -565,6 +615,7 @@
   <script src="js/bookmarks.js"></script>
   <script src="js/search.js"></script>
   <script src="js/google-services.js"></script>
+  <script src="js/topsites.js"></script>
   <script src="js/wallpaper.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/app.js"></script>
