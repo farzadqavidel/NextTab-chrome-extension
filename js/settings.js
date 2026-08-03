@@ -152,6 +152,310 @@ const SettingsUI = (() => {
         '--input-bg': '#faf5ff'
       }
     },
+    sunset: {
+      nameKey: 'themeSunset',
+      accent: '#fb7185',
+      dark: {
+        '--bg-card': 'rgba(60, 16, 26, 0.5)',
+        '--bg-card-hover': 'rgba(84, 24, 36, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#fff1f2',
+        '--text-secondary': 'rgba(254, 205, 211, 0.55)',
+        '--accent': '#fb7185',
+        '--accent-hover': '#fda4af',
+        '--border': 'rgba(253, 164, 175, 0.16)',
+        '--search-bg': 'rgba(52, 12, 22, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(42, 10, 18, 0.9)',
+        '--cal-today': '#fb7185',
+        '--cal-friday': '#fbbf24',
+        '--cal-holiday': '#fbbf24'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#fff1f2',
+        '--text-primary': '#881337',
+        '--text-secondary': '#64748b',
+        '--accent': '#f43f5e',
+        '--accent-hover': '#e11d48',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#f43f5e',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#fff1f2'
+      }
+    },
+    crimson: {
+      nameKey: 'themeCrimson',
+      accent: '#ef4444',
+      dark: {
+        '--bg-card': 'rgba(56, 14, 14, 0.5)',
+        '--bg-card-hover': 'rgba(78, 20, 20, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#fef2f2',
+        '--text-secondary': 'rgba(254, 202, 202, 0.55)',
+        '--accent': '#ef4444',
+        '--accent-hover': '#f87171',
+        '--border': 'rgba(252, 165, 165, 0.16)',
+        '--search-bg': 'rgba(48, 12, 12, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(38, 10, 10, 0.9)',
+        '--cal-today': '#ef4444',
+        '--cal-friday': '#fbbf24',
+        '--cal-holiday': '#fbbf24'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#fef2f2',
+        '--text-primary': '#7f1d1d',
+        '--text-secondary': '#64748b',
+        '--accent': '#dc2626',
+        '--accent-hover': '#b91c1c',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#dc2626',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#fef2f2'
+      }
+    },
+    amber: {
+      nameKey: 'themeAmber',
+      accent: '#f59e0b',
+      dark: {
+        '--bg-card': 'rgba(56, 34, 6, 0.5)',
+        '--bg-card-hover': 'rgba(78, 48, 10, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#fffbeb',
+        '--text-secondary': 'rgba(253, 230, 138, 0.55)',
+        '--accent': '#f59e0b',
+        '--accent-hover': '#fbbf24',
+        '--border': 'rgba(252, 211, 77, 0.16)',
+        '--search-bg': 'rgba(48, 30, 6, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(38, 24, 6, 0.9)',
+        '--cal-today': '#f59e0b',
+        '--cal-friday': '#fb7185',
+        '--cal-holiday': '#fb7185'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#fffbeb',
+        '--text-primary': '#78350f',
+        '--text-secondary': '#64748b',
+        '--accent': '#d97706',
+        '--accent-hover': '#b45309',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#d97706',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#fffbeb'
+      }
+    },
+    emerald: {
+      nameKey: 'themeEmerald',
+      accent: '#10b981',
+      dark: {
+        '--bg-card': 'rgba(4, 46, 38, 0.5)',
+        '--bg-card-hover': 'rgba(6, 64, 52, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#ecfdf5',
+        '--text-secondary': 'rgba(167, 243, 208, 0.55)',
+        '--accent': '#10b981',
+        '--accent-hover': '#34d399',
+        '--border': 'rgba(110, 231, 183, 0.16)',
+        '--search-bg': 'rgba(4, 38, 32, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(3, 32, 26, 0.9)',
+        '--cal-today': '#10b981',
+        '--cal-friday': '#fbbf24',
+        '--cal-holiday': '#fbbf24'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#ecfdf5',
+        '--text-primary': '#065f46',
+        '--text-secondary': '#64748b',
+        '--accent': '#059669',
+        '--accent-hover': '#047857',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#059669',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#ecfdf5'
+      }
+    },
+    rose: {
+      nameKey: 'themeRose',
+      accent: '#ec4899',
+      dark: {
+        '--bg-card': 'rgba(58, 12, 40, 0.5)',
+        '--bg-card-hover': 'rgba(80, 18, 56, 0.6)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#fdf2f8',
+        '--text-secondary': 'rgba(251, 207, 232, 0.55)',
+        '--accent': '#ec4899',
+        '--accent-hover': '#f472b6',
+        '--border': 'rgba(249, 168, 212, 0.16)',
+        '--search-bg': 'rgba(50, 10, 34, 0.55)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(40, 8, 28, 0.9)',
+        '--cal-today': '#ec4899',
+        '--cal-friday': '#fbbf24',
+        '--cal-holiday': '#fbbf24'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#fdf2f8',
+        '--text-primary': '#831843',
+        '--text-secondary': '#64748b',
+        '--accent': '#db2777',
+        '--accent-hover': '#be185d',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#db2777',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#fdf2f8'
+      }
+    },
+    slate: {
+      nameKey: 'themeSlate',
+      accent: '#94a3b8',
+      dark: {
+        '--bg-card': 'rgba(24, 30, 42, 0.55)',
+        '--bg-card-hover': 'rgba(34, 42, 58, 0.65)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#f1f5f9',
+        '--text-secondary': 'rgba(203, 213, 225, 0.55)',
+        '--accent': '#94a3b8',
+        '--accent-hover': '#cbd5e1',
+        '--border': 'rgba(148, 163, 184, 0.16)',
+        '--search-bg': 'rgba(20, 26, 36, 0.6)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(16, 21, 30, 0.92)',
+        '--cal-today': '#94a3b8',
+        '--cal-friday': '#f87171',
+        '--cal-holiday': '#f87171'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#f1f5f9',
+        '--text-primary': '#1e293b',
+        '--text-secondary': '#64748b',
+        '--accent': '#475569',
+        '--accent-hover': '#334155',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#475569',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#f1f5f9'
+      }
+    },
+    coffee: {
+      nameKey: 'themeCoffee',
+      accent: '#c08457',
+      dark: {
+        '--bg-card': 'rgba(45, 30, 22, 0.52)',
+        '--bg-card-hover': 'rgba(62, 42, 30, 0.62)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#faf3ec',
+        '--text-secondary': 'rgba(232, 213, 196, 0.55)',
+        '--accent': '#c08457',
+        '--accent-hover': '#d9a377',
+        '--border': 'rgba(192, 132, 87, 0.18)',
+        '--search-bg': 'rgba(38, 25, 18, 0.58)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(30, 20, 14, 0.92)',
+        '--cal-today': '#c08457',
+        '--cal-friday': '#e8a87c',
+        '--cal-holiday': '#e8a87c'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#faf3ec',
+        '--text-primary': '#4a2f1c',
+        '--text-secondary': '#64748b',
+        '--accent': '#a56b3d',
+        '--accent-hover': '#8a5730',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#a56b3d',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#faf3ec'
+      }
+    },
+    cyberpunk: {
+      nameKey: 'themeCyberpunk',
+      accent: '#f0f',
+      dark: {
+        '--bg-card': 'rgba(28, 8, 46, 0.55)',
+        '--bg-card-hover': 'rgba(42, 12, 66, 0.65)',
+        '--surface-muted': 'rgba(255, 255, 255, 0.05)',
+        '--text-primary': '#f5e9ff',
+        '--text-secondary': 'rgba(233, 213, 255, 0.6)',
+        '--accent': '#f0f',
+        '--accent-hover': '#ff6bff',
+        '--border': 'rgba(255, 0, 255, 0.2)',
+        '--search-bg': 'rgba(22, 6, 38, 0.6)',
+        '--tile-bg': 'rgba(255, 255, 255, 0.055)',
+        '--input-bg': 'rgba(255, 255, 255, 0.06)',
+        '--panel-bg': 'rgba(18, 5, 32, 0.92)',
+        '--cal-today': '#f0f',
+        '--cal-friday': '#00f0ff',
+        '--cal-holiday': '#00f0ff'
+      },
+      light: {
+        '--bg-card': '#ffffff',
+        '--bg-card-hover': '#ffffff',
+        '--surface-muted': '#faf5ff',
+        '--text-primary': '#4a044e',
+        '--text-secondary': '#64748b',
+        '--accent': '#c026d3',
+        '--accent-hover': '#a21caf',
+        '--border': 'rgba(0, 0, 0, 0.06)',
+        '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)',
+        '--search-bg': '#ffffff',
+        '--cal-today': '#c026d3',
+        '--cal-friday': '#ef4444',
+        '--tile-bg': '#ffffff',
+        '--input-bg': '#faf5ff'
+      }
+    },
     glass: {
       nameKey: 'themeGlass',
       accent: '#38bdf8',
@@ -199,6 +503,14 @@ const SettingsUI = (() => {
     sunset: 'radial-gradient(ellipse 110% 90% at 80% 0%, rgba(251, 113, 133, 0.2), transparent 55%), radial-gradient(ellipse 120% 100% at 15% 100%, rgba(249, 115, 22, 0.2), transparent 55%), linear-gradient(160deg, #2a0a12 0%, #431407 60%, #1c0a06 100%)',
     forest: 'radial-gradient(ellipse 120% 100% at 20% 0%, rgba(52, 211, 153, 0.16), transparent 55%), radial-gradient(ellipse 100% 90% at 85% 100%, rgba(21, 128, 61, 0.22), transparent 60%), linear-gradient(165deg, #04150d 0%, #0a2b1c 55%, #04150d 100%)',
     lavender: 'radial-gradient(ellipse 120% 100% at 20% 0%, rgba(167, 139, 250, 0.24), transparent 55%), radial-gradient(ellipse 100% 90% at 85% 100%, rgba(217, 70, 239, 0.14), transparent 55%), linear-gradient(160deg, #170b33 0%, #2b1555 55%, #150a2e 100%)',
+    crimson: 'radial-gradient(ellipse 110% 90% at 20% 0%, rgba(239, 68, 68, 0.22), transparent 55%), radial-gradient(ellipse 120% 100% at 85% 100%, rgba(190, 18, 60, 0.22), transparent 60%), linear-gradient(160deg, #240609 0%, #3f0d12 55%, #1a0507 100%)',
+    amber: 'radial-gradient(ellipse 110% 90% at 80% 0%, rgba(245, 158, 11, 0.2), transparent 55%), radial-gradient(ellipse 120% 100% at 15% 100%, rgba(180, 83, 9, 0.22), transparent 60%), linear-gradient(160deg, #201406 0%, #3a2408 55%, #180f04 100%)',
+    emerald: 'radial-gradient(ellipse 110% 90% at 25% 0%, rgba(16, 185, 129, 0.2), transparent 55%), radial-gradient(ellipse 120% 100% at 85% 100%, rgba(5, 150, 105, 0.2), transparent 60%), linear-gradient(165deg, #04231c 0%, #063a2e 55%, #031a15 100%)',
+    rose: 'radial-gradient(ellipse 110% 90% at 20% 0%, rgba(236, 72, 153, 0.22), transparent 55%), radial-gradient(ellipse 120% 100% at 85% 100%, rgba(219, 39, 119, 0.2), transparent 60%), linear-gradient(160deg, #250a1c 0%, #3d0f2c 55%, #1a0714 100%)',
+    slate: 'radial-gradient(ellipse 120% 90% at 15% 0%, rgba(148, 163, 184, 0.14), transparent 55%), radial-gradient(ellipse 100% 80% at 85% 100%, rgba(100, 116, 139, 0.16), transparent 55%), linear-gradient(170deg, #0f141c 0%, #1b2230 55%, #0c1017 100%)',
+    coffee: 'radial-gradient(ellipse 110% 90% at 25% 0%, rgba(192, 132, 87, 0.2), transparent 55%), radial-gradient(ellipse 120% 100% at 85% 100%, rgba(120, 72, 40, 0.24), transparent 60%), linear-gradient(160deg, #1d1310 0%, #33221a 55%, #150e0a 100%)',
+    cyberpunk: 'radial-gradient(ellipse 100% 80% at 10% 10%, rgba(255, 0, 255, 0.24), transparent 55%), radial-gradient(ellipse 110% 90% at 90% 20%, rgba(0, 240, 255, 0.18), transparent 55%), radial-gradient(ellipse 120% 100% at 50% 110%, rgba(124, 58, 237, 0.24), transparent 60%), linear-gradient(180deg, #0b0418 0%, #180a2e 60%, #060312 100%)',
+    mono: 'radial-gradient(ellipse 120% 90% at 20% 0%, rgba(255, 255, 255, 0.07), transparent 55%), linear-gradient(180deg, #0a0a0a 0%, #151515 55%, #050505 100%)',
     night: 'radial-gradient(ellipse 120% 90% at 15% 0%, rgba(99, 102, 241, 0.16), transparent 55%), radial-gradient(ellipse 100% 80% at 85% 100%, rgba(56, 189, 248, 0.10), transparent 55%), linear-gradient(180deg, #05070f 0%, #0a0f1e 45%, #101527 100%)'
   };
 
@@ -277,7 +589,20 @@ const SettingsUI = (() => {
     setupPerfModeControls();
     setupLocationControls();
     setupGoogleServicesControls();
+    setupTopSitesControls();
     setupBackupControls();
+    setupAboutPanel();
+  }
+
+  function setupAboutPanel() {
+    const el = document.getElementById('about-version-number');
+    if (!el) return;
+    try {
+      const manifest = chrome.runtime.getManifest();
+      el.textContent = manifest.version || '';
+    } catch (err) {
+      el.textContent = '';
+    }
   }
 
   function openSettings() {
@@ -487,6 +812,24 @@ const SettingsUI = (() => {
       GoogleServicesUI.render();
       renderGoogleServicesSettings();
     });
+  }
+
+  function setupTopSitesControls() {
+    const toggle = document.getElementById('toggle-top-sites-visible');
+    if (toggle) {
+      toggle.addEventListener('change', async (e) => {
+        await Storage.updateSettings({ topSitesVisible: e.target.checked });
+        TopSitesUI.render();
+      });
+    }
+
+    const restoreBtn = document.getElementById('btn-restore-top-sites');
+    if (restoreBtn) {
+      restoreBtn.addEventListener('click', async () => {
+        await TopSitesUI.restoreAll();
+        TabyarUI.alert(I18n.t('topSitesRestored'), { type: 'success' });
+      });
+    }
   }
 
   function renderGoogleServicesSettings() {
@@ -798,6 +1141,8 @@ const SettingsUI = (() => {
 
     const toggleGs = document.getElementById('toggle-google-services-visible');
     if (toggleGs) toggleGs.checked = s.googleServicesVisible !== false;
+    const toggleTs = document.getElementById('toggle-top-sites-visible');
+    if (toggleTs) toggleTs.checked = s.topSitesVisible !== false;
     renderGoogleServicesSettings();
   }
 
@@ -912,5 +1257,8 @@ const SettingsUI = (() => {
     syncControlsFromSettings();
   }
 
-  return { init, applyQuick, applyAll, applyPerfMode, refreshI18n, refreshLocationLabels, updateLanguageButtons, updatePerfModeButtons, reapplyAppearance };
+  function getThemeKeys() { return Object.keys(THEMES); }
+  function getGradientKeys() { return Object.keys(GRADIENTS); }
+
+  return { init, applyQuick, applyAll, applyPerfMode, refreshI18n, refreshLocationLabels, updateLanguageButtons, updatePerfModeButtons, reapplyAppearance, getThemeKeys, getGradientKeys };
 })();
