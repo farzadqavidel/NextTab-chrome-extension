@@ -2,6 +2,7 @@ const CalendarUI = (() => {
   let viewYear;
   let viewMonth;
   let clockInterval = null;
+  let lastTodayKey = null;
 
   const els = {};
 
@@ -35,6 +36,10 @@ const CalendarUI = (() => {
     return gregorianToPrimary(Storage.getTodayGregorian());
   }
 
+  function dateKey(g) {
+    return `${g.year}-${String(g.month).padStart(2, '0')}-${String(g.day).padStart(2, '0')}`;
+  }
+
   function initViewFromSelected() {
     const selected = gregorianToPrimary(Storage.getSelectedGregorian());
     viewYear = selected.year;
@@ -59,6 +64,7 @@ const CalendarUI = (() => {
     els.weekdays = document.querySelector('.cal-weekdays');
 
     initViewFromSelected();
+    lastTodayKey = dateKey(Storage.getTodayGregorian());
 
     els.prev.addEventListener('click', () => navigate(-1));
     els.next.addEventListener('click', () => navigate(1));
@@ -332,6 +338,24 @@ const CalendarUI = (() => {
   }
 
   function updateClock() {
+    const todayG = Storage.getTodayGregorian();
+    const todayKey = dateKey(todayG);
+
+    // A new-tab page can stay open across midnight. Move both the calendar
+    // view and its selected marker forward instead of leaving yesterday
+    // circled until the page is reloaded.
+    if (lastTodayKey && todayKey !== lastTodayKey) {
+      lastTodayKey = todayKey;
+      const todayP = gregorianToPrimary(todayG);
+      viewYear = todayP.year;
+      viewMonth = todayP.month;
+      Storage.setSelectedGregorian(todayG.year, todayG.month, todayG.day)
+        .then(() => render())
+        .catch(() => render());
+    } else {
+      lastTodayKey = todayKey;
+    }
+
     els.dayClock.textContent = Locale.formatClock(new Date());
     updateSecondaryClock();
   }
@@ -363,6 +387,8 @@ const CalendarUI = (() => {
   }
 
   function refresh() {
+    Storage.syncSelectedDay?.();
+    lastTodayKey = dateKey(Storage.getTodayGregorian());
     initViewFromSelected();
     render();
     updateClock();
