@@ -65,7 +65,10 @@ const Storage = (() => {
       googleServicesVisible: true,
       topSitesVisible: true,
       hiddenTopSites: [],
-      enabledGoogleServices: ['gmail', 'drive', 'maps', 'youtube', 'translate', 'calendar', 'photos']
+      // Bumped when a new service is added so existing profiles receive it
+      // once without re-enabling services they later disable themselves.
+      googleServicesVersion: 2,
+      enabledGoogleServices: ['gmail', 'drive', 'meet', 'maps', 'youtube', 'translate', 'calendar', 'photos']
     }
   };
 
@@ -89,6 +92,11 @@ const Storage = (() => {
         } else {
           cache = structuredClone(DEFAULT_DATA);
         }
+
+        // Keep the persisted calendar marker aligned with the current local
+        // date before the first render. The next save will persist the
+        // migration, but the UI is corrected immediately as well.
+        normalizeSelectedDay();
         resolve(cache);
       });
     });
@@ -109,6 +117,17 @@ const Storage = (() => {
     if (Array.isArray(data.searchHistory)) merged.searchHistory = data.searchHistory;
     if (data.settings) {
       merged.settings = { ...merged.settings, ...data.settings };
+
+      // Add newly introduced Google services to existing profiles exactly once.
+      // This keeps an explicit user choice (including disabling Meet later)
+      // intact on all subsequent loads.
+      const savedGoogleServices = data.settings.enabledGoogleServices;
+      const savedGoogleServicesVersion = Number(data.settings.googleServicesVersion || 0);
+      if (Array.isArray(savedGoogleServices) && savedGoogleServicesVersion < 2) {
+        merged.settings.enabledGoogleServices = [...new Set([...savedGoogleServices, 'meet'])];
+        merged.settings.googleServicesVersion = 2;
+      }
+
       if (merged.settings.theme === 'light' || !validThemes().has(merged.settings.theme)) {
         merged.settings.theme = DEFAULT_DATA.settings.theme;
       }
@@ -144,6 +163,48 @@ const Storage = (() => {
     return cache.settings;
   }
 
+  function dateKey(g) {
+    return [g.year, g.month, g.day]
+      .map((part, index) => String(part).padStart(index === 0 ? 4 : 2, '0'))
+      .join('-');
+  }
+
+  /**
+   * A selected day is useful while browsing, but it must not remain selected
+   * after the calendar rolls into a new day. `selectedOn` records the day on
+   * which the user made the selection, so an intentionally selected past/future
+   * date still survives reloads during that same day.
+   */
+  function normalizeSelectedDay() {
+    if (!cache?.selectedDay) return false;
+
+    const today = getTodayGregorian();
+    const todayKey = dateKey(today);
+    const selected = getSelectedGregorian();
+    const selectedKey = dateKey(selected);
+    const selectedOn = cache.selectedDay.selectedOn;
+
+    if (selectedOn && selectedOn !== todayKey) {
+      cache.selectedDay = { gy: today.year, gm: today.month, gd: today.day, selectedOn: todayKey };
+      return true;
+    }
+
+    // Migrate old saved selections that did not have `selectedOn`. If the old
+    // selection is no longer today's date, it is the stale marker users saw on
+    // the previous day, so move it to today.
+    if (!selectedOn && selectedKey !== todayKey) {
+      cache.selectedDay = { gy: today.year, gm: today.month, gd: today.day, selectedOn: todayKey };
+      return true;
+    }
+
+    if (!selectedOn) {
+      cache.selectedDay.selectedOn = todayKey;
+      return true;
+    }
+
+    return false;
+  }
+
   async function updateSettings(partial) {
     Object.entries(partial).forEach(([key, value]) => {
       if (value !== undefined) cache.settings[key] = value;
@@ -168,17 +229,29 @@ const Storage = (() => {
       );
       return { year: g.year, month: g.month, day: g.day };
     }
-    return Jalali.gregorianToday();
+    return getTodayGregorian();
   }
 
   async function setSelectedDay(year, month, day) {
     const g = Jalali.jalaliToGregorian(year, month, day);
-    cache.selectedDay = { gy: g.year, gm: g.month, gd: g.day };
+    const today = getTodayGregorian();
+    cache.selectedDay = {
+      gy: g.year,
+      gm: g.month,
+      gd: g.day,
+      selectedOn: dateKey(today)
+    };
     await save();
   }
 
   async function setSelectedGregorian(year, month, day) {
-    cache.selectedDay = { gy: year, gm: month, gd: day };
+    const today = getTodayGregorian();
+    cache.selectedDay = {
+      gy: year,
+      gm: month,
+      gd: day,
+      selectedOn: dateKey(today)
+    };
     await save();
   }
 
@@ -187,6 +260,10 @@ const Storage = (() => {
     const iso = Locale.formatDateISO(new Date(), tz);
     const [year, month, day] = iso.split('-').map(Number);
     return { year, month, day };
+  }
+
+  function syncSelectedDay() {
+    return normalizeSelectedDay();
   }
 
   function getBookmarks(folderId) {
@@ -532,6 +609,7 @@ const Storage = (() => {
     updateSettings,
     getSelectedDay,
     getSelectedGregorian,
+    syncSelectedDay,
     setSelectedDay,
     setSelectedGregorian,
     getTodayGregorian,
