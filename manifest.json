@@ -1,13 +1,18 @@
 {
   "manifest_version": 3,
   "name": "Tabyar",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7YB6CITUJrejajqR3+MDO5k0B7kwQ9lcGWCcdxugdklU9jGnnRY8zzrkImSE8qKJYqakzKRBajnU8O7+WDI7vuriuGiNQPOX7aNkNBpOrF2mY7fwv5kA5OF0bSRnq372bCEv8W9mWvKUzsUaMRQ1dbDjEd9rKLPGy1ZhVidbF8/5+At4i9e3Oep2ZgLRikBqadVsrHA2sZOS+9oWgdyVWvYXS4ofNbJKUJrfmTq+1F8hfdVoroaYpngCbQDCOss3z/NZNjH9SyXmrl5AVjlXb/qfOn0ZFVvlob9PMns2CWKudrfZYuaaSm89JlHgi1Ubd4sxLMGvy0DSjYtoirqiwQIDAQAB",
-  "description": "Tabyar — custom New Tab with Jalali calendar, bookmarks, and themes",
+  "description": "Tabyar — Persian-first dashboard, tasks, focus timer and one-click bookmarks",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
-  "permissions": ["storage", "bookmarks", "tabs", "topSites"],
+  "permissions": [
+    "storage",
+    "bookmarks",
+    "tabs",
+    "topSites"
+  ],
   "background": {
     "service_worker": "js/background.js"
   },
@@ -20,5 +25,19 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": [
+        "js/float-bookmark.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
 }

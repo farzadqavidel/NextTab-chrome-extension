@@ -590,6 +590,7 @@ const SettingsUI = (() => {
     setupLocationControls();
     setupGoogleServicesControls();
     setupTopSitesControls();
+    setupExtraControls();
     setupBackupControls();
     setupAboutPanel();
   }
@@ -609,6 +610,7 @@ const SettingsUI = (() => {
     ensureSettingsPanels();
     syncControlsFromSettings();
     renderGoogleServicesSettings();
+    DashboardLayoutUI.renderSettings();
     document.getElementById('modal-settings').classList.remove('hidden');
   }
 
@@ -830,6 +832,25 @@ const SettingsUI = (() => {
         TabyarUI.alert(I18n.t('topSitesRestored'), { type: 'success' });
       });
     }
+  }
+
+  function setupExtraControls() {
+    const floating = document.getElementById('toggle-floating-bookmark');
+    floating?.addEventListener('change', async (event) => {
+      await Storage.updateSettings({ floatingBookmarkButton: event.target.checked });
+    });
+
+    document.querySelectorAll('.digits-style-btn').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const style = button.dataset.digitsStyle;
+        await Storage.updateSettings({ persianDigits: style });
+        document.querySelectorAll('.digits-style-btn').forEach((item) => item.classList.toggle('active', item.dataset.digitsStyle === style));
+        CalendarUI.refresh();
+        TasksUI.render();
+        TasksUI.renderFocus();
+        PersonalEventsUI.render();
+      });
+    });
   }
 
   function renderGoogleServicesSettings() {
@@ -1072,6 +1093,11 @@ const SettingsUI = (() => {
           BookmarksUI.render();
           CalendarUI.refresh();
           NotesUI.render();
+          TasksUI.render();
+          TasksUI.renderFocus();
+          PersonalEventsUI.render();
+          DashboardLayoutUI.apply();
+          DashboardLayoutUI.renderSettings();
           TabyarUI.alert(I18n.t('importDataSuccess'), { type: 'success' });
         } catch {
           TabyarUI.alert(I18n.t('invalidFile'), { type: 'error' });
@@ -1089,15 +1115,79 @@ const SettingsUI = (() => {
         BookmarksUI.render();
         CalendarUI.refresh();
         NotesUI.render();
+        TasksUI.render();
+        TasksUI.renderFocus();
+        PersonalEventsUI.render();
+        DashboardLayoutUI.apply();
         ensureSettingsPanels();
         syncControlsFromSettings();
       }
     });
 
     document.getElementById('btn-import-chrome-bookmarks').addEventListener('click', importChromeBookmarks);
+    setupChromeBookmarkSyncControls();
+  }
+
+  function sendBookmarkSyncMessage(type, extra = {}) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type, ...extra }, (response) => {
+        const error = chrome.runtime.lastError;
+        if (error) reject(new Error(error.message || String(error)));
+        else resolve(response);
+      });
+    });
+  }
+
+  function setupChromeBookmarkSyncControls() {
+    const toggle = document.getElementById('toggle-follow-chrome-bookmarks');
+    const status = document.getElementById('chrome-bookmark-sync-status');
+    const importButton = document.getElementById('btn-import-chrome-bookmarks');
+    if (!toggle) return;
+    toggle.checked = Boolean(Storage.getSettings().followChromeBookmarks);
+    if (importButton) importButton.disabled = toggle.checked;
+
+    toggle.addEventListener('change', async () => {
+      const enable = toggle.checked;
+      toggle.disabled = true;
+      status.textContent = '';
+      try {
+        if (enable) {
+          const confirmed = await TabyarUI.confirm(I18n.t('followChromeConfirm'), { danger: true });
+          if (!confirmed) {
+            toggle.checked = false;
+            return;
+          }
+          const response = await sendBookmarkSyncMessage('TABYAR_ENABLE_CHROME_BOOKMARK_SYNC', { confirmed: true });
+          if (!response?.ok) throw new Error(response?.error || 'sync-enable-failed');
+          await Storage.load();
+          BookmarksUI.render();
+          toggle.checked = true;
+          status.textContent = I18n.t('chromeSyncEnabled');
+          TabyarUI.alert(I18n.t('chromeSyncEnabled'), { type: 'success' });
+        } else {
+          await Storage.updateSettings({ followChromeBookmarks: false });
+          BookmarksUI.render();
+          toggle.checked = false;
+          status.textContent = I18n.t('chromeSyncDisabled');
+          TabyarUI.alert(I18n.t('chromeSyncDisabled'), { type: 'success' });
+        }
+      } catch (error) {
+        console.error('Tabyar: Chrome bookmark sync toggle failed', error);
+        toggle.checked = Boolean(Storage.getSettings().followChromeBookmarks);
+        status.textContent = I18n.t('chromeSyncFailed');
+        TabyarUI.alert(I18n.t('chromeSyncFailed'), { type: 'error' });
+      } finally {
+        toggle.disabled = false;
+        if (importButton) importButton.disabled = Boolean(Storage.getSettings().followChromeBookmarks);
+      }
+    });
   }
 
   async function importChromeBookmarks() {
+    if (Storage.getSettings().followChromeBookmarks) {
+      TabyarUI.alert(I18n.t('chromeSyncImportUnavailable'), { type: 'info' });
+      return;
+    }
     if (!(await TabyarUI.confirm(I18n.t('importChromeConfirm')))) return;
 
     try {
@@ -1124,6 +1214,10 @@ const SettingsUI = (() => {
 
   function syncControlsFromSettings() {
     const s = Storage.getSettings();
+    const chromeSyncToggle = document.getElementById('toggle-follow-chrome-bookmarks');
+    if (chromeSyncToggle) chromeSyncToggle.checked = Boolean(s.followChromeBookmarks);
+    const importChromeButton = document.getElementById('btn-import-chrome-bookmarks');
+    if (importChromeButton) importChromeButton.disabled = Boolean(s.followChromeBookmarks);
     document.querySelector(`input[name="bg-type"][value="${s.bgType}"]`).checked = true;
     showBgOptions(s.bgType);
     document.getElementById('bg-color-picker').value = s.bgColor;
@@ -1143,7 +1237,11 @@ const SettingsUI = (() => {
     if (toggleGs) toggleGs.checked = s.googleServicesVisible !== false;
     const toggleTs = document.getElementById('toggle-top-sites-visible');
     if (toggleTs) toggleTs.checked = s.topSitesVisible !== false;
+    const toggleFloating = document.getElementById('toggle-floating-bookmark');
+    if (toggleFloating) toggleFloating.checked = s.floatingBookmarkButton !== false;
+    document.querySelectorAll('.digits-style-btn').forEach((button) => button.classList.toggle('active', button.dataset.digitsStyle === (s.persianDigits || 'auto')));
     renderGoogleServicesSettings();
+    DashboardLayoutUI.renderSettings();
   }
 
   function applyTheme(themeKey) {
@@ -1255,6 +1353,7 @@ const SettingsUI = (() => {
     renderWallpaperGallery();
     renderGoogleServicesSettings();
     syncControlsFromSettings();
+    DashboardLayoutUI.renderSettings();
   }
 
   function getThemeKeys() { return Object.keys(THEMES); }

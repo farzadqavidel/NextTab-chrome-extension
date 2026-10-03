@@ -42,6 +42,7 @@ const SearchUI = (() => {
   }
 
   function showPanel() {
+    if (typeof PrivacyUI !== 'undefined' && PrivacyUI.isActive()) return;
     renderList();
     if (Storage.getSearchHistory().length === 0) return;
     visible = true;
@@ -144,5 +145,5 @@ const SearchUI = (() => {
     renderList();
   }
 
-  return { init, refresh };
+  return { init, refresh, hidePanel };
 })();

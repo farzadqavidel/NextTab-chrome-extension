@@ -345,13 +345,9 @@ const WeatherUI = (() => {
 
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
-    const cityLabel = state[slot].cityLabel;
-
     if (slotEls.icon) slotEls.icon.textContent = w.icon;
     if (slotEls.temp) slotEls.temp.textContent = `${Math.round(cur.temperature_2m)}°`;
-    if (slotEls.desc) {
-      slotEls.desc.textContent = cityLabel ? `${cityLabel} · ${w.label}` : w.label;
-    }
+    if (slotEls.desc) slotEls.desc.textContent = w.label;
     slotEls.widget.title = `${w.label} — ${I18n.t('weatherClick')}`;
   }
 

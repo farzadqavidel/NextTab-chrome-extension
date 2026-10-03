@@ -2,7 +2,7 @@
 
 **Your personal New Tab — calendar, bookmarks, weather, notes, Google services, and themes in one beautiful page.**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
 [![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](#)
 
@@ -11,19 +11,25 @@
 ---
 
 <p align="center">
-  <img src="Picture/Tabyar.webp" alt="Tabyar New Tab dashboard" width="820"/>
+  <img src="Picture/Tabyar.webp" alt="Tabyar dashboard with two locations and Chrome Bookmarks bar contents" width="820"/>
 </p>
 
-<p align="center"><em>Tabyar — custom New Tab dashboard</em></p>
+<p align="center"><em>Demo dashboard (Tehran + Berlin) — synced Bookmarks bar contents open in Tabyar.</em></p>
+
+<p align="center">
+  <img src="Picture/Tabyar-single.webp" alt="Tabyar dashboard with one location" width="820"/>
+</p>
+
+<p align="center"><em>The same demo dashboard in the balanced single-location layout.</em></p>
 
 
 
 ## Overview
 
 **Tabyar** replaces Chrome’s default New Tab with a customizable dashboard designed for daily use.  
-It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**, **Google search**, **weather**, **notes**, **Google services shortcuts**, and rich **appearance settings** — all stored locally in your browser.
+It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**, **Google search**, **weather**, **notes**, **Google services shortcuts**, and rich **appearance settings**. Data stays local; if **Follow Chrome bookmarks** is enabled, bookmarks sync with Chrome’s own bookmark store.
 
-> **Version:** `1.5.0` — Redesigned bento-grid layout: polished glass cards, a compact Google-services pill beside the search bar, tighter spacing that fits the whole dashboard in view without scrolling, plus full responsiveness from small laptops to 4K displays.
+> **Version:** `1.6.0` — Redesigned bento-grid layout: polished glass cards, a compact Google-services pill beside the search bar, tighter spacing that fits the whole dashboard in view without scrolling, plus full responsiveness from small laptops to 4K displays.
 
 
 
@@ -44,10 +50,11 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 ### Calendar
 - **Regional calendar** — Jalali (Iran/Afghanistan), Hijri (Arab & Muslim countries), or Gregorian (worldwide)
 - Calendar type is **set automatically** based on your country
-- Live clock and today’s date — follows your **system timezone and locale**
-- Secondary clock for an optional **second location**
+- Live clock for the primary location and an optional **second location**
+- Regional dates remain in the calendar and are no longer repeated on the location card
 - Gregorian, Jalali & Hijri date display side by side
 - Iranian, Hijri & international occasions & holidays
+- Personal birthdays and anniversaries with Jalali, Hijri, or Gregorian dates and countdowns
 - Fridays / Sundays highlighted based on region
 
 ### Bookmarks
@@ -55,7 +62,10 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Default group plus custom groups; navigate with back button
 - Auto favicon loading with letter fallback
 - Right-click to edit, delete, or open in a new tab
-- **Import from Chrome** — transfer all Chrome bookmarks with folder structure
+- Drag bookmarks to reorder them, drop a root bookmark into a folder, or drag a bookmark back to Home from inside a folder
+- **Import from Chrome** — transfer bookmarks while preserving nested folders
+- **Follow Chrome bookmarks** — continuous two-way sync for additions, deletions, moves, ordering, and nested folders; enabling it warns before replacing Tabyar's bookmark tree. In this mode, Tabyar opens directly inside **Bookmarks bar**; other Chrome root folders are preserved in Chrome but hidden from Tabyar’s view
+- **Half-circle floating bookmark button** on regular websites; drag it vertically or snap it to either edge, hover to see whether the page is saved and in which folder, and click to add/remove it; it can be disabled in Settings
 
 ### Search
 - Google search bar (text, voice*, image search)
@@ -64,6 +74,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 
 ### Weather
 - Current weather for your location (GPS or city search)
+- The weather pill’s text shows the current condition; its icon and temperature remain visible. The city stays in the location label by the clock, while the date stays in the calendar—not under the clock or in the weather pill
 - Optional **second location** — dual weather widgets side by side
 - Multi-day forecast modal with correct local dates
 - Powered by Open-Meteo
@@ -73,6 +84,18 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Rendered as a **compact icon pill next to the search bar** — no wasted space
 - Show/hide the pill and pick which services appear
 - Configurable in Settings → General
+
+### Daily plan & focus
+- Daily to-do list with due dates, completion states, and progress
+- Choose due dates in the Jalali calendar; store them canonically as Gregorian ISO dates for sorting and compatibility
+- Set focus duration in days, hours, and minutes, with saved timer state and session count; the break-duration value is retained but is not edited in this form (25/5 minutes by default)
+- Long timers persist as full-precision remaining times and end timestamps
+- Create a task or note directly from the command palette
+
+### Command palette & privacy
+- `Ctrl+K` opens a keyboard-first launcher for bookmarks, enabled services, tasks, notes, and quick actions
+- `Ctrl+Shift+H` blurs bookmarks, notes, tasks, and personal dates
+- `Ctrl+Shift+F` starts or pauses the focus timer
 
 ### Notes
 - Quick notes panel with trash & restore
@@ -85,6 +108,8 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Blur & overlay controls for background images
 - **Performance mode:** Auto / Lite / Full — disables heavy effects on weaker systems
 - **Languages:** Persian (FA) & English (EN)
+- Drag widgets from the settings list or on the dashboard; moves stay inside the existing responsive bento slots, with arrows as an accessible fallback
+- Choose automatic, Persian, or Latin digits
 - Export / import all data as JSON
 - Reset to defaults
 
@@ -92,7 +117,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
   <img src="Picture/setting.webp" alt="Tabyar settings panel" width="620"/>
 </p>
 
-<p align="center"><em>Settings — location, themes & Google services</em></p>
+<p align="center"><em>Settings → General — language, primary/secondary locations, and Google services.</em></p>
 
 ### First-time Setup
 - **Onboarding wizard** — choose your country, city, and language on first launch
@@ -102,7 +127,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
   <img src="Picture/backup.webp" alt="Tabyar backup panel" width="620"/>
 </p>
 
-<p align="center"><em>Backup — export, import & Chrome bookmarks transfer</em></p>
+<p align="center"><em>Backup & restore — continuous Chrome bookmark sync is enabled.</em></p>
 
 
 ## Installation
@@ -113,7 +138,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 
 ```bash
 git clone https://github.com/farzadqavidel/tabyar-chrome-extension.git
-cd Chrome-Extention
+cd tabyar-chrome-extension
 ```
 
 **Option B — Download ZIP**
@@ -191,6 +216,12 @@ Chrome-Extention/
 │   ├── calendar.js        # Regional calendar UI
 │   ├── bookmarks.js       # Bookmarks manager
 │   ├── notes.js           # Notes panel
+│   ├── tasks.js           # Daily tasks & Pomodoro timer
+│   ├── personal-events.js # Personal date reminders
+│   ├── dashboard-layout.js# Widget layout controls
+│   ├── command-palette.js # Keyboard-first launcher
+│   ├── float-bookmark.js  # One-click save button on web pages
+│   ├── privacy.js         # Privacy mode
 │   ├── weather.js         # Weather widget (dual location)
 │   ├── search.js          # Google search & history
 │   ├── google-services.js # Google services shortcuts
@@ -214,15 +245,24 @@ Chrome-Extention/
 | Permission | Why |
 |------------|-----|
 | `storage` | Save bookmarks, notes, and settings locally |
-| `bookmarks` | Import Chrome bookmarks with folder structure |
+| `bookmarks` | Import Chrome bookmarks or opt into continuous two-way sync with nested folders |
 | `tabs` | Open bookmark links in new tabs |
+| Website access (`http` / `https`, optional `file://`) | Inject the floating one-click save button on regular web pages and, when file access is enabled, local pages |
 | `4kwallpapers.com` | Load curated background wallpapers |
 | `api.open-meteo.com` | Weather data |
 | `geocoding-api.open-meteo.com` | City name from coordinates / timezone |
 
-No personal data is sent to third-party servers except weather, geocoding, and wallpaper downloads you choose.
+Bookmarks, tasks, personal dates, notes, and settings are stored locally. If **Follow Chrome bookmarks** is enabled, bookmarks sync with Chrome’s own bookmark store; they are not sent to an external server. The floating button saves only the current page title and URL when clicked and does not read page contents. Showing the button across regular websites requires Chrome’s `http`/`https` site access. Chrome does not permit content scripts on protected pages such as `chrome://` or the Chrome Web Store. Local `file://` pages require enabling **Allow access to file URLs** on the extension details page. Network requests are limited to weather, geocoding, and wallpapers you choose.
 
 
+
+## Keyboard shortcuts
+
+| Action | Shortcut |
+|--------|----------|
+| Open command palette | `Ctrl+K` |
+| Toggle privacy mode | `Ctrl+Shift+H` |
+| Start / pause focus timer | `Ctrl+Shift+F` |
 
 ## Development
 
