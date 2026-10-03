@@ -23,15 +23,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   TabyarUI.init();
   SettingsUI.applyQuick();
   TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
+  DashboardLayoutUI.init();
   document.getElementById('dashboard').classList.add('loaded');
 
   CalendarUI.init();
   BookmarksUI.init();
   NotesUI.init();
+  TasksUI.init();
+  PersonalEventsUI.init();
   SettingsUI.init();
   SearchUI.init();
   GoogleServicesUI.init();
   TopSitesUI.init();
+  PrivacyUI.init();
+  CommandPaletteUI.init();
+  QuickActionsUI.init();
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'TABYAR_BOOKMARKS_CHANGED') {
+      Storage.load().then(() => {
+        BookmarksUI.render();
+        DashboardLayoutUI.apply();
+      }).catch(() => {});
+    }
+  });
 
   syncStoredLocationLanguage().catch(() => {});
 

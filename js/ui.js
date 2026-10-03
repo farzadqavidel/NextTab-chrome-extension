@@ -7,6 +7,9 @@ const TabyarUI = (() => {
   let toastContainer = null;
 
   const TOAST_DURATION = 5000;
+  const MAX_VISIBLE_TOASTS = 3;
+  const toastQueue = [];
+  const activeToasts = new Set();
 
   const TOAST_ICONS = {
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
@@ -89,10 +92,10 @@ const TabyarUI = (() => {
     resolve(result);
   }
 
-  function toast(message, options = {}) {
-    const type = options.type || 'info';
-    const duration = options.duration ?? TOAST_DURATION;
+  function displayToast(notification) {
+    if (!toastContainer || activeToasts.size >= MAX_VISIBLE_TOASTS) return;
 
+    const { message, type, duration } = notification;
     const el = document.createElement('div');
     el.className = `toast toast-${type}`;
     el.setAttribute('role', 'status');
@@ -102,21 +105,64 @@ const TabyarUI = (() => {
       <span class="toast-progress"></span>
     `;
 
+    activeToasts.add(el);
     toastContainer.appendChild(el);
     requestAnimationFrame(() => el.classList.add('toast-visible'));
 
     const progress = el.querySelector('.toast-progress');
     progress.style.animationDuration = `${duration}ms`;
 
+    let removing = false;
+    let removed = false;
+    const finishRemoval = () => {
+      if (removed) return;
+      removed = true;
+      el.remove();
+      activeToasts.delete(el);
+      showNextToastBatch();
+    };
     const remove = () => {
-      if (!el.isConnected) return;
+      if (removing) return;
+      if (!el.isConnected) {
+        finishRemoval();
+        return;
+      }
+      removing = true;
       el.classList.remove('toast-visible');
       el.classList.add('toast-hiding');
-      el.addEventListener('transitionend', () => el.remove(), { once: true });
-      setTimeout(() => el.remove(), 500);
+      el.addEventListener('transitionend', finishRemoval, { once: true });
+      setTimeout(finishRemoval, 500);
     };
 
     setTimeout(remove, duration);
+  }
+
+  function showNextToastBatch() {
+    // Let every toast in the current batch finish before showing the next batch.
+    if (activeToasts.size !== 0 || !toastQueue.length) return;
+    const nextBatch = toastQueue.splice(0, MAX_VISIBLE_TOASTS);
+    nextBatch.forEach(displayToast);
+  }
+
+  function toast(message, options = {}) {
+    const type = options.type || 'info';
+    const requestedDuration = Number(options.duration ?? TOAST_DURATION);
+    const duration = Number.isFinite(requestedDuration) ? Math.max(0, requestedDuration) : TOAST_DURATION;
+    const notification = { message: String(message ?? ''), type, duration };
+
+    if (activeToasts.size === 0 && toastQueue.length === 0) {
+      displayToast(notification);
+      return;
+    }
+
+    // Keep a stage together: once a queue forms, wait until all current toasts
+    // have left before filling the next batch (never more than three in the DOM).
+    if (activeToasts.size < MAX_VISIBLE_TOASTS && toastQueue.length === 0) {
+      displayToast(notification);
+    } else {
+      toastQueue.push(notification);
+      showNextToastBatch();
+    }
   }
 
   function alert(message, options = {}) {

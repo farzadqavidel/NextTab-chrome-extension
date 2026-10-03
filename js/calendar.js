@@ -55,7 +55,9 @@ const CalendarUI = (() => {
     els.goToday = document.getElementById('cal-go-today');
     els.dayClock = document.getElementById('day-clock');
     els.dayClock2 = document.getElementById('day-clock-2');
+    els.dayLocationName = document.getElementById('day-location-name');
     els.dayLocationName2 = document.getElementById('day-location-name-2');
+    els.locationCount = document.getElementById('day-info-location-count');
     els.locationUnitSecondary = document.getElementById('location-unit-secondary');
     els.dayDate = document.getElementById('day-date');
     els.dayWeekday = document.getElementById('day-weekday');
@@ -185,8 +187,15 @@ const CalendarUI = (() => {
       isHoliday = weekday === 5 || PersianEvents.isHoliday(j.year, j.month, j.day, lang);
       hasEvent = PersianEvents.hasEvents(j.year, j.month, j.day, lang);
     }
+    if (typeof PersonalEventsUI !== 'undefined') hasEvent = hasEvent || PersonalEventsUI.hasEvent(g);
 
     return { weekendClass, isHoliday, hasEvent };
+  }
+
+  function escapeHtml(value) {
+    const node = document.createElement('span');
+    node.textContent = String(value ?? '');
+    return node.innerHTML;
   }
 
   function renderDayInfo(g) {
@@ -210,11 +219,12 @@ const CalendarUI = (() => {
     } else if (type !== 'gregorian' && date.getDay() === 5) {
       events = [{ title: I18n.getRegionalHolidayLabel('fridayHoliday'), type: 'holiday' }, ...events];
     }
+    if (typeof PersonalEventsUI !== 'undefined') events.push(...PersonalEventsUI.getEventsForGregorian(g));
     if (events.length === 0) {
       els.eventsList.innerHTML = `<li class="no-events">${I18n.t('noOccasion')}</li>`;
     } else {
       els.eventsList.innerHTML = events.map((e) =>
-        `<li class="event-item ${e.type}">${e.title}</li>`
+        `<li class="event-item ${e.type}">${escapeHtml(e.title)}</li>`
       ).join('');
     }
   }
@@ -371,6 +381,14 @@ const CalendarUI = (() => {
     }
     if (card) card.classList.toggle('has-second-location', hasSecond);
     if (dashboard) dashboard.classList.toggle('has-second-location', hasSecond);
+    if (els.locationCount) {
+      els.locationCount.textContent = I18n.t(hasSecond ? 'dayInfoTwoLocations' : 'dayInfoOneLocation');
+    }
+    const separator = I18n.getRegionalLang() === 'fa' ? '، ' : ', ';
+    if (els.dayLocationName) {
+      const primaryName = [s.city, s.country].filter(Boolean).join(separator);
+      els.dayLocationName.textContent = primaryName || I18n.t('dayInfoLocalLocation');
+    }
 
     if (!hasSecond || !els.dayClock2) return;
 
@@ -381,8 +399,8 @@ const CalendarUI = (() => {
     );
 
     if (els.dayLocationName2) {
-      const sep = I18n.getRegionalLang() === 'fa' ? '، ' : ', ';
-      els.dayLocationName2.textContent = [s.secondCity, s.secondCountry].filter(Boolean).join(sep);
+      const secondName = [s.secondCity, s.secondCountry].filter(Boolean).join(separator);
+      els.dayLocationName2.textContent = secondName || I18n.t('dayInfoSecondLocation');
     }
   }
 

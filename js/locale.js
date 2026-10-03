@@ -31,6 +31,9 @@ const Locale = (() => {
   }
 
   function shouldUsePersianDigits(countryCode) {
+    const style = typeof Storage !== 'undefined' ? Storage.getSettings().persianDigits : 'auto';
+    if (style === 'persian') return true;
+    if (style === 'latin') return false;
     const code = ((countryCode != null ? countryCode : (typeof Storage !== 'undefined' ? Storage.getSettings().countryCode : '')) || '').toUpperCase();
     if (code === 'IR' || code === 'AF') return true;
     const cal = typeof Storage !== 'undefined' ? Storage.getSettings().calendarType : '';
@@ -38,10 +41,12 @@ const Locale = (() => {
   }
 
   function formatClockForZone(date, timezone, countryCode) {
+    const digitStyle = typeof Storage !== 'undefined' ? Storage.getSettings().persianDigits : 'auto';
     const formatted = new Intl.DateTimeFormat(getTimeLocale(countryCode), {
       timeZone: timezone || getTimezone(),
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      numberingSystem: digitStyle === 'latin' ? 'latn' : undefined
     }).format(date || new Date());
 
     if (shouldUsePersianDigits(countryCode) && typeof Jalali !== 'undefined') {
