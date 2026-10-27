@@ -280,6 +280,60 @@
       </section>
 
     </div>
+
+      <!-- Below-fold: market prices + news -->
+      <div class="feed-sections" id="feed-sections">
+
+        <!-- Market & prices -->
+        <section class="card prices-card" id="prices-section" aria-labelledby="prices-title">
+          <div class="prices-head">
+            <span class="feed-title-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>
+            </span>
+            <h3 class="feed-title" id="prices-title" data-i18n="pricesTitle">ارز و قیمت‌ها</h3>
+            <span class="feed-source" data-i18n="pricesSource">منبع: tgju.org</span>
+            <div class="feed-tools">
+              <span id="prices-updated" class="feed-updated"></span>
+              <button type="button" id="btn-prices-refresh" class="mini-action-btn feed-refresh-btn" data-i18n-title="pricesRefresh" data-i18n-aria="pricesRefresh" title="به‌روزرسانی قیمت‌ها" aria-label="به‌روزرسانی قیمت‌ها">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="prices-grid" id="prices-grid"></div>
+          <div id="prices-error" class="feed-error hidden">
+            <span data-i18n="pricesError">دریافت قیمت‌ها ناموفق بود</span>
+            <button type="button" id="btn-prices-retry" class="feed-retry-btn" data-i18n="feedRetry">تلاش دوباره</button>
+          </div>
+        </section>
+
+        <!-- News -->
+        <section class="card news-card" id="news-section" aria-labelledby="news-title">
+          <div class="news-head">
+            <span class="feed-title-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0V9"/><path d="M18 14h-8"/><path d="M15 18h-3"/><path d="M10 6h8v4h-8V6Z"/></svg>
+            </span>
+            <h3 class="feed-title" id="news-title" data-i18n="newsTitle">اخبار</h3>
+            <div class="feed-tools">
+              <span id="news-updated" class="feed-updated"></span>
+              <button type="button" id="btn-news-refresh" class="mini-action-btn feed-refresh-btn" data-i18n-title="newsRefresh" data-i18n-aria="newsRefresh" title="به‌روزرسانی اخبار" aria-label="به‌روزرسانی اخبار">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="news-cats" id="news-cats" role="tablist" aria-label="دسته‌بندی اخبار"></div>
+          <div class="news-grid" id="news-grid"></div>
+          <div id="news-empty" class="feed-empty hidden" data-i18n="newsEmpty">خبری در این دسته پیدا نشد</div>
+          <div id="news-error" class="feed-error hidden">
+            <span data-i18n="newsError">دریافت اخبار ناموفق بود؛ اتصال اینترنت را بررسی کنید.</span>
+            <button type="button" id="btn-news-retry" class="feed-retry-btn" data-i18n="feedRetry">تلاش دوباره</button>
+          </div>
+          <div class="news-more-row">
+            <button type="button" id="btn-news-more" class="news-more-btn hidden" data-i18n="newsMore">نمایش اخبار بیشتر</button>
+          </div>
+        </section>
+
+      </div>
+
   </div>
 
   <!-- Modal: Onboarding (first run) -->
@@ -458,6 +512,17 @@
             <button type="button" id="btn-restore-top-sites" class="btn-soft" data-i18n="restoreTopSites">بازگرداندن سایت‌های حذف‌شده</button>
           </div>
           <p class="settings-hint" data-i18n="restoreTopSitesHint">با راست‌کلیک روی هر آیکون می‌توانید آن را از لیست حذف کنید.</p>
+          <hr class="settings-divider">
+          <h3 data-i18n="feedSectionsTitle">اخبار و بازار</h3>
+          <p class="settings-desc" data-i18n="feedSectionsDesc">بخش اخبار و کارت زندهٔ ارز و قیمت‌ها پایین داشبورد نمایش داده می‌شوند.</p>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-news-visible">
+            <span data-i18n="showNews">نمایش بخش اخبار</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-prices-visible">
+            <span data-i18n="showPrices">نمایش کارت ارز و قیمت‌ها</span>
+          </label>
           <hr class="settings-divider">
           <h3 data-i18n="floatingBookmarkTitle">دکمهٔ افزودن بوکمارک در سایت‌ها</h3>
           <p class="settings-desc" data-i18n="floatingBookmarkDesc">یک دکمهٔ نیم‌دایره‌ای کنار صفحه نشان می‌دهد؛ می‌توانی آن را بالا/پایین یا به چپ/راست بکشی. با هاور، وضعیت ذخیره و نام پوشه دیده می‌شود؛ کلیک برای افزودن یا حذف.</p>
@@ -874,6 +939,9 @@
   <script src="js/google-services.js"></script>
   <script src="js/topsites.js"></script>
   <script src="js/wallpaper.js"></script>
+  <script src="js/feeds.js"></script>
+  <script src="js/prices.js"></script>
+  <script src="js/news.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/command-palette.js"></script>
   <script src="js/quick-actions.js"></script>

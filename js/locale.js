@@ -86,6 +86,7 @@ const Locale = (() => {
     getSystemLocale,
     getRegionalLocale,
     getTimeLocale,
+    shouldUsePersianDigits,
     formatDateISO,
     formatClock,
     formatClockForZone,

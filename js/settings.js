@@ -590,6 +590,7 @@ const SettingsUI = (() => {
     setupLocationControls();
     setupGoogleServicesControls();
     setupTopSitesControls();
+    setupFeedControls();
     setupExtraControls();
     setupBackupControls();
     setupAboutPanel();
@@ -830,6 +831,25 @@ const SettingsUI = (() => {
       restoreBtn.addEventListener('click', async () => {
         await TopSitesUI.restoreAll();
         TabyarUI.alert(I18n.t('topSitesRestored'), { type: 'success' });
+      });
+    }
+  }
+
+  function setupFeedControls() {
+    const newsToggle = document.getElementById('toggle-news-visible');
+    if (newsToggle) {
+      newsToggle.addEventListener('change', async (e) => {
+        await Storage.updateSettings({ newsVisible: e.target.checked });
+        Feeds.applyVisibility();
+        if (e.target.checked) NewsUI.load(false);
+      });
+    }
+    const pricesToggle = document.getElementById('toggle-prices-visible');
+    if (pricesToggle) {
+      pricesToggle.addEventListener('change', async (e) => {
+        await Storage.updateSettings({ pricesVisible: e.target.checked });
+        Feeds.applyVisibility();
+        if (e.target.checked) PricesUI.load();
       });
     }
   }
@@ -1239,6 +1259,10 @@ const SettingsUI = (() => {
     if (toggleTs) toggleTs.checked = s.topSitesVisible !== false;
     const toggleFloating = document.getElementById('toggle-floating-bookmark');
     if (toggleFloating) toggleFloating.checked = s.floatingBookmarkButton !== false;
+    const toggleNews = document.getElementById('toggle-news-visible');
+    if (toggleNews) toggleNews.checked = s.newsVisible !== false;
+    const togglePrices = document.getElementById('toggle-prices-visible');
+    if (togglePrices) togglePrices.checked = s.pricesVisible !== false;
     document.querySelectorAll('.digits-style-btn').forEach((button) => button.classList.toggle('active', button.dataset.digitsStyle === (s.persianDigits || 'auto')));
     renderGoogleServicesSettings();
     DashboardLayoutUI.renderSettings();

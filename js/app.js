@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   I18n.init();
   TabyarUI.init();
   SettingsUI.applyQuick();
+  Feeds.applyVisibility();
   TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
   DashboardLayoutUI.init();
   document.getElementById('dashboard').classList.add('loaded');
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   SearchUI.init();
   GoogleServicesUI.init();
   TopSitesUI.init();
+  PricesUI.init();
+  NewsUI.init();
   PrivacyUI.init();
   CommandPaletteUI.init();
   QuickActionsUI.init();

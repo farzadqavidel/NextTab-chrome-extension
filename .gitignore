@@ -1,0 +1,5 @@
+# Dependencies
+node_modules/
+
+# Local dev harness (visual regression + unit smoke tests) — not part of the extension
+tools/
