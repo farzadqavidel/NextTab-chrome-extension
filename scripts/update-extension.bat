@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 
-set "URL=https://github.com/farzadqavidel/tabyar-chrome-extension.git"
+set "URL=https://github.com/farzadqavidel/NextTab-chrome-extension.git"
 set "SCRIPT_DIR=%~dp0"
 set "TARGET=%~1"
 
