@@ -28,6 +28,7 @@ const TasksUI = (() => {
     els.dueButton = document.getElementById('btn-task-due-date');
     els.dueLabel = document.getElementById('task-due-date-label');
     els.todayDate = document.getElementById('tasks-today-date');
+    els.planTitle = document.getElementById('tasks-plan-title');
     els.list = document.getElementById('task-list');
     els.summary = document.getElementById('tasks-summary');
     els.progress = document.getElementById('task-progress-fill');
@@ -40,6 +41,7 @@ const TasksUI = (() => {
     els.sessions = document.getElementById('focus-sessions');
 
     if (!els.form) return;
+    if (els.due) els.due.value = selectedDayIso();
     initDatePicker();
     initFocusConfig();
     els.form.addEventListener('submit', handleSubmit);
@@ -71,6 +73,24 @@ const TasksUI = (() => {
     return Storage.getTodayGregorian();
   }
 
+  function selectedGregorian() {
+    return Storage.getSelectedGregorian();
+  }
+
+  function selectedDayIso() {
+    const gregorian = selectedGregorian();
+    return gregorian ? toIsoDate(gregorian) : '';
+  }
+
+  function isSelectedToday() {
+    return selectedDayIso() === todayKey();
+  }
+
+  function selectedDayShortLabel() {
+    const iso = selectedDayIso();
+    return iso ? shortJalaliDate(iso) : '';
+  }
+
   function parseGregorianIso(value) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
     const [year, month, day] = value.split('-').map(Number);
@@ -89,6 +109,12 @@ const TasksUI = (() => {
     return gregorian ? Jalali.gregorianToJalali(gregorian.year, gregorian.month, gregorian.day) : null;
   }
 
+  function hasTasksForGregorian(gregorian) {
+    const iso = toIsoDate(gregorian);
+    if (!iso) return false;
+    return Storage.getTasks().some((task) => task.dueDate === iso);
+  }
+
   function fullJalaliDate(value) {
     const date = jalaliFromIso(value);
     return date ? Jalali.formatDate(date.year, date.month, date.day) : '';
@@ -97,7 +123,7 @@ const TasksUI = (() => {
   function shortJalaliDate(value) {
     const date = jalaliFromIso(value);
     if (!date) return '';
-    return `${Jalali.toPersianDigits(date.day)} ${Jalali.PERSIAN_MONTHS[date.month - 1]}`;
+    return `${date.day} ${Jalali.PERSIAN_MONTHS[date.month - 1]}`;
   }
 
   function escapeHtml(value) {
@@ -133,14 +159,14 @@ const TasksUI = (() => {
     });
   }
 
-  function renderTodayDate() {
+  function renderSelectedDate() {
     if (!els.todayDate) return;
-    const gregorian = todayGregorian();
+    const gregorian = selectedGregorian();
     const jalali = Jalali.gregorianToJalali(gregorian.year, gregorian.month, gregorian.day);
-    const shortDate = shortJalaliDate(toIsoDate(gregorian));
-    els.todayDate.textContent = shortDate;
-    els.todayDate.title = Jalali.formatDate(jalali.year, jalali.month, jalali.day);
-    els.todayDate.setAttribute('aria-label', `${I18n.t('taskTodayDateAria')}: ${els.todayDate.title}`);
+    const fullDate = Jalali.formatDate(jalali.year, jalali.month, jalali.day);
+    els.todayDate.textContent = shortJalaliDate(toIsoDate(gregorian));
+    els.todayDate.title = fullDate;
+    els.todayDate.setAttribute('aria-label', fullDate);
   }
 
   function syncDueDateButton() {
@@ -155,33 +181,62 @@ const TasksUI = (() => {
     els.dueButton.setAttribute('aria-label', accessibleLabel);
   }
 
+  function renderTaskRow(task) {
+    const due = getDueLabel(task);
+    const dueClass = isOverdue(task) ? ' overdue' : '';
+    return `<li class="task-row${task.done ? ' is-done' : ''}" data-id="${escapeAttr(task.id)}">
+      <button type="button" class="task-check" data-task-action="toggle" aria-label="${task.done ? I18n.t('taskMarkUndone') : I18n.t('taskMarkDone')}" aria-pressed="${Boolean(task.done)}">${task.done ? '✓' : ''}</button>
+      <span class="task-row-copy"><span class="task-row-title">${escapeHtml(task.title)}</span>${due ? `<small class="task-due${dueClass}">${escapeHtml(due)}</small>` : ''}</span>
+      <button type="button" class="task-delete" data-task-action="delete" aria-label="${I18n.t('delete')}" title="${I18n.t('delete')}"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </li>`;
+  }
+
   function render() {
     if (!els.list) return;
-    const tasks = Storage.getTasks();
-    const completed = tasks.filter((task) => task.done).length;
-    const total = tasks.length;
+    const allTasks = Storage.getTasks();
+    const selectedIso = selectedDayIso();
+    const isToday = selectedIso === todayKey();
+    const dayTasks = allTasks.filter((task) => task.dueDate === selectedIso);
+    const undatedTasks = allTasks.filter((task) => !task.dueDate);
+    const completed = dayTasks.filter((task) => task.done).length;
+    const total = dayTasks.length;
     const percent = total ? Math.round((completed / total) * 100) : 0;
+
+    // Plan card = the selected day's tasks. Undated tasks stay visible in the
+    // card but never count toward the selected day's progress or summary.
     els.summary.textContent = I18n.t('taskCount', { completed: I18n.formatDigits(completed), total: I18n.formatDigits(total) });
-    els.progressText.textContent = total ? I18n.t('taskProgress', { percent: I18n.formatDigits(percent) }) : I18n.t('taskNoPlan');
+    const dayShort = selectedDayShortLabel();
+    if (els.planTitle) els.planTitle.textContent = isToday ? I18n.t('taskTitle') : I18n.t('taskPlanForDay', { day: dayShort });
+    els.progressText.textContent = total
+      ? I18n.t(isToday ? 'taskProgress' : 'taskProgressDay', { percent: I18n.formatDigits(percent) })
+      : I18n.t(isToday ? 'taskNoPlan' : 'taskNoPlanForDay');
     els.progress.style.width = `${percent}%`;
     els.progress.parentElement.setAttribute('aria-valuenow', String(percent));
-    renderTodayDate();
+    els.progress.parentElement.setAttribute('aria-label', isToday ? I18n.t('taskProgressAria') : `${I18n.t('taskPlanForDay', { day: dayShort })}`);
+    renderSelectedDate();
     syncDueDateButton();
 
-    const sorted = sortTasks(tasks);
-    if (!sorted.length) {
-      els.list.innerHTML = `<li class="tasks-empty"><span class="tasks-empty-icon" aria-hidden="true">✦</span><span>${I18n.t('taskEmpty')}</span></li>`;
+    const sorted = sortTasks(dayTasks);
+    const sortedUndated = sortTasks(undatedTasks);
+
+    if (!sorted.length && !sortedUndated.length) {
+      els.list.innerHTML = `<li class="tasks-empty"><span class="tasks-empty-icon" aria-hidden="true">✦</span><span>${escapeHtml(I18n.t(isToday ? 'taskEmpty' : 'taskNoPlanForDay'))}</span></li>`;
       return;
     }
-    els.list.innerHTML = sorted.map((task) => {
-      const due = getDueLabel(task);
-      const dueClass = isOverdue(task) ? ' overdue' : '';
-      return `<li class="task-row${task.done ? ' is-done' : ''}" data-id="${escapeAttr(task.id)}">
-        <button type="button" class="task-check" data-task-action="toggle" aria-label="${task.done ? I18n.t('taskMarkUndone') : I18n.t('taskMarkDone')}" aria-pressed="${Boolean(task.done)}">${task.done ? '✓' : ''}</button>
-        <span class="task-row-copy"><span class="task-row-title">${escapeHtml(task.title)}</span>${due ? `<small class="task-due${dueClass}">${escapeHtml(due)}</small>` : ''}</span>
-        <button type="button" class="task-delete" data-task-action="delete" aria-label="${I18n.t('delete')}" title="${I18n.t('delete')}">×</button>
-      </li>`;
-    }).join('');
+
+    const rows = sorted.map(renderTaskRow).join('');
+    const undatedSection = sortedUndated.length
+      ? `<li class="task-group-label" role="presentation"><span class="task-group-label-text">${escapeHtml(I18n.t('taskUnscheduled'))}</span></li>` + sortedUndated.map(renderTaskRow).join('')
+      : '';
+    els.list.innerHTML = rows + undatedSection;
+  }
+
+  // Called when another day is selected: point the form at that day and
+  // re-render the plan for it. Tasks with no due date stay visible below.
+  function syncSelectedDay() {
+    if (els.due) els.due.value = selectedDayIso();
+    syncDueDateButton();
+    render();
   }
 
   function initDatePicker() {
@@ -229,7 +284,7 @@ const TasksUI = (() => {
     viewYear = initial.year;
     viewMonth = initial.month;
     renderDatePicker();
-    els.dateModal.classList.remove('hidden');
+    TabyarUI.openModal('modal-task-date');
     requestAnimationFrame(() => {
       const selected = els.dateDays.querySelector('.is-selected');
       (selected || els.dateModal.querySelector('.task-date-nav-btn'))?.focus();
@@ -251,7 +306,7 @@ const TasksUI = (() => {
   function renderDatePicker() {
     if (!els.dateDays || !viewYear || !viewMonth) return;
     els.dateMonth.textContent = Jalali.PERSIAN_MONTHS[viewMonth - 1];
-    els.dateYear.textContent = Jalali.toPersianDigits(viewYear);
+    els.dateYear.textContent = String(viewYear);
 
     const monthDays = Jalali.getMonthDays(viewYear, viewMonth);
     const leadingEmptyDays = (monthDays[0].weekday + 1) % 7;
@@ -263,7 +318,7 @@ const TasksUI = (() => {
       const isSelected = draftDueDate?.year === viewYear && draftDueDate?.month === viewMonth && draftDueDate?.day === day;
       const dateLabel = Jalali.formatDate(viewYear, viewMonth, day);
       const classes = ['task-date-day', isToday ? 'is-today' : '', isSelected ? 'is-selected' : ''].filter(Boolean).join(' ');
-      cells.push(`<button type="button" class="${classes}" data-task-date-day="${day}" aria-label="${escapeAttr(dateLabel)}" aria-pressed="${Boolean(isSelected)}">${Jalali.toPersianDigits(day)}</button>`);
+      cells.push(`<button type="button" class="${classes}" data-task-date-day="${day}" aria-label="${escapeAttr(dateLabel)}" aria-pressed="${Boolean(isSelected)}">${day}</button>`);
     });
     els.dateDays.innerHTML = cells.join('');
     els.dateSelected.textContent = draftDueDate
@@ -305,7 +360,7 @@ const TasksUI = (() => {
 
   function closeDatePicker() {
     if (!els.dateModal) return;
-    els.dateModal.classList.add('hidden');
+    TabyarUI.closeModal('modal-task-date');
     els.dueButton?.focus();
   }
 
@@ -315,9 +370,11 @@ const TasksUI = (() => {
     if (!title) return;
     await Storage.addTask({ title, dueDate: els.due.value });
     els.form.reset();
+    if (els.due) els.due.value = selectedDayIso();
     syncDueDateButton();
     els.input.focus();
     render();
+    if (typeof CalendarUI !== 'undefined') CalendarUI.refreshDays?.();
   }
 
   async function handleTaskAction(event) {
@@ -335,6 +392,7 @@ const TasksUI = (() => {
       await Storage.deleteTask(task.id);
     }
     render();
+    if (typeof CalendarUI !== 'undefined') CalendarUI.refreshDays?.();
   }
 
   function initFocusConfig() {
@@ -391,13 +449,13 @@ const TasksUI = (() => {
     if (!els.configModal) return;
     writeDurationFields('focus', getConfiguredDuration('focus'));
     els.configError?.classList.add('hidden');
-    els.configModal.classList.remove('hidden');
+    TabyarUI.openModal('modal-focus-config');
     requestAnimationFrame(() => els.focusDays?.focus());
   }
 
   function closeFocusConfig() {
     if (!els.configModal) return;
-    els.configModal.classList.add('hidden');
+    TabyarUI.closeModal('modal-focus-config');
     els.configButton?.focus();
   }
 
@@ -557,6 +615,7 @@ const TasksUI = (() => {
   async function createTask(title) {
     const task = await Storage.addTask({ title });
     render();
+    if (typeof CalendarUI !== 'undefined') CalendarUI.refreshDays?.();
     return task;
   }
 
@@ -572,5 +631,5 @@ const TasksUI = (() => {
     setTimeout(() => row.classList.remove('task-highlight'), 1800);
   }
 
-  return { init, render, createTask, focusInput, focusTask, toggleFocus, renderFocus };
+  return { init, render, syncSelectedDay, createTask, focusInput, focusTask, toggleFocus, renderFocus, hasTasksForGregorian };
 })();

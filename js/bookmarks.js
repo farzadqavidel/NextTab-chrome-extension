@@ -27,6 +27,7 @@ const BookmarksUI = (() => {
     els.backLabel = document.getElementById('bm-back-label');
     els.dropHome = document.getElementById('bm-drop-home');
     els.dropHomeLabel = document.getElementById('bm-drop-home-label');
+    els.title = document.getElementById('bm-title');
     els.contextMenu = document.getElementById('context-menu');
 
     els.backBtn.addEventListener('click', navigateBack);
@@ -226,11 +227,11 @@ const BookmarksUI = (() => {
   }
 
   function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
+    TabyarUI.openModal(id);
   }
 
   function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
+    TabyarUI.closeModal(id);
     if (id === 'modal-bookmark') editingBookmarkId = null;
     if (id === 'modal-folder') editingFolderId = null;
   }
@@ -481,9 +482,12 @@ const BookmarksUI = (() => {
   function buildFolderTileHtml(folder) {
     const label = I18n.getFolderName(folder);
     const title = `${label} · ${I18n.t(folder.isChromeRoot ? 'chromeSystemFolderHint' : 'folderDragHint')}`;
+    const childCount = getChildItems(folder.id).length;
+    const badge = childCount > 0 ? `<span class="bm-tile-badge" aria-hidden="true">${childCount}</span>` : '';
     return `
       <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${folder.id}" draggable="true" aria-grabbed="false"
               style="--folder-color: ${folder.color}" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
+        ${badge}
         <span class="bm-tile-folder-icon">${FOLDER_SVG}</span>
         <span class="bm-tile-label">${escapeHtml(label)}</span>
       </button>
@@ -876,6 +880,7 @@ const BookmarksUI = (() => {
 
   function renderGroupsView() {
     els.backBtn.classList.add('hidden');
+    els.title?.classList.remove('hidden');
     els.dropHome?.classList.add('hidden');
     closeAddPicker();
 
@@ -900,6 +905,7 @@ const BookmarksUI = (() => {
     const isChromeBookmarksBar = Storage.getSettings().followChromeBookmarks &&
       folder.isChromeRoot && String(folder.chromeId) === '1';
     els.backBtn.classList.toggle('hidden', isChromeBookmarksBar);
+    els.title?.classList.add('hidden');
     els.backLabel.textContent = I18n.getFolderName(folder);
     if (!draggedBookmark) els.dropHome?.classList.add('hidden');
     closeAddPicker();

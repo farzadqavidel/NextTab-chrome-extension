@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Tabyar",
-  "version": "1.6.0",
+  "name": "NextTab",
+  "version": "1.7.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7YB6CITUJrejajqR3+MDO5k0B7kwQ9lcGWCcdxugdklU9jGnnRY8zzrkImSE8qKJYqakzKRBajnU8O7+WDI7vuriuGiNQPOX7aNkNBpOrF2mY7fwv5kA5OF0bSRnq372bCEv8W9mWvKUzsUaMRQ1dbDjEd9rKLPGy1ZhVidbF8/5+At4i9e3Oep2ZgLRikBqadVsrHA2sZOS+9oWgdyVWvYXS4ofNbJKUJrfmTq+1F8hfdVoroaYpngCbQDCOss3z/NZNjH9SyXmrl5AVjlXb/qfOn0ZFVvlob9PMns2CWKudrfZYuaaSm89JlHgi1Ubd4sxLMGvy0DSjYtoirqiwQIDAQAB",
-  "description": "Tabyar — Persian-first dashboard, tasks, focus timer and one-click bookmarks",
+  "description": "NextTab — Persian-first dashboard, tasks, focus timer and one-click bookmarks",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
@@ -27,9 +27,12 @@
     "https://*.digiato.com/*",
     "https://www.varzesh3.com/*",
     "https://www.tejaratnews.com/*",
+    "https://www.isna.ir/*",
+    "https://www.mehrnews.com/*",
     "https://*.digikala.com/*",
     "https://feeds.bbci.co.uk/*",
-    "https://api.rss2json.com/*"
+    "https://api.rss2json.com/*",
+    "https://api.github.com/*"
   ],
   "icons": {
     "16": "icons/icon16.png",

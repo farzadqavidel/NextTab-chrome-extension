@@ -455,44 +455,6 @@ const SettingsUI = (() => {
         '--tile-bg': '#ffffff',
         '--input-bg': '#faf5ff'
       }
-    },
-    glass: {
-      nameKey: 'themeGlass',
-      accent: '#38bdf8',
-      dark: {
-        '--bg-card': 'rgba(255, 255, 255, 0.075)',
-        '--bg-card-hover': 'rgba(255, 255, 255, 0.13)',
-        '--surface-muted': 'rgba(255, 255, 255, 0.06)',
-        '--text-primary': '#f8fafc',
-        '--text-secondary': 'rgba(226, 232, 240, 0.66)',
-        '--accent': '#38bdf8',
-        '--accent-hover': '#7dd3fc',
-        '--border': 'rgba(255, 255, 255, 0.14)',
-        '--search-bg': 'rgba(255, 255, 255, 0.08)',
-        '--cal-today': '#38bdf8',
-        '--cal-friday': '#fb7185',
-        '--cal-holiday': '#fb7185',
-        '--tile-bg': 'rgba(255, 255, 255, 0.08)',
-        '--input-bg': 'rgba(255, 255, 255, 0.07)',
-        '--panel-bg': 'rgba(13, 19, 32, 0.82)'
-      },
-      light: {
-        '--bg-card': 'rgba(255, 255, 255, 0.48)',
-        '--bg-card-hover': 'rgba(255, 255, 255, 0.58)',
-        '--surface-muted': 'rgba(255, 255, 255, 0.38)',
-        '--text-primary': '#0f172a',
-        '--text-secondary': '#475569',
-        '--accent': '#0ea5e9',
-        '--accent-hover': '#0284c7',
-        '--border': 'rgba(255, 255, 255, 0.55)',
-        '--shadow': '0 8px 32px rgba(0, 0, 0, 0.08)',
-        '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.14)',
-        '--search-bg': 'rgba(255, 255, 255, 0.58)',
-        '--cal-today': '#0ea5e9',
-        '--cal-friday': '#ef4444',
-        '--tile-bg': 'rgba(255, 255, 255, 0.5)',
-        '--input-bg': 'rgba(255, 255, 255, 0.42)'
-      }
     }
   };
 
@@ -514,42 +476,69 @@ const SettingsUI = (() => {
     night: 'radial-gradient(ellipse 120% 90% at 15% 0%, rgba(99, 102, 241, 0.16), transparent 55%), radial-gradient(ellipse 100% 80% at 85% 100%, rgba(56, 189, 248, 0.10), transparent 55%), linear-gradient(180deg, #05070f 0%, #0a0f1e 45%, #101527 100%)'
   };
 
+  function picsum(id, w, h) {
+    return `https://picsum.photos/id/${id}/${w}/${h}`;
+  }
+
+  // Bundled local wallpapers (offline, no network). Paths are relative to the
+  // newtab page, resolved by the browser against the extension URL; thumbs are
+  // downscaled copies generated from the full images.
+  function localWallpaper(fileName) {
+    return `assets/wallpapers/${fileName}`;
+  }
+
   const WALLPAPERS = {
     nature: [
-      { id: '26748', url: 'https://4kwallpapers.com/images/wallpapers/stac-a-phris-arch-1920x1080-26748.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26748.jpg' },
-      { id: '26444', url: 'https://4kwallpapers.com/images/wallpapers/lunar-tides-1920x1080-26444.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26444.jpg' },
-      { id: '26357', url: 'https://4kwallpapers.com/images/wallpapers/mountain-peaks-teal-1920x1080-26357.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26357.jpg' },
-      { id: '26446', url: 'https://4kwallpapers.com/images/wallpapers/black-volcanic-sand-1920x1080-26446.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26446.jpg' }
+      { id: 'fjord', url: picsum('1015', 1920, 1080), thumb: picsum('1015', 480, 270) },
+      { id: 'waterfall', url: picsum('1035', 1920, 1080), thumb: picsum('1035', 480, 270) },
+      { id: 'yosemite', url: picsum('1043', 1920, 1080), thumb: picsum('1043', 480, 270) },
+      { id: 'coast', url: picsum('1050', 1920, 1080), thumb: picsum('1050', 480, 270) },
+      { id: 'warm-cliffs', url: picsum('1016', 1920, 1080), thumb: picsum('1016', 480, 270) },
+      { id: 'rocky-river', url: picsum('1044', 1920, 1080), thumb: picsum('1044', 480, 270) },
+      { id: 'snow-tent', url: picsum('1036', 1920, 1080), thumb: picsum('1036', 480, 270) },
+      { id: 'pier-lake', url: picsum('1051', 1920, 1080), thumb: picsum('1051', 480, 270) }
     ],
     space: [
-      { id: '26741', url: 'https://4kwallpapers.com/images/wallpapers/europa-jupiter-moon-1920x1080-26741.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26741.jpg' },
-      { id: '26342', url: 'https://4kwallpapers.com/images/wallpapers/planet-earth-dark-1920x1080-26342.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26342.jpg' },
-      { id: '26344', url: 'https://4kwallpapers.com/images/wallpapers/moon-dark-1920x1080-26344.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26344.jpg' },
-      { id: '26347', url: 'https://4kwallpapers.com/images/wallpapers/mars-red-planet-1920x1080-26347.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26347.jpg' }
+      { id: 'mars-crater', url: picsum('1032', 1920, 1080), thumb: picsum('1032', 480, 270) },
+      { id: 'star-trails', url: picsum('1042', 1920, 1080), thumb: picsum('1042', 480, 270) }
     ],
     minimal: [
-      { id: '26734', url: 'https://4kwallpapers.com/images/wallpapers/metallic-abstract-1920x1080-26734.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26734.jpg' },
-      { id: '26307', url: 'https://4kwallpapers.com/images/wallpapers/lone-tree-1920x1080-26307.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26307.jpg' },
-      { id: '26517', url: 'https://4kwallpapers.com/images/wallpapers/zenitsu-agatsuma-1920x1080-26517.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26517.jpg' },
-      { id: '26106', url: 'https://4kwallpapers.com/images/wallpapers/marshmello-material-1920x1080-26106.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26106.jpg' }
+      { id: 'triangle', url: picsum('1076', 1920, 1080), thumb: picsum('1076', 480, 270) },
+      { id: 'pyramid', url: picsum('1081', 1920, 1080), thumb: picsum('1081', 480, 270) },
+      { id: 'bright', url: picsum('1056', 1920, 1080), thumb: picsum('1056', 480, 270) },
+      { id: 'overpass', url: picsum('1063', 1920, 1080), thumb: picsum('1063', 480, 270) },
+      { id: 'cloud-sea', url: picsum('1064', 1920, 1080), thumb: picsum('1064', 480, 270) },
+      { id: 'still-life', url: picsum('1068', 1920, 1080), thumb: picsum('1068', 480, 270) }
     ],
-    anime: [
-      { id: '26719', url: 'https://4kwallpapers.com/images/wallpapers/sakamoto-days-1920x1080-26719.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26719.jpg' },
-      { id: '26732', url: 'https://4kwallpapers.com/images/wallpapers/lumine-intertwined-1920x1080-26732.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26732.jpg' },
-      { id: '26691', url: 'https://4kwallpapers.com/images/wallpapers/pain-nagato-black-1920x1080-26691.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26691.jpg' },
-      { id: '26716', url: 'https://4kwallpapers.com/images/wallpapers/reze-selfie-1920x1080-26716.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26716.jpg' }
+    sea: [
+      { id: 'stormy-sea', url: picsum('1019', 1920, 1080), thumb: picsum('1019', 480, 270) },
+      { id: 'dark-waves', url: picsum('1038', 1920, 1080), thumb: picsum('1038', 480, 270) },
+      { id: 'cliff-beach', url: picsum('1061', 1920, 1080), thumb: picsum('1061', 480, 270) },
+      { id: 'rock-reflection', url: picsum('1049', 1920, 1080), thumb: picsum('1049', 480, 270) },
+      { id: 'wide-coast', url: picsum('1055', 1920, 1080), thumb: picsum('1055', 480, 270) },
+      { id: 'turquoise-lake', url: picsum('1011', 1920, 1080), thumb: picsum('1011', 480, 270) },
+      { id: 'wave-curl', url: picsum('1041', 1920, 1080), thumb: picsum('1041', 480, 270) },
+      { id: 'black-beach', url: picsum('1052', 1920, 1080), thumb: picsum('1052', 480, 270) }
     ],
-    cars: [
-      { id: '26722', url: 'https://4kwallpapers.com/images/wallpapers/genesis-magma-gt3-1920x1080-26722.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26722.jpg' },
-      { id: '26727', url: 'https://4kwallpapers.com/images/wallpapers/bugatti-w16-mistral-1920x1080-26727.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26727.jpg' },
-      { id: '26704', url: 'https://4kwallpapers.com/images/wallpapers/audi-nuvolari-super-1920x1080-26704.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26704.jpg' },
-      { id: '26708', url: 'https://4kwallpapers.com/images/wallpapers/bmw-m-concept-neue-1920x1080-26708.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26708.jpg' }
+    city: [
+      { id: 'city-skyline', url: picsum('1029', 1920, 1080), thumb: picsum('1029', 480, 270) },
+      { id: 'city-alley', url: picsum('1047', 1920, 1080), thumb: picsum('1047', 480, 270) },
+      { id: 'sunset-city', url: picsum('1067', 1920, 1080), thumb: picsum('1067', 480, 270) },
+      { id: 'night-city', url: picsum('1078', 1920, 1080), thumb: picsum('1078', 480, 270) },
+      { id: 'sea-alley', url: picsum('1065', 1920, 1080), thumb: picsum('1065', 480, 270) }
     ],
-    abstract: [
-      { id: '26737', url: 'https://4kwallpapers.com/images/wallpapers/microsoft-surface-1920x1080-26737.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26737.jpg' },
-      { id: '26735', url: 'https://4kwallpapers.com/images/wallpapers/microsoft-surface-1920x1080-26735.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26735.jpg' },
-      { id: '26687', url: 'https://4kwallpapers.com/images/wallpapers/huawei-gradient-1920x1080-26687.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26687.jpg' },
-      { id: '26686', url: 'https://4kwallpapers.com/images/wallpapers/huawei-dark-mode-1920x1080-26686.jpg', thumb: 'https://4kwallpapers.com/images/walls/thumbs/26686.jpg' }
+    gaming: [
+      { id: 'gaming-car-1', url: localWallpaper('gaming-car-1.jpg'), thumb: localWallpaper('gaming-car-1-thumb.webp') },
+      { id: 'gaming-car-2', url: localWallpaper('gaming-car-2.jpg'), thumb: localWallpaper('gaming-car-2-thumb.webp') },
+      { id: 'gaming-arena', url: localWallpaper('gaming-arena.jpg'), thumb: localWallpaper('gaming-arena-thumb.webp') }
+    ],
+    tech: [
+      { id: 'tech-circuit', url: localWallpaper('tech-circuit.jpg'), thumb: localWallpaper('tech-circuit-thumb.webp') },
+      { id: 'tech-server', url: localWallpaper('tech-server.jpg'), thumb: localWallpaper('tech-server-thumb.webp') }
+    ],
+    neon: [
+      { id: 'neon-trails', url: localWallpaper('neon-trails.jpg'), thumb: localWallpaper('neon-trails-thumb.webp') },
+      { id: 'neon-nebula', url: localWallpaper('neon-nebula.jpg'), thumb: localWallpaper('neon-nebula-thumb.webp') }
     ]
   };
 
@@ -557,19 +546,88 @@ const SettingsUI = (() => {
     nature: 'wpNature',
     space: 'wpSpace',
     minimal: 'wpMinimal',
-    anime: 'wpAnime',
-    cars: 'wpCars',
-    abstract: 'wpAbstract'
+    sea: 'wpSea',
+    city: 'wpCity',
+    gaming: 'wpGaming',
+    tech: 'wpTech',
+    neon: 'wpNeon'
   };
 
   const BASE_DARK_VARS = {
-    '--surface-muted': 'rgba(255, 255, 255, 0.06)',
-    '--tile-bg': 'rgba(255, 255, 255, 0.07)',
-    '--input-bg': 'rgba(255, 255, 255, 0.07)',
-    '--panel-bg': 'rgba(13, 19, 32, 0.9)',
-    '--shadow': '0 1px 2px rgba(2, 6, 23, 0.25), 0 12px 32px -8px rgba(2, 6, 23, 0.45)',
-    '--shadow-hover': '0 2px 4px rgba(2, 6, 23, 0.3), 0 20px 48px -12px rgba(2, 6, 23, 0.55)'
+    '--surface-muted': '#0e0e12',
+    '--tile-bg': '#101014',
+    '--input-bg': '#0e0e12',
+    '--panel-bg': '#000000',
+    '--shadow': '0 1px 2px rgba(0, 0, 0, 0.45), 0 12px 32px -8px rgba(0, 0, 0, 0.65)',
+    '--shadow-hover': '0 2px 4px rgba(0, 0, 0, 0.5), 0 20px 48px -12px rgba(0, 0, 0, 0.75)'
   };
+
+  // Dark mode must be fully black: every surface becomes pure/near-black black,
+  // so the dashboard and modal content sit on a true black canvas. Accent colors,
+  // borders and text stay theme-driven and readable. Applied AFTER the theme merge
+  // and the visibility floor so it always wins.
+  const DARK_BLACK_SURFACE_VARS = {
+    '--bg-card': '#000000',
+    '--bg-card-hover': '#0a0a0c',
+    '--surface-muted': '#0e0e12',
+    '--tile-bg': '#101014',
+    '--input-bg': '#0e0e12',
+    '--panel-bg': '#000000',
+    '--panel-surface': '#0d0d10',
+    '--panel-input-bg': '#0e0e12',
+    '--search-bg': '#000000',
+    '--menu-bg': '#000000',
+    '--overlay-scrim': 'rgba(0, 0, 0, 0.78)',
+    '--highlight': 'rgba(255, 255, 255, 0.07)'
+  };
+
+  const BASE_LIGHT_VARS = {
+    '--surface-muted': '#f1f5fb',
+    '--tile-bg': '#ffffff',
+    '--input-bg': '#ffffff',
+    '--panel-input-bg': '#ffffff',
+    '--panel-bg': '#ffffff',
+    '--panel-surface': '#f1f5fb',
+    '--highlight': 'rgba(255, 255, 255, 0.7)',
+    '--shadow': '0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)',
+    '--shadow-hover': '0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06)'
+  };
+
+  // Field backgrounds per app-wide mode (white/black/glass).
+  const FIELD_VARS = {
+    light: { '--input-bg': '#ffffff', '--panel-input-bg': '#ffffff', '--search-bg': '#ffffff' },
+    dark: { '--input-bg': 'rgba(15, 22, 41, 0.78)', '--panel-input-bg': 'rgba(15, 22, 41, 0.78)', '--search-bg': 'rgba(15, 22, 41, 0.78)' },
+    glass: { '--input-bg': 'rgba(11, 18, 34, 0.72)', '--panel-input-bg': 'rgba(11, 18, 34, 0.72)', '--search-bg': 'rgba(11, 18, 34, 0.72)' }
+  };
+
+  // Every mode must stay readable, so text and secondary surfaces get
+  // explicit, high-contrast floors no matter what a theme's palette says.
+  // Themes still control the accent, borders, and the tint of `text-primary`;
+  // readability of every control is guaranteed.
+  function enforceDarkVisibility(vars) {
+    const bumpAlpha = (value, target) => {
+      const m = String(value).match(/rgba?\(([^)]+)\)/);
+      if (!m) return value;
+      const parts = m[1].split(/[,\s/]+/).filter(Boolean);
+      if (parts.length === 3) return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${target})`;
+      const alpha = Number(parts[3]);
+      if (parts.length >= 4 && !Number.isNaN(alpha)) {
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${Math.max(alpha, target)})`;
+      }
+      return value;
+    };
+    vars['--text-secondary'] = bumpAlpha(vars['--text-secondary'], 0.85);
+    vars['--surface-muted'] = 'rgba(148, 163, 184, 0.16)';
+    vars['--panel-surface'] = 'rgba(15, 15, 18, 0.94)';
+    vars['--highlight'] = 'rgba(255, 255, 255, 0.10)';
+    return vars;
+  }
+
+  const MODES = ['light', 'dark', 'glass'];
+
+  function normalizeMode(mode) {
+    return MODES.includes(mode) ? mode : 'dark';
+  }
 
   let settingsPanelsRendered = false;
 
@@ -577,6 +635,7 @@ const SettingsUI = (() => {
     if (settingsPanelsRendered) return;
     settingsPanelsRendered = true;
     renderThemeGrid();
+    renderModeSelector();
     renderGradientGrid();
     renderWallpaperGallery();
   }
@@ -586,7 +645,6 @@ const SettingsUI = (() => {
     setupTabs();
     setupBackgroundControls();
     setupLanguageToggle();
-    setupPerfModeControls();
     setupLocationControls();
     setupGoogleServicesControls();
     setupTopSitesControls();
@@ -605,14 +663,16 @@ const SettingsUI = (() => {
     } catch (err) {
       el.textContent = '';
     }
+    if (typeof UpdatesUI !== 'undefined' && typeof UpdatesUI.init === 'function') {
+      UpdatesUI.init();
+    }
   }
 
   function openSettings() {
     ensureSettingsPanels();
     syncControlsFromSettings();
     renderGoogleServicesSettings();
-    DashboardLayoutUI.renderSettings();
-    document.getElementById('modal-settings').classList.remove('hidden');
+    TabyarUI.openModal('modal-settings');
   }
 
   function setupTabs() {
@@ -627,7 +687,7 @@ const SettingsUI = (() => {
   }
 
   function setupLanguageToggle() {
-    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn):not(.perf-mode-btn)').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
       btn.addEventListener('click', async () => {
         await I18n.setLanguage(btn.dataset.lang);
         updateLanguageButtons(btn.dataset.lang);
@@ -636,32 +696,8 @@ const SettingsUI = (() => {
   }
 
   function updateLanguageButtons(lang) {
-    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn):not(.perf-mode-btn)').forEach((btn) => {
+    document.querySelectorAll('.lang-btn:not(.onboarding-lang-btn)').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.lang === lang);
-    });
-  }
-
-  function applyPerfMode(mode) {
-    const resolved = mode || Storage.getSettings().perfMode || 'auto';
-    if (window.TabyarPerf) {
-      TabyarPerf.apply(resolved);
-    }
-  }
-
-  function updatePerfModeButtons(mode) {
-    document.querySelectorAll('.perf-mode-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.perfMode === mode);
-    });
-  }
-
-  function setupPerfModeControls() {
-    document.querySelectorAll('.perf-mode-btn').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const mode = btn.dataset.perfMode;
-        await Storage.updateSettings({ perfMode: mode });
-        applyPerfMode(mode);
-        updatePerfModeButtons(mode);
-      });
     });
   }
 
@@ -852,6 +888,13 @@ const SettingsUI = (() => {
         if (e.target.checked) PricesUI.load();
       });
     }
+    const sitesToggle = document.getElementById('toggle-iranian-sites-visible');
+    if (sitesToggle) {
+      sitesToggle.addEventListener('change', async (e) => {
+        await Storage.updateSettings({ sitesVisible: e.target.checked });
+        Feeds.applyVisibility();
+      });
+    }
   }
 
   function setupExtraControls() {
@@ -860,16 +903,28 @@ const SettingsUI = (() => {
       await Storage.updateSettings({ floatingBookmarkButton: event.target.checked });
     });
 
-    document.querySelectorAll('.digits-style-btn').forEach((button) => {
-      button.addEventListener('click', async () => {
-        const style = button.dataset.digitsStyle;
-        await Storage.updateSettings({ persianDigits: style });
-        document.querySelectorAll('.digits-style-btn').forEach((item) => item.classList.toggle('active', item.dataset.digitsStyle === style));
-        CalendarUI.refresh();
-        TasksUI.render();
-        TasksUI.renderFocus();
-        PersonalEventsUI.render();
+    const modeSelector = document.getElementById('mode-selector');
+    if (modeSelector) {
+      modeSelector.querySelectorAll('.mode-option').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const mode = normalizeMode(btn.dataset.mode);
+          if (mode === normalizeMode(Storage.getSettings().colorMode)) return;
+          await Storage.updateSettings({ colorMode: mode });
+          renderModeSelector();
+          applyTheme(Storage.getSettings().theme);
+        });
       });
+    }
+  }
+
+  function renderModeSelector() {
+    const selector = document.getElementById('mode-selector');
+    if (!selector) return;
+    const mode = normalizeMode(Storage.getSettings().colorMode);
+    selector.querySelectorAll('.mode-option').forEach((btn) => {
+      const active = btn.dataset.mode === mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-checked', String(active));
     });
   }
 
@@ -903,17 +958,12 @@ const SettingsUI = (() => {
     const grid = document.getElementById('theme-grid');
     const settings = Storage.getSettings();
 
-    grid.innerHTML = Object.entries(THEMES).map(([key, theme]) => {
-      const preview = key === 'glass'
-        ? 'linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(56,189,248,0.35) 100%)'
-        : theme.accent;
-      return `
-        <button class="theme-card ${settings.theme === key ? 'active' : ''}" data-theme="${key}">
-          <div class="theme-preview ${key === 'glass' ? 'theme-preview-glass' : ''}" style="background: ${preview}"></div>
-          <span>${I18n.t(theme.nameKey)}</span>
-        </button>
-      `;
-    }).join('');
+    grid.innerHTML = Object.entries(THEMES).map(([key, theme]) => `
+      <button class="theme-card ${settings.theme === key ? 'active' : ''}" data-theme="${key}">
+        <div class="theme-preview" style="background: ${theme.accent}"></div>
+        <span>${I18n.t(theme.nameKey)}</span>
+      </button>
+    `).join('');
 
     grid.querySelectorAll('.theme-card').forEach((card) => {
       card.addEventListener('click', async () => {
@@ -1091,7 +1141,7 @@ const SettingsUI = (() => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tabyar-backup-${date}.json`;
+      a.download = `nexttab-backup-${date}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -1117,7 +1167,6 @@ const SettingsUI = (() => {
           TasksUI.renderFocus();
           PersonalEventsUI.render();
           DashboardLayoutUI.apply();
-          DashboardLayoutUI.renderSettings();
           TabyarUI.alert(I18n.t('importDataSuccess'), { type: 'success' });
         } catch {
           TabyarUI.alert(I18n.t('invalidFile'), { type: 'error' });
@@ -1192,7 +1241,7 @@ const SettingsUI = (() => {
           TabyarUI.alert(I18n.t('chromeSyncDisabled'), { type: 'success' });
         }
       } catch (error) {
-        console.error('Tabyar: Chrome bookmark sync toggle failed', error);
+        console.error('NextTab: Chrome bookmark sync toggle failed', error);
         toggle.checked = Boolean(Storage.getSettings().followChromeBookmarks);
         status.textContent = I18n.t('chromeSyncFailed');
         TabyarUI.alert(I18n.t('chromeSyncFailed'), { type: 'error' });
@@ -1211,17 +1260,44 @@ const SettingsUI = (() => {
     if (!(await TabyarUI.confirm(I18n.t('importChromeConfirm')))) return;
 
     try {
+      // Chrome wraps everything in two root folders ("Bookmarks bar" and
+      // "Other bookmarks", chrome ids "1" and "2"). Unwrap them so the real
+      // folders and bookmarks land directly on the main page.
       const tree = await new Promise((resolve, reject) => {
         chrome.bookmarks.getTree((nodes) => {
           if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
           else resolve(nodes);
         });
       });
-      await Storage.importBookmarkTree(tree);
+      const root = Array.isArray(tree) ? tree[0] : null;
+      const topLevel = root && Array.isArray(root.children) && root.children.length
+        ? root.children
+        : (Array.isArray(tree) ? tree.filter(Boolean) : []);
+      const wrapperIds = new Set(['1', '2']);
+      const flattened = topLevel
+        .flatMap((node) => {
+          if (!node) return [];
+          if (node.url) return [node];
+          if (wrapperIds.has(String(node.id)) && Array.isArray(node.children)) return node.children;
+          return [node];
+        });
+
+      // Sweep leftover wrapper folders from a previous import so only the real
+      // folders sit at the top level; their contents move to the main page.
+      const legacyWrappers = Storage.getFolders().filter((folder) =>
+        !folder.isDefault && !folder.isChromeRoot &&
+        ['bookmarks bar', 'other bookmarks'].includes(String(folder.name || '').trim().toLowerCase())
+      );
+      for (const wrapper of legacyWrappers) {
+        await Storage.deleteFolder(wrapper.id, false);
+      }
+
+      await Storage.importBookmarkTree(flattened);
+      await Storage.setActiveFolder('default');
       BookmarksUI.render();
       TabyarUI.alert(I18n.t('importSuccess'), { type: 'success' });
     } catch (err) {
-      console.error('Tabyar: bookmark import failed', err);
+      console.error('NextTab: bookmark import failed', err);
       TabyarUI.alert(I18n.t('importFailed'), { type: 'error' });
     }
   }
@@ -1248,7 +1324,6 @@ const SettingsUI = (() => {
     document.getElementById('bg-overlay').value = s.bgOverlay;
     document.getElementById('bg-overlay-value').textContent = s.bgOverlay + '%';
     updateLanguageButtons(s.language || 'fa');
-    updatePerfModeButtons(s.perfMode || 'auto');
     syncLocationDisplay();
     syncSecondLocationDisplay();
     updateCalendarTypeHint(s.calendarType);
@@ -1263,23 +1338,60 @@ const SettingsUI = (() => {
     if (toggleNews) toggleNews.checked = s.newsVisible !== false;
     const togglePrices = document.getElementById('toggle-prices-visible');
     if (togglePrices) togglePrices.checked = s.pricesVisible !== false;
-    document.querySelectorAll('.digits-style-btn').forEach((button) => button.classList.toggle('active', button.dataset.digitsStyle === (s.persianDigits || 'auto')));
+    const toggleSites = document.getElementById('toggle-iranian-sites-visible');
+    if (toggleSites) toggleSites.checked = s.sitesVisible !== false;
+    renderModeSelector();
     renderGoogleServicesSettings();
-    DashboardLayoutUI.renderSettings();
   }
 
+  // Glass surfaces must stay dark and mostly opaque on purpose: the app always
+  // runs in perf-lite mode (app.js hardcodes it), so backdrop-filter is disabled
+  // and the cards have to remain readable over ANY wallpaper — light, dark or
+  // photographic. A translucent white wash on a light wallpaper is invisible
+  // (white-on-pale), so glass uses a deep frosted navy instead and lets the
+  // wallpaper glow through softly via saturation + the sheen.
+  const GLASS_SURFACE_VARS = {
+    '--bg-card': 'rgba(11, 18, 34, 0.68)',
+    '--bg-card-hover': 'rgba(16, 26, 46, 0.78)',
+    '--surface-muted': 'rgba(255, 255, 255, 0.10)',
+    '--panel-bg': 'rgba(11, 18, 34, 0.82)',
+    '--search-bg': 'rgba(11, 18, 34, 0.62)',
+    '--tile-bg': 'rgba(11, 18, 34, 0.62)',
+    '--input-bg': 'rgba(11, 18, 34, 0.62)',
+    '--panel-input-bg': 'rgba(11, 18, 34, 0.62)',
+    '--border': 'rgba(255, 255, 255, 0.20)',
+    '--shadow': '0 6px 26px rgba(2, 6, 23, 0.38), 0 1px 0 rgba(255, 255, 255, 0.10) inset',
+    '--shadow-hover': '0 14px 44px rgba(2, 6, 23, 0.50), 0 1px 0 rgba(255, 255, 255, 0.14) inset'
+  };
+
   function applyTheme(themeKey) {
-    const theme = THEMES[themeKey] || THEMES.glass;
-    const vars = { ...BASE_DARK_VARS, ...theme.dark };
+    const s = Storage.getSettings();
+    const key = THEMES[themeKey] ? themeKey : 'midnight';
+    const theme = THEMES[key];
+    const mode = normalizeMode(s.colorMode);
+    const vars = mode === 'light'
+      ? { ...BASE_LIGHT_VARS, ...theme.light }
+      : { ...BASE_DARK_VARS, ...theme.dark };
+    if (mode === 'glass') Object.assign(vars, GLASS_SURFACE_VARS);
+    Object.assign(vars, FIELD_VARS[mode]);
+    if (mode === 'light') {
+      vars['--text-secondary'] = '#55637a';
+    } else {
+      enforceDarkVisibility(vars);
+    }
+    if (mode === 'dark') Object.assign(vars, DARK_BLACK_SURFACE_VARS);
     const root = document.documentElement;
     const body = document.body;
     Object.entries(vars).forEach(([key, val]) => {
       root.style.setProperty(key, val);
       body.style.setProperty(key, val);
     });
-    body.classList.remove('light-mode');
-    body.classList.add('dark-mode');
-    body.classList.toggle('glass-theme', themeKey === 'glass');
+    body.classList.toggle('light-mode', mode === 'light');
+    body.classList.toggle('dark-mode', mode !== 'light');
+    body.classList.toggle('glass-theme', mode === 'glass');
+    // Dark mode must be fully black — including the canvas behind any
+    // transparent/overlay layers.
+    body.style.background = mode === 'dark' ? '#000000' : '';
   }
 
   function resetBackgroundLayer(layer) {
@@ -1304,7 +1416,7 @@ const SettingsUI = (() => {
       layer.style.filter = `blur(${s.bgBlur}px)`;
       layer.style.setProperty('--bg-overlay-opacity', s.bgOverlay / 100);
     } catch (err) {
-      console.warn('Tabyar: wallpaper load failed', err);
+      console.warn('NextTab: wallpaper load failed', err);
     } finally {
       layer.classList.remove('bg-loading');
     }
@@ -1318,10 +1430,12 @@ const SettingsUI = (() => {
     resetBackgroundLayer(layer);
 
     if (s.bgType === 'gradient') {
-      layer.style.background = GRADIENTS[s.bgGradient] || GRADIENTS.night;
+      const mode = normalizeMode(s.colorMode);
+      layer.style.background = mode === 'dark' ? '#000000' : (GRADIENTS[s.bgGradient] || GRADIENTS.night);
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'color') {
-      layer.style.background = s.bgColor;
+      const mode = normalizeMode(s.colorMode);
+      layer.style.background = mode === 'dark' ? '#000000' : s.bgColor;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'image' && s.bgImage) {
       layer.style.background = GRADIENTS.night;
@@ -1337,11 +1451,12 @@ const SettingsUI = (() => {
 
     resetBackgroundLayer(layer);
 
+    const mode = normalizeMode(s.colorMode);
     if (s.bgType === 'gradient') {
-      layer.style.background = GRADIENTS[s.bgGradient] || GRADIENTS.night;
+      layer.style.background = mode === 'dark' ? '#000000' : (GRADIENTS[s.bgGradient] || GRADIENTS.night);
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'color') {
-      layer.style.background = s.bgColor;
+      layer.style.background = mode === 'dark' ? '#000000' : s.bgColor;
       layer.style.setProperty('--bg-overlay-opacity', '0');
     } else if (s.bgType === 'image' && s.bgImage) {
       layer.style.background = GRADIENTS.night;
@@ -1355,7 +1470,6 @@ const SettingsUI = (() => {
     applyTheme(s.theme);
     applyBackgroundSync();
     updateLanguageButtons(s.language || 'fa');
-    applyPerfMode(s.perfMode || 'auto');
   }
 
   async function applyAll() {
@@ -1373,15 +1487,15 @@ const SettingsUI = (() => {
 
   function refreshI18n() {
     ensureSettingsPanels();
+    if (typeof FontsUI !== 'undefined') FontsUI.render();
     renderThemeGrid();
     renderWallpaperGallery();
     renderGoogleServicesSettings();
     syncControlsFromSettings();
-    DashboardLayoutUI.renderSettings();
   }
 
   function getThemeKeys() { return Object.keys(THEMES); }
   function getGradientKeys() { return Object.keys(GRADIENTS); }
 
-  return { init, applyQuick, applyAll, applyPerfMode, refreshI18n, refreshLocationLabels, updateLanguageButtons, updatePerfModeButtons, reapplyAppearance, getThemeKeys, getGradientKeys };
+  return { init, applyQuick, applyAll, refreshI18n, refreshLocationLabels, updateLanguageButtons, reapplyAppearance, getThemeKeys, getGradientKeys };
 })();

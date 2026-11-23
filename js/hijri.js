@@ -82,11 +82,11 @@ const Hijri = (() => {
   }
 
   function format(hy, hm, hd) {
-    return `${Jalali.toPersianDigits(hd)} ${MONTHS[hm - 1]} ${Jalali.toPersianDigits(hy)}`;
+    return `${hd} ${MONTHS[hm - 1]} ${hy}`;
   }
 
   function formatShort(hy, hm, hd) {
-    return `${Jalali.toPersianDigits(hd)}/${Jalali.toPersianDigits(hm)}/${Jalali.toPersianDigits(hy)}`;
+    return `${hd}/${hm}/${hy}`;
   }
 
   return {

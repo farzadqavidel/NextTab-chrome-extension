@@ -11,7 +11,7 @@
   const THEME_ACCENTS = {
     midnight: '#6366f1', ocean: '#06b6d4', forest: '#22c55e', lavender: '#a78bfa',
     sunset: '#fb7185', crimson: '#ef4444', amber: '#f59e0b', emerald: '#10b981',
-    rose: '#ec4899', slate: '#94a3b8', coffee: '#c08457', cyberpunk: '#f0f', glass: '#38bdf8'
+    rose: '#ec4899', slate: '#94a3b8', coffee: '#c08457', cyberpunk: '#f0f'
   };
 
   const host = document.createElement('div');
@@ -38,23 +38,37 @@
       :host([data-side="left"]) .toast{left:86px;right:auto}
       .toast.visible{opacity:1}
       :host(.dragging) .toast{opacity:0}
-      @media(prefers-reduced-motion:reduce){button,.icon,.toast{transition:none}}
+      .picker{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(6px);min-width:216px;max-width:min(280px,76vw);max-height:min(330px,64vh);overflow-y:auto;display:none;padding:8px;border:1px solid rgba(255,255,255,.16);border-radius:15px;background:rgba(13,18,31,.97);color:#fff;box-shadow:0 18px 46px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);z-index:4;direction:auto}
+      .picker.open{display:block;animation:pickerIn .18s cubic-bezier(.2,.75,.25,1)}
+      @keyframes pickerIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+      .picker-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);padding:2px 9px 7px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:6px}
+      .picker-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:none;border-radius:10px;background:transparent;color:#fff;font:inherit;font-size:13px;line-height:1.4;cursor:pointer;text-align:start;transition:background .12s ease,color .12s ease}
+      .picker-item svg{width:17px;height:17px;flex-shrink:0;opacity:.9}
+      .picker-item:hover,.picker-item:focus-visible{background:rgba(255,255,255,.13);outline:none}
+      .picker-item .picker-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .picker-item.root{color:#a5f3d0}
+      .picker-sep{height:1px;background:rgba(255,255,255,.1);margin:6px 4px}
+      @media(prefers-reduced-motion:reduce){button,.icon,.toast{transition:none}.picker.open{animation:none;transform:translateX(-50%)}}
     </style>
     <div class="wrap" dir="auto">
-      <button id="toggle" type="button" aria-label="افزودن به بوکمارک‌های تب‌یار" aria-pressed="false">
+      <button id="toggle" type="button" aria-label="افزودن به بوکمارک‌های تب‌یار" aria-pressed="false" aria-haspopup="true" aria-expanded="false">
         <span class="icon" id="icon" aria-hidden="true"></span>
       </button>
       <span class="toast" id="toast" role="status" aria-live="polite" aria-hidden="true" dir="auto"></span>
+      <div class="picker" id="picker" role="menu" aria-hidden="true" aria-label=""></div>
     </div>`;
 
   const button = shadow.getElementById('toggle');
   const icon = shadow.getElementById('icon');
   const toast = shadow.getElementById('toast');
+  const picker = shadow.getElementById('picker');
+  let foldersState = [];
   let lang = 'fa';
   let isSaved = false;
   let savedFolderId = 'default';
   let savedFolderName = '';
   let savedFolderIsDefault = true;
+  let savedChromeMode = false;
   let position = { side: 'right', topRatio: 1 };
   let toastTimer = null;
   let toastIsAction = false;
@@ -78,20 +92,42 @@
       notSaved: 'هنوز ذخیره نشده؛ برای افزودن کلیک کنید. برای جابه‌جایی بکشید.',
       savedHome: 'این صفحه از قبل در صفحهٔ اصلی بوکمارک شده؛ کلیک برای حذف، کشیدن برای جابه‌جایی.',
       savedFolder: 'این صفحه در پوشهٔ «{folder}» وجود دارد؛ کلیک برای حذف، کشیدن برای جابه‌جایی.',
-      aFolder: 'یک پوشه'
+      aFolder: 'یک پوشه',
+      savedChromeRootStatus: 'این صفحه در نوار بوکمارک‌های کروم وجود دارد؛ کلیک برای حذف، کشیدن برای جابه‌جایی.',
+      pickerTitle: 'کجای دیگری ذخیره شود؟',
+      pickerRoot: 'بیرون از پوشه‌ها (صفحهٔ اصلی)',
+      pickerRootChrome: 'بیرون از پوشه‌ها (نوار بوکمارک‌های کروم)',
+      savedRootAction: 'خارج از پوشه‌ها و در صفحهٔ اصلی ذخیره شد ✓',
+      savedChromeRootAction: 'در نوار بوکمارک‌های کروم ذخیره شد ✓',
+      savedFolderAction: 'در پوشهٔ «{folder}» ذخیره شد ✓',
+      failedFolder: 'ذخیره انجام نشد؛ دوباره تلاش کنید',
+      removedFromHomeAction: 'از صفحهٔ اصلی حذف شد',
+      removedFromChromeRootAction: 'از نوار بوکمارک‌های کروم حذف شد',
+      removedFromFolderAction: 'از پوشهٔ «{folder}» حذف شد'
     },
     en: {
-      add: 'Add to Tabyar bookmarks',
-      remove: 'Remove from Tabyar bookmarks',
-      added: 'Added to Tabyar bookmarks ✓',
-      removed: 'Removed from Tabyar bookmarks',
+      add: 'Add to NextTab bookmarks',
+      remove: 'Remove from NextTab bookmarks',
+      added: 'Added to NextTab bookmarks ✓',
+      removed: 'Removed from NextTab bookmarks',
       failed: 'Could not update. Please try again.',
       unsupported: 'This page cannot be saved',
       saving: 'Updating…',
       notSaved: 'Not saved yet. Click to add, or drag to move this button.',
       savedHome: 'Already in Home. Click to remove, or drag to move this button.',
       savedFolder: 'Already in “{folder}”. Click to remove, or drag to move this button.',
-      aFolder: 'a folder'
+      aFolder: 'a folder',
+      savedChromeRootStatus: 'Already in the Chrome Bookmarks bar. Click to remove, or drag to move this button.',
+      pickerTitle: 'Where should this be saved?',
+      pickerRoot: 'Outside all folders (Home)',
+      pickerRootChrome: 'Outside all folders (Chrome Bookmarks bar)',
+      savedRootAction: 'Saved outside all folders (Home) ✓',
+      savedChromeRootAction: 'Saved to the Chrome Bookmarks bar ✓',
+      savedFolderAction: 'Saved in “{folder}” ✓',
+      failedFolder: 'Could not save. Please try again.',
+      removedFromHomeAction: 'Removed from Home',
+      removedFromChromeRootAction: 'Removed from the Chrome Bookmarks bar',
+      removedFromFolderAction: 'Removed from “{folder}”'
     }
   };
 
@@ -154,7 +190,9 @@
 
   function statusText() {
     if (!isSaved) return t('notSaved');
-    if (savedFolderIsDefault || savedFolderId === 'default') return t('savedHome');
+    if (savedFolderIsDefault || savedFolderId === 'default') {
+      return savedChromeMode ? t('savedChromeRootStatus') : t('savedHome');
+    }
     return t('savedFolder').replace('{folder}', savedFolderName || t('aFolder'));
   }
 
@@ -196,10 +234,116 @@
     }, 2300);
   }
 
+  function folderIconSvg() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h4l2 2.5h6a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/></svg>';
+  }
+  const rootIconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg>';
+
+  function pickerLabelFor(folder) {
+    return String(folder?.name || t('aFolder')) || t('aFolder');
+  }
+
+  function removedMessage(response) {
+    if (response?.folderChromeMode && response?.folderIsDefault) return t('removedFromChromeRootAction');
+    if (response?.folderIsDefault) return t('removedFromHomeAction');
+    if (response?.folderName) return t('removedFromFolderAction').replace('{folder}', response.folderName);
+    return t('removed');
+  }
+
+  function renderFolderPicker() {
+    const folders = Array.isArray(foldersState) ? foldersState.filter((folder) => folder && !folder.isDefault && !folder.isChromeRoot && folder.id !== 'default') : [];
+    const html = [
+      `<div class="picker-title">${t('pickerTitle')}</div>`,
+      `<button type="button" class="picker-item root" role="menuitem" data-folder-id="default">${rootIconSvg}<span class="picker-name">${escapeHtml(t(savedChromeMode ? 'pickerRootChrome' : 'pickerRoot'))}</span></button>`,
+      folders.length ? '<div class="picker-sep" aria-hidden="true"></div>' : '',
+      ...folders.map((folder) => `<button type="button" class="picker-item" role="menuitem" data-folder-id="${escapeHtml(folder.id)}">${folderIconSvg()}<span class="picker-name">${escapeHtml(pickerLabelFor(folder))}</span></button>`)
+    ];
+    picker.innerHTML = html.join('');
+    picker.querySelectorAll('.picker-item').forEach((item) => {
+      item.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        chooseFolder(item.dataset.folderId);
+      });
+    });
+  }
+
+  function openFolderPicker() {
+    renderFolderPicker();
+    picker.setAttribute('aria-label', t('pickerTitle'));
+    picker.classList.add('open');
+    picker.setAttribute('aria-hidden', 'false');
+    button.setAttribute('aria-expanded', 'true');
+    toast.classList.remove('visible');
+    toast.setAttribute('aria-hidden', 'true');
+    const first = picker.querySelector('.picker-item');
+    if (first) first.focus();
+  }
+
+  function closeFolderPicker({ returnFocus = false } = {}) {
+    if (!picker.classList.contains('open')) return;
+    picker.classList.remove('open');
+    picker.setAttribute('aria-hidden', 'true');
+    button.setAttribute('aria-expanded', 'false');
+    refreshHoverMessage();
+    if (returnFocus) button.focus();
+  }
+
+  function chooseFolder(folderId) {
+    closeFolderPicker();
+    saveToFolder(folderId === 'default' ? 'default' : String(folderId));
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str ?? '');
+    return div.innerHTML;
+  }
+
+  function saveToFolder(folderId) {
+    button.disabled = true;
+    button.setAttribute('aria-label', t('saving'));
+    chrome.runtime.sendMessage({
+      type: 'TABYAR_SAVE_PAGE',
+      title: document.title || location.hostname,
+      folderId
+    }, (response) => {
+      button.disabled = false;
+      if (chrome.runtime.lastError || !response) {
+        showToast(t('failed'));
+        updateVisualState();
+        return;
+      }
+      if (!response.ok) {
+        if (response.reason === 'unsupported') showToast(t('unsupported'));
+        else if (response.reason === 'folder-not-found') showToast(t('failedFolder'));
+        else showToast(t('failed'));
+        updateVisualState();
+        return;
+      }
+      setStatusFromResponse(response);
+      updateVisualState();
+      if (response.action === 'removed') {
+        showToast(t('removed'));
+        return;
+      }
+      showToast(addedMessage(response));
+    });
+  }
+
+  function addedMessage(response) {
+    if (!response?.folderId) return t('added');
+    if (response.folderIsDefault) {
+      return response.folderChromeMode ? t('savedChromeRootAction') : t('savedRootAction');
+    }
+    return t('savedFolderAction').replace('{folder}', response.folderName || t('aFolder'));
+  }
+
   function setStatusFromData(data) {
     const bookmarks = Array.isArray(data?.bookmarks) ? data.bookmarks : [];
     const currentUrl = normalizedUrl(location.href);
     const match = bookmarks.find((item) => normalizedUrl(item.url) === currentUrl);
+    savedChromeMode = Boolean(data?.settings?.followChromeBookmarks);
     if (!match) {
       isSaved = false;
       savedFolderId = 'default';
@@ -218,10 +362,12 @@
 
   function setStatusFromResponse(response) {
     isSaved = Boolean(response?.saved);
+    savedChromeMode = Boolean(response?.folderChromeMode);
     if (!isSaved) {
       savedFolderId = 'default';
       savedFolderName = '';
       savedFolderIsDefault = true;
+      savedChromeMode = false;
       return;
     }
     savedFolderId = response.folderId || 'default';
@@ -270,6 +416,7 @@
   }
 
   function handlePointerDown(event) {
+    closeFolderPicker();
     if (suppressClick) clearClickSuppression();
     if (event.button !== 0 || button.disabled || event.isPrimary === false || dragState) return;
 
@@ -317,8 +464,9 @@
 
   function updateSettingsFromData(state) {
     lang = state?.settings?.language === 'en' ? 'en' : 'fa';
-    const theme = state?.settings?.theme || 'glass';
-    host.style.setProperty('--tabyar-accent', THEME_ACCENTS[theme] || THEME_ACCENTS.glass);
+    const theme = state?.settings?.theme || 'midnight';
+    host.style.setProperty('--tabyar-accent', THEME_ACCENTS[theme] || THEME_ACCENTS.midnight);
+    foldersState = Array.isArray(state?.folders) ? state.folders : [];
     host.style.setProperty('display', state?.settings?.floatingBookmarkButton === false ? 'none' : 'block', 'important');
     setStatusFromData(state);
     updateVisualState();
@@ -368,6 +516,18 @@
       return;
     }
     if (button.disabled) return;
+    if (isSaved) {
+      removeSavedBookmark();
+      return;
+    }
+    if (picker.classList.contains('open')) {
+      closeFolderPicker({ returnFocus: true });
+      return;
+    }
+    openFolderPicker();
+  });
+
+  function removeSavedBookmark() {
     button.disabled = true;
     button.setAttribute('aria-label', t('saving'));
     chrome.runtime.sendMessage({
@@ -387,8 +547,20 @@
       }
       setStatusFromResponse(response);
       updateVisualState();
-      showToast(t(response.action === 'removed' ? 'removed' : 'added'));
+      showToast(response.action === 'removed' ? removedMessage(response) : t('added'));
     });
+  }
+
+  // Close the picker on Escape or on an outside press.
+  document.addEventListener('pointerdown', (event) => {
+    if (!picker.classList.contains('open')) return;
+    if (host.contains(event.target)) return;
+    closeFolderPicker();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (!picker.classList.contains('open')) return;
+    closeFolderPicker({ returnFocus: true });
   });
 
   position = normalizePosition(null);

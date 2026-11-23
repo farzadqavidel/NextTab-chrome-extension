@@ -1,5 +1,5 @@
 /**
- * Tabyar favicon helper.
+ * NextTab favicon helper.
  *
  * Why this exists:
  * Google's s2 favicon endpoint answers with HTTP 404 for domains that have no
@@ -200,5 +200,66 @@ const Favicon = (() => {
       data-favicon-url="${escape(url)}" data-favicon-title="${escape(title)}">`;
   }
 
-  return { bind, bindAll, imgHtml, monogramDataUri, sourceUrl, getDomain, isFileUrl, fileName };
+  /**
+   * Icon chain for "popular sites" tiles: tries the site's best-known favicon
+   * endpoint first (Google's 128px s2 service), then the site's own
+   * /favicon.ico, and only then falls back to a generated monogram.
+   * Placeholders returned by Google's service are treated as misses so the
+   * chain keeps moving instead of locking in the generic grey globe.
+   */
+  function candidateUrls(url) {
+    const domain = getDomain(url);
+    if (!domain) return [];
+    return [
+      'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128',
+      'https://' + domain + '/favicon.ico'
+    ];
+  }
+
+  function siteIconHtml(url, title, attrs) {
+    const candidates = candidateUrls(url);
+    const escape = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    if (!candidates.length) {
+      return `<img src="${escape(monogramDataUri(title, url))}" alt="" loading="lazy" class="is-monogram" ${attrs || ''} data-favicon-url="${escape(url)}" data-favicon-title="${escape(title)}">`;
+    }
+    return `<img src="${escape(candidates[0])}" alt="" loading="lazy"${attrs ? ' ' + attrs : ''} data-favicon-url="${escape(url)}" data-favicon-title="${escape(title)}" data-favicon-chain="1">`;
+  }
+
+  function bindChain(img) {
+    if (!img || img.dataset.faviconBound === 'true') return;
+    img.dataset.faviconBound = 'true';
+    const candidates = candidateUrls(img.dataset.faviconUrl || '');
+    if (!candidates.length) { applyMonogram(img); return; }
+
+    let idx = 0;
+    let done = false;
+    const finish = () => { if (!done) { done = true; applyMonogram(img); } };
+    const advance = () => {
+      if (done) return;
+      idx += 1;
+      if (idx >= candidates.length) { finish(); return; }
+      img.src = candidates[idx];
+    };
+
+    // Ignore the placeholder check when we already gave up (monogram set).
+    const isGoogleChain = () => img.src.indexOf('s2/favicons') !== -1;
+
+    img.addEventListener('error', () => advance());
+    img.addEventListener('load', () => {
+      if (done) return;
+      if (isGoogleChain() && isPlaceholder(img)) advance();
+      else done = true;
+    });
+
+    // Cached images can finish loading before listeners attach.
+    if (img.complete) {
+      if (img.naturalWidth === 0) advance();
+      else if (isGoogleChain() && isPlaceholder(img)) advance();
+      else done = true;
+    }
+  }
+
+  return { bind, bindAll, bindChain, imgHtml, siteIconHtml, monogramDataUri, sourceUrl, candidateUrls, getDomain, isFileUrl, fileName };
 })();

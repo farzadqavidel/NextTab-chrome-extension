@@ -6,7 +6,6 @@
 const NewsUI = (() => {
   const CACHE_KEY = 'tabyarNewsCacheV1';
   const TTL_MS = 10 * 60 * 1000;
-  const PAGE_SIZE = 8;
   const MAX_PER_FEED = 25;
 
   const CATS = ['all', 'economy', 'tech', 'world', 'culture', 'lifestyle', 'sports'];
@@ -16,6 +15,8 @@ const NewsUI = (() => {
     digiato: { fa: 'دیجیاتو', en: 'Digiato', domain: 'digiato.com' },
     varzesh3: { fa: 'ورزش۳', en: 'Varzesh3', domain: 'varzesh3.com' },
     tejaratnews: { fa: 'تجارت‌نیوز', en: 'Tejarat News', domain: 'tejaratnews.com' },
+    isna: { fa: 'ایسنا', en: 'ISNA', domain: 'isna.ir' },
+    mehr: { fa: 'خبرگزاری مهر', en: 'Mehr News', domain: 'mehrnews.com' },
     bbc: { fa: 'بی‌بی‌سی فارسی', en: 'BBC Persian', domain: 'bbc.co.uk' },
     digikalamag: { fa: 'دیجی‌کالا مگ', en: 'Digikala Mag', domain: 'digikala.com' }
   };
@@ -27,13 +28,15 @@ const NewsUI = (() => {
     { cat: 'economy', source: 'tejaratnews', url: 'https://www.tejaratnews.com/rss' },
     { cat: 'economy', source: 'bbc', url: 'https://feeds.bbci.co.uk/persian/business/rss.xml' },
     { cat: 'world', source: 'bbc', url: 'https://feeds.bbci.co.uk/persian/rss.xml' },
+    { cat: 'world', source: 'isna', url: 'https://www.isna.ir/rss' },
+    { cat: 'world', source: 'mehr', url: 'https://www.mehrnews.com/rss' },
     { cat: 'culture', source: 'bbc', url: 'https://feeds.bbci.co.uk/persian/arts/rss.xml' },
     { cat: 'lifestyle', source: 'digikalamag', url: 'https://www.digikala.com/mag/feed/' }
   ];
 
   let items = [];
   let activeCat = 'all';
-  let visible = PAGE_SIZE;
+  let visible = 0;
   let loading = false;
   let loadedAt = 0;
   let timer = null;
@@ -47,6 +50,18 @@ const NewsUI = (() => {
   function sourceName(key) {
     const src = SOURCES[key] || { fa: key, en: key };
     return lang() === 'en' ? src.en : src.fa;
+  }
+
+
+  function rowSize() {
+    const grid = gridEl();
+    if (!grid) return 4;
+    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+    return Math.max(1, cols);
+  }
+
+  function ensureVisible() {
+    if (!visible) visible = rowSize();
   }
 
   function catLabel(cat) {
@@ -187,7 +202,7 @@ const NewsUI = (() => {
       btn.addEventListener('click', () => {
         if (btn.dataset.cat === activeCat) return;
         activeCat = btn.dataset.cat;
-        visible = PAGE_SIZE;
+        visible = rowSize();
         renderCats();
         renderGrid();
       });
@@ -239,10 +254,12 @@ const NewsUI = (() => {
   function renderGrid() {
     const el = gridEl();
     if (!el) return;
+    ensureVisible();
     if (loading && !items.length) {
-      el.innerHTML = Array.from({ length: PAGE_SIZE }, skeletonHtml).join('');
+      el.innerHTML = Array.from({ length: rowSize() }, skeletonHtml).join('');
     } else {
       const list = filtered();
+      visible = Math.max(rowSize(), Math.min(visible, Math.max(list.length, rowSize())));
       el.innerHTML = list.slice(0, visible).map(itemHtml).join('');
       el.querySelectorAll('.news-thumb > img').forEach((img) => {
         img.addEventListener('error', () => img.remove(), { once: true });
@@ -254,7 +271,17 @@ const NewsUI = (() => {
     const error = document.getElementById('news-error');
     if (error) error.classList.toggle('hidden', loading || list.length > 0 || items.length > 0);
     const more = document.getElementById('btn-news-more');
-    if (more) more.classList.toggle('hidden', list.length <= visible);
+    if (more) {
+      if (list.length > visible) {
+        more.classList.remove('hidden');
+        more.textContent = I18n.t('newsMore');
+      } else if (visible > rowSize()) {
+        more.classList.remove('hidden');
+        more.textContent = I18n.t('newsLess');
+      } else {
+        more.classList.add('hidden');
+      }
+    }
     const updated = document.getElementById('news-updated');
     if (updated) updated.textContent = loadedAt ? I18n.t('newsUpdated', { time: Feeds.clockNow() }) : '';
   }
@@ -300,13 +327,20 @@ const NewsUI = (() => {
 
   async function init() {
     document.addEventListener('tabyar:language-changed', rerender);
+    window.addEventListener('resize', onResize);
+    lastRow = rowSize();
     const btn = document.getElementById('btn-news-refresh');
     if (btn) btn.addEventListener('click', () => load(true));
     const retry = document.getElementById('btn-news-retry');
     if (retry) retry.addEventListener('click', () => load(true));
     const more = document.getElementById('btn-news-more');
     if (more) more.addEventListener('click', () => {
-      visible += PAGE_SIZE;
+      const list = filtered();
+      if (visible > rowSize()) {
+        visible = rowSize();
+      } else {
+        visible = Math.min(list.length, visible + rowSize());
+      }
       renderGrid();
     });
 
@@ -326,6 +360,16 @@ const NewsUI = (() => {
 
     load(true);
     schedule();
+  }
+
+  let lastRow = 0;
+  function onResize() {
+    const rs = rowSize();
+    if (rs !== lastRow) {
+      lastRow = rs;
+      visible = rs;
+      renderGrid();
+    }
   }
 
   function schedule() {

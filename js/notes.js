@@ -235,11 +235,11 @@ const NotesUI = (() => {
 
   function openNotesModal() {
     renderModalNotes();
-    document.getElementById('modal-notes').classList.remove('hidden');
+    TabyarUI.openModal('modal-notes');
   }
 
   function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
+    TabyarUI.closeModal(id);
     if (id === 'modal-note-edit') editingNoteId = null;
   }
 

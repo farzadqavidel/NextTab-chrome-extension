@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   TabyarUI.init();
   SettingsUI.applyQuick();
   Feeds.applyVisibility();
-  TabyarPerf.apply(Storage.getSettings().perfMode || 'auto');
+  TabyarPerf.apply('lite');
   DashboardLayoutUI.init();
   document.getElementById('dashboard').classList.add('loaded');
 
@@ -33,14 +33,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   TasksUI.init();
   PersonalEventsUI.init();
   SettingsUI.init();
+  FontsUI.init();
   SearchUI.init();
   GoogleServicesUI.init();
   TopSitesUI.init();
   PricesUI.init();
   NewsUI.init();
+  IranianSitesUI.init();
   PrivacyUI.init();
   CommandPaletteUI.init();
-  QuickActionsUI.init();
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'TABYAR_BOOKMARKS_CHANGED') {

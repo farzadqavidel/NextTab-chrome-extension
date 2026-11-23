@@ -6,7 +6,7 @@ const GoogleServicesUI = (() => {
     { id: 'gmail', url: 'https://mail.google.com', iconPath: 'icons/services/gmail.svg', nameKey: 'googleGmail' },
     { id: 'drive', url: 'https://drive.google.com', iconPath: 'icons/services/drive.svg', nameKey: 'googleDrive' },
     { id: 'meet', url: 'https://meet.google.com', iconPath: 'icons/services/meet.svg', nameKey: 'googleMeet' },
-    { id: 'maps', url: 'https://maps.google.com', iconPath: 'icons/services/maps.png', nameKey: 'googleMaps' },
+    { id: 'maps', url: 'https://maps.google.com', iconPath: 'icons/services/maps.webp', nameKey: 'googleMaps' },
     { id: 'youtube', url: 'https://www.youtube.com', iconPath: 'icons/services/youtube.svg', nameKey: 'googleYoutube' },
     { id: 'translate', url: 'https://translate.google.com', iconPath: 'icons/services/translate.svg', nameKey: 'googleTranslate' },
     { id: 'calendar', url: 'https://calendar.google.com', iconPath: 'icons/services/calendar.svg', nameKey: 'googleCalendar' },

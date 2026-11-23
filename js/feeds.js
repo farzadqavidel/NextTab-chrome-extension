@@ -8,23 +8,11 @@ const Feeds = (() => {
   }
 
   function usePersianDigits() {
-    if (typeof Locale !== 'undefined' && typeof Locale.shouldUsePersianDigits === 'function') {
-      return Locale.shouldUsePersianDigits();
-    }
-    const s = settings();
-    const style = s.persianDigits || 'auto';
-    if (style === 'persian') return true;
-    if (style === 'latin') return false;
-    const code = (s.countryCode || '').toUpperCase();
-    if (code === 'IR' || code === 'AF') return true;
-    return s.calendarType === 'jalali' || s.calendarType === 'hijri';
+    return false;
   }
 
   function digits(value) {
-    const str = String(value);
-    if (!usePersianDigits()) return str;
-    if (typeof Jalali !== 'undefined' && Jalali.toPersianDigits) return Jalali.toPersianDigits(str);
-    return str.replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
+    return String(value);
   }
 
   function group(number, fraction = 0) {
@@ -79,18 +67,21 @@ const Feeds = (() => {
     }
   }
 
-  /** Shows/hides the two feed sections and switches the page into scroll mode. */
+  /** Shows/hides the three feed sections and switches the page into scroll mode. */
   function applyVisibility() {
     const s = settings();
     const newsOn = s.newsVisible !== false;
     const pricesOn = s.pricesVisible !== false;
+    const sitesOn = s.sitesVisible !== false;
     const newsEl = document.getElementById('news-section');
     const pricesEl = document.getElementById('prices-section');
+    const sitesEl = document.getElementById('sites-section');
     if (newsEl) newsEl.classList.toggle('hidden', !newsOn);
     if (pricesEl) pricesEl.classList.toggle('hidden', !pricesOn);
+    if (sitesEl) sitesEl.classList.toggle('hidden', !sitesOn);
     const wrapEl = document.getElementById('feed-sections');
-    if (wrapEl) wrapEl.classList.toggle('hidden', !(newsOn || pricesOn));
-    document.documentElement.classList.toggle('feed-scroll', newsOn || pricesOn);
+    if (wrapEl) wrapEl.classList.toggle('hidden', !(newsOn || pricesOn || sitesOn));
+    document.documentElement.classList.toggle('feed-scroll', newsOn || pricesOn || sitesOn);
   }
 
   return {

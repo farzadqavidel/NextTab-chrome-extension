@@ -8,7 +8,6 @@ const CommandPaletteUI = (() => {
     els.input = document.getElementById('command-palette-input');
     els.list = document.getElementById('command-palette-results');
     if (!els.modal) return;
-    document.getElementById('btn-command-palette')?.addEventListener('click', open);
     els.input.addEventListener('input', () => { activeIndex = 0; render(); });
     els.input.addEventListener('keydown', handleKeydown);
     els.list.addEventListener('click', (event) => {
@@ -30,14 +29,14 @@ const CommandPaletteUI = (() => {
   }
 
   function open() {
-    els.modal.classList.remove('hidden');
+    TabyarUI.openModal('modal-command-palette');
     els.input.value = '';
     render();
     setTimeout(() => els.input.focus(), 0);
   }
 
   function close() {
-    els.modal.classList.add('hidden');
+    TabyarUI.closeModal('modal-command-palette');
   }
 
   function baseCommands(query) {

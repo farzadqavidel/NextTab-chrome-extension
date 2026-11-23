@@ -2,7 +2,7 @@ const Storage = (() => {
   // Fallback lists. The real source of truth is SettingsUI (js/settings.js),
   // which is queried at runtime so newly added themes never get reset on reload.
   const FALLBACK_THEMES = ['midnight', 'ocean', 'forest', 'lavender', 'sunset', 'crimson',
-    'amber', 'emerald', 'rose', 'slate', 'coffee', 'cyberpunk', 'glass'];
+    'amber', 'emerald', 'rose', 'slate', 'coffee', 'cyberpunk'];
   const FALLBACK_GRADIENTS = ['midnight', 'ocean', 'aurora', 'sunset', 'forest', 'lavender',
     'crimson', 'amber', 'emerald', 'rose', 'slate', 'coffee', 'cyberpunk', 'mono', 'night'];
   const MAX_FOCUS_DURATION_MS = (((999 * 24) + 23) * 60 + 59) * 60 * 1000;
@@ -37,8 +37,8 @@ const Storage = (() => {
     selectedDay: null,
     searchHistory: [],
     settings: {
-      theme: 'glass',
-      colorMode: 'dark',
+      theme: 'midnight',
+      colorMode: 'glass',
       bgType: 'gradient',
       bgGradient: 'night',
       bgColor: '#000000',
@@ -50,13 +50,13 @@ const Storage = (() => {
       bookmarkSize: 'medium',
       notesBlurred: false,
       privacyMode: false,
-      persianDigits: 'auto',
       floatingBookmarkButton: true,
       widgetOrder: ['day-info-card', 'calendar-card', 'bookmarks-card', 'notes-card', 'tasks-card'],
+      feedOrder: ['sites-section', 'prices-section', 'news-section'],
       hiddenWidgets: [],
       focusState: { phase: 'focus', remainingMs: 1500000, endAt: 0, running: false },
       focusDurations: { focusMs: 1500000, breakMs: 300000 },
-      perfMode: 'auto',
+      font: 'vazir',
       language: 'fa',
       welcomeShown: false,
       onboardingComplete: false,
@@ -133,9 +133,24 @@ const Storage = (() => {
     if (Array.isArray(data.searchHistory)) merged.searchHistory = data.searchHistory;
     if (data.settings) {
       merged.settings = { ...merged.settings, ...data.settings };
+      // Glass is now an independent app-wide mode on top of a chosen accent
+      // theme. Migrate legacy settings: glass-as-theme becomes the legacy
+      // boolean glassMode, then both legacy forms fold into colorMode.
+      if (merged.settings.theme === 'glass') {
+        merged.settings.theme = 'midnight';
+        merged.settings.glassMode = true;
+      }
+      if (merged.settings.glassMode === true) {
+        merged.settings.colorMode = 'glass';
+      }
+      if (!['light', 'dark', 'glass'].includes(merged.settings.colorMode)) {
+        merged.settings.colorMode = 'dark';
+      }
+      delete merged.settings.glassMode;
       if (!Array.isArray(merged.settings.hiddenWidgets)) merged.settings.hiddenWidgets = [];
       if (!Array.isArray(merged.settings.widgetOrder)) merged.settings.widgetOrder = [...DEFAULT_DATA.settings.widgetOrder];
-      if (!['auto', 'persian', 'latin'].includes(merged.settings.persianDigits)) merged.settings.persianDigits = 'auto';
+      if (!Array.isArray(merged.settings.feedOrder)) merged.settings.feedOrder = [...DEFAULT_DATA.settings.feedOrder];
+      if (!['system', 'vazir', 'lalezar', 'estedad', 'noto', 'naskh', 'amiri', 'scheherazade', 'markazi'].includes(merged.settings.font)) merged.settings.font = 'vazir';
       if (!['focus', 'break'].includes(merged.settings.focusState?.phase)) {
         merged.settings.focusState = structuredClone(DEFAULT_DATA.settings.focusState);
       } else {
@@ -166,20 +181,21 @@ const Storage = (() => {
       if (merged.settings.theme === 'light' || !validThemes().has(merged.settings.theme)) {
         merged.settings.theme = DEFAULT_DATA.settings.theme;
       }
-      merged.settings.colorMode = 'dark';
       if (!validGradients().has(merged.settings.bgGradient)) {
         merged.settings.bgGradient = DEFAULT_DATA.settings.bgGradient || 'midnight';
       }
-      if (!['auto', 'lite', 'full'].includes(merged.settings.perfMode)) {
-        merged.settings.perfMode = 'auto';
-      }
-      if (merged.settings.bgImage && /\/images\/wallpapers\/\d+\.jpg$/i.test(merged.settings.bgImage)) {
+      if (merged.settings.bgImage && /4kwallpapers\.com/i.test(merged.settings.bgImage)) {
         merged.settings.bgImage = '';
         if (merged.settings.bgType === 'image') {
           merged.settings.bgType = 'gradient';
           merged.settings.bgGradient = merged.settings.bgGradient || 'midnight';
         }
       }
+      // The AI Assistant was removed: drop its settings from the stored profile
+      // so the stale secret never re-appears in an export or on import.
+      delete merged.settings.assistantBaseUrl;
+      delete merged.settings.assistantToken;
+      delete merged.settings.assistantModel;
     }
     return merged;
   }
@@ -1007,14 +1023,8 @@ const Storage = (() => {
   }
 
   async function finalizeAfterImport() {
-    const custom = cache.folders.filter((f) => !f.isDefault);
-    if (custom.length > 0) {
-      if (!custom.find((f) => f.id === cache.activeFolderId)) {
-        cache.activeFolderId = custom[0].id;
-      }
-    } else {
-      cache.activeFolderId = 'default';
-    }
+    // A Chrome import lands on the main page with the real folders on top.
+    cache.activeFolderId = 'default';
   }
 
   function getRandomColor() {

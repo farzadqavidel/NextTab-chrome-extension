@@ -111,6 +111,7 @@ const CalendarUI = (() => {
     const g = Storage.getTodayGregorian();
     await Storage.setSelectedGregorian(g.year, g.month, g.day);
     render();
+    if (typeof TasksUI !== 'undefined') TasksUI.syncSelectedDay?.();
   }
 
   async function selectPrimaryDay(year, month, day) {
@@ -119,6 +120,7 @@ const CalendarUI = (() => {
     renderDayInfo(g);
     renderCalendarDays();
     renderOtherDates(g);
+    if (typeof TasksUI !== 'undefined') TasksUI.syncSelectedDay();
   }
 
   function formatNativeScriptDate(day, monthName, year) {
@@ -187,9 +189,12 @@ const CalendarUI = (() => {
       isHoliday = weekday === 5 || PersianEvents.isHoliday(j.year, j.month, j.day, lang);
       hasEvent = PersianEvents.hasEvents(j.year, j.month, j.day, lang);
     }
-    if (typeof PersonalEventsUI !== 'undefined') hasEvent = hasEvent || PersonalEventsUI.hasEvent(g);
 
-    return { weekendClass, isHoliday, hasEvent };
+    // Manually-added personal events are tracked separately from native
+    // occasions so the day marker is visually distinct in the calendar.
+    const hasPersonalEvent = typeof PersonalEventsUI !== 'undefined' && PersonalEventsUI.hasEvent(g);
+
+    return { weekendClass, isHoliday, hasEvent, hasPersonalEvent };
   }
 
   function escapeHtml(value) {
@@ -299,7 +304,9 @@ const CalendarUI = (() => {
       const isSelected = viewYear === selectedPrimary.year &&
         viewMonth === selectedPrimary.month &&
         day === selectedPrimary.day;
-      const { weekendClass, isHoliday, hasEvent } = getDayFlags(g);
+      const { weekendClass, isHoliday, hasEvent, hasPersonalEvent } = getDayFlags(g);
+      // Days with a written daily plan (tasks) get a theme-colored marker.
+      const hasProgram = typeof TasksUI !== 'undefined' && TasksUI.hasTasksForGregorian(g);
 
       const classes = ['cal-day'];
       if (isToday) classes.push('today');
@@ -307,6 +314,8 @@ const CalendarUI = (() => {
       if (weekendClass) classes.push(weekendClass);
       if (isHoliday) classes.push('holiday');
       if (hasEvent && !isHoliday) classes.push('has-event');
+      if (hasPersonalEvent) classes.push('has-personal-event');
+      if (hasProgram) classes.push('has-program');
 
       html += `<button type="button" class="${classes.join(' ')}" data-day="${day}">${I18n.formatDigits(day)}</button>`;
     }
@@ -317,6 +326,20 @@ const CalendarUI = (() => {
         selectPrimaryDay(viewYear, viewMonth, parseInt(btn.dataset.day, 10));
       });
     });
+
+    syncGoTodayButton();
+  }
+
+  /* The "go to today" button only has a job when you're looking at a different
+     day — hide it when the selected day is today (the grid keeps its current
+     look in that case). */
+  function syncGoTodayButton() {
+    const today = todayPrimary();
+    const selectedPrimary = gregorianToPrimary(Storage.getSelectedGregorian());
+    const isToday = selectedPrimary.year === today.year &&
+      selectedPrimary.month === today.month &&
+      selectedPrimary.day === today.day;
+    if (els.goToday) els.goToday.classList.toggle('hidden', isToday);
   }
 
   function updateHeader() {
@@ -360,7 +383,7 @@ const CalendarUI = (() => {
       viewYear = todayP.year;
       viewMonth = todayP.month;
       Storage.setSelectedGregorian(todayG.year, todayG.month, todayG.day)
-        .then(() => render())
+        .then(() => { render(); if (typeof TasksUI !== 'undefined') TasksUI.syncSelectedDay?.(); })
         .catch(() => render());
     } else {
       lastTodayKey = todayKey;
@@ -410,7 +433,12 @@ const CalendarUI = (() => {
     initViewFromSelected();
     render();
     updateClock();
+    if (typeof TasksUI !== 'undefined') TasksUI.syncSelectedDay?.();
   }
 
-  return { init, refresh };
+  function refreshDays() {
+    renderCalendarDays();
+  }
+
+  return { init, refresh, refreshDays };
 })();

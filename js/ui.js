@@ -172,5 +172,31 @@ const TabyarUI = (() => {
     toast(message, { ...options, type });
   }
 
-  return { init, confirm, toast, alert };
+  // Animated modal show/hide: opening replays the CSS entrance animation
+  // (display: none → flex), and closing adds .is-closing (a JS-driven fade
+  // out) before hiding the overlay. The timer + generation counter guard
+  // against opening a modal while its close animation is still pending.
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el._closeTimer) { clearTimeout(el._closeTimer); el._closeTimer = null; }
+    el._closeGen = (el._closeGen || 0) + 1;
+    el.classList.remove('hidden', 'is-closing');
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (!el || el.classList.contains('hidden') || el.classList.contains('is-closing')) return;
+    el._closeGen = (el._closeGen || 0) + 1;
+    const gen = el._closeGen;
+    el.classList.add('is-closing');
+    el._closeTimer = setTimeout(() => {
+      if (el._closeGen !== gen) return;
+      el._closeTimer = null;
+      el.classList.remove('is-closing');
+      el.classList.add('hidden');
+    }, 250);
+  }
+
+  return { init, confirm, toast, alert, openModal, closeModal };
 })();

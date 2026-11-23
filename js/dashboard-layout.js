@@ -1,4 +1,6 @@
 const DashboardLayoutUI = (() => {
+  // ── Zones ────────────────────────────────────────────────────────────────
+  // Bento zone: the five dashboard cards. Only these may swap between bento slots.
   const WIDGETS = [
     { id: 'day-info-card', key: 'widgetToday' },
     { id: 'calendar-card', key: 'widgetCalendar' },
@@ -6,274 +8,301 @@ const DashboardLayoutUI = (() => {
     { id: 'notes-card', key: 'widgetNotes' },
     { id: 'tasks-card', key: 'widgetTasks' }
   ];
-  // Layout is intentionally constrained to these five responsive bento slots.
-  // Dragging only changes the order-to-slot mapping; it never changes spans.
-  const SLOT_NAMES = ['slot-a', 'slot-b', 'slot-c', 'slot-d', 'slot-e'];
-  const listEl = () => document.getElementById('widget-layout-settings');
+  // Feed zone: the full-width sections under the dashboard (sites / prices / news).
+  // They may only swap among themselves.
+  const FEED_WIDGETS = [
+    { id: 'sites-section', key: 'sitesTitle' },
+    { id: 'prices-section', key: 'pricesTitle' },
+    { id: 'news-section', key: 'newsTitle' }
+  ];
+
+  // Constraint rules — the grid is fixed, so each widget may go only where it
+  // belongs: the bookmarks card keeps the wide middle slot, the other four keep
+  // the corner slots, and feed sections stay in the below-fold zone.
+  const CORNER_SLOTS = ['slot-a', 'slot-b', 'slot-d', 'slot-e'];
+  const WIDE_SLOT = 'slot-c';
+  const WIDE_WIDGET_ID = 'bookmarks-card';
+
+  const FEED_DEFAULT_ORDER = FEED_WIDGETS.map((widget) => widget.id);
+
   let arranging = false;
   let draggingId = null;
-  let draggingSettingsId = null;
+  // Snapshot of the state that arrange mode mutates, restored on finishArrange.
+  // Each entry: { card, tabindex, draggable, inner: [{el, tabindex}] }
+  let savedCardState = [];
 
+  const $ = (id) => document.getElementById(id);
+  const isFeed = (id) => FEED_WIDGETS.some((widget) => widget.id === id);
+
+  // ── Order resolution ─────────────────────────────────────────────────────
   function getOrder() {
     const saved = Storage.getSettings().widgetOrder;
-    const ids = new Set(WIDGETS.map((widget) => widget.id));
     const order = [];
+    const bentoIds = new Set(WIDGETS.map((widget) => widget.id));
     if (Array.isArray(saved)) saved.forEach((id) => {
-      if (ids.has(id) && !order.includes(id)) order.push(id);
+      if (bentoIds.has(id) && !order.includes(id)) order.push(id);
     });
     WIDGETS.forEach((widget) => { if (!order.includes(widget.id)) order.push(widget.id); });
     return order;
   }
 
+  function getFeedOrder() {
+    const saved = Storage.getSettings().feedOrder;
+    const order = [];
+    if (Array.isArray(saved)) {
+      saved.forEach((id) => {
+        if (FEED_WIDGETS.some((widget) => widget.id === id) && !order.includes(id)) order.push(id);
+      });
+    }
+    FEED_WIDGETS.forEach((widget) => { if (!order.includes(widget.id)) order.push(widget.id); });
+    return order;
+  }
+
+  function visibleWidgets(allIds, hiddenSet) {
+    return allIds.filter((id) => !hiddenSet.has(id) && $(id) && !$(id).classList.contains('hidden'));
+  }
+
+  function hiddenWidgets() {
+    const s = Storage.getSettings();
+    return new Set(Array.isArray(s.hiddenWidgets) ? s.hiddenWidgets : []);
+  }
+
+  function feedHiddenIds() {
+    const s = Storage.getSettings();
+    const hidden = new Set();
+    if (s.sitesVisible === false) hidden.add('sites-section');
+    if (s.pricesVisible === false) hidden.add('prices-section');
+    if (s.newsVisible === false) hidden.add('news-section');
+    return hidden;
+  }
+
+  // ── Slot assignment (constraint-aware) ──────────────────────────────────
+  function slotMap() {
+    const visible = visibleWidgets(getOrder(), hiddenWidgets());
+    const map = {};
+    const hasWide = visible.includes(WIDE_WIDGET_ID);
+    if (hasWide) map[WIDE_WIDGET_ID] = WIDE_SLOT;
+    const regular = visible.filter((id) => id !== WIDE_WIDGET_ID);
+    regular.forEach((id, index) => {
+      map[id] = CORNER_SLOTS[index % CORNER_SLOTS.length];
+    });
+    return map;
+  }
+
+  function allowedSlots(id) {
+    return id === WIDE_WIDGET_ID ? [WIDE_SLOT] : CORNER_SLOTS;
+  }
+
+  function canSwap(sourceId, targetId) {
+    if (!sourceId || !targetId || sourceId === targetId) return false;
+    const feedZone = isFeed(sourceId);
+    if (feedZone !== isFeed(targetId)) return false;
+    if (feedZone) return true; // swap anywhere inside the feed zone
+    const map = slotMap();
+    const slotOfSource = map[sourceId];
+    const slotOfTarget = map[targetId];
+    if (!slotOfSource || !slotOfTarget || slotOfSource === slotOfTarget) return false;
+    return allowedSlots(sourceId).includes(slotOfTarget) && allowedSlots(targetId).includes(slotOfSource);
+  }
+
+  // ── Handles & application ────────────────────────────────────────────────
+  function visibleCards() {
+    return [...WIDGETS, ...FEED_WIDGETS]
+      .map((widget) => $(widget.id))
+      .filter((card) => card && !card.classList.contains('hidden'));
+  }
+
   function ensureDragHandles() {
-    WIDGETS.forEach((widget) => {
-      const card = document.getElementById(widget.id);
+    [...WIDGETS, ...FEED_WIDGETS].forEach((widget) => {
+      const card = $(widget.id);
       if (!card) return;
       card.dataset.layoutWidget = widget.id;
       let handle = card.querySelector('.widget-drag-handle');
       if (!handle) {
-        handle = document.createElement('button');
-        handle.type = 'button';
+        handle = document.createElement('span');
         handle.className = 'widget-drag-handle';
-        handle.draggable = true;
-        handle.dataset.widgetDrag = widget.id;
-        handle.setAttribute('aria-grabbed', 'false');
+        handle.setAttribute('aria-hidden', 'true');
+        handle.setAttribute('title', I18n.t('widgetDragHandle', { widget: I18n.t(widget.key) }));
         handle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="6" r="1.5"/><circle cx="16" cy="6" r="1.5"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/></svg>';
         card.prepend(handle);
       }
-      const label = I18n.t('widgetDragHandle', { widget: I18n.t(widget.key) });
-      handle.setAttribute('aria-label', label);
-      handle.title = label;
     });
   }
 
   function apply() {
-    const dashboard = document.getElementById('dashboard');
-    if (!dashboard) return;
-    ensureDragHandles();
-    const settings = Storage.getSettings();
-    const hidden = new Set(Array.isArray(settings.hiddenWidgets) ? settings.hiddenWidgets : []);
+    const hidden = hiddenWidgets();
     const order = getOrder();
-    const visibleOrder = order.filter((id) => !hidden.has(id));
+    const map = slotMap();
+    const visible = visibleWidgets(order, hidden);
+    // Bento cards: assign slots from the constraint-aware map.
     order.forEach((id) => {
-      const el = document.getElementById(id);
+      const el = $(id);
       if (!el) return;
       const isHidden = hidden.has(id);
       el.classList.toggle('hidden', isHidden);
       el.dataset.layoutWidget = id;
-      if (isHidden) {
+      if (isHidden || !visible.includes(id)) {
         el.style.gridArea = '';
+        el.style.order = '';
         delete el.dataset.layoutSlot;
+        return;
       }
-    });
-    visibleOrder.forEach((id, index) => {
-      const el = document.getElementById(id);
-      const slot = SLOT_NAMES[index] || SLOT_NAMES[SLOT_NAMES.length - 1];
-      if (el) {
+      const slot = map[id];
+      if (slot) {
         el.style.gridArea = slot;
         el.dataset.layoutSlot = slot;
       }
     });
+    // Feed sections: order only (they live in the below-fold zone).
+    const allFeedIds = FEED_WIDGETS.map((widget) => widget.id);
+    const feedHidden = feedHiddenIds();
+    const visibleFeed = getFeedOrder().filter((id) => !feedHidden.has(id) && !$(id)?.classList.contains('hidden'));
+    allFeedIds.forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      const isHidden = feedHidden.has(id) || el.classList.contains('hidden');
+      if (isHidden) { el.style.order = ''; delete el.dataset.layoutSlot; return; }
+      const index = visibleFeed.indexOf(id);
+      el.style.order = index === -1 ? '' : index + 1;
+    });
   }
 
-  function renderSettings() {
-    ensureDragHandles();
-    const target = listEl();
-    if (!target) return;
-    const order = getOrder();
-    const hidden = new Set(Storage.getSettings().hiddenWidgets || []);
-    target.innerHTML = order.map((id, index) => {
-      const widget = WIDGETS.find((item) => item.id === id);
-      if (!widget) return '';
-      const dragLabel = I18n.t('widgetListDragHandle', { widget: I18n.t(widget.key) });
-      return `<div class="widget-layout-row" data-widget="${widget.id}">
-        <button type="button" class="widget-layout-grip" draggable="true" data-widget-row-drag="${widget.id}" aria-grabbed="false" aria-label="${dragLabel}" title="${dragLabel}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="6" r="1.5"/><circle cx="16" cy="6" r="1.5"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/></svg></button>
-        <label class="widget-layout-toggle"><input type="checkbox" data-widget-visible="${widget.id}" ${hidden.has(widget.id) ? '' : 'checked'}><span>${I18n.t(widget.key)}</span></label>
-        <div class="widget-layout-actions">
-          <button type="button" class="widget-order-btn" data-widget-move="up" aria-label="${I18n.t('moveUp')}" title="${I18n.t('moveUp')}" ${index === 0 ? 'disabled' : ''}>↑</button>
-          <button type="button" class="widget-order-btn" data-widget-move="down" aria-label="${I18n.t('moveDown')}" title="${I18n.t('moveDown')}" ${index === order.length - 1 ? 'disabled' : ''}>↓</button>
-        </div>
-      </div>`;
-    }).join('');
+  // ── Arrange-mode inert layer ─────────────────────────────────────────────
+  function snapshotInnerContent(card) {
+    const snapshot = [];
+    card.querySelectorAll('a, button, input, textarea, select, [tabindex]').forEach((el) => {
+      snapshot.push({ el, tabindex: el.getAttribute('tabindex') });
+      el.setAttribute('tabindex', '-1');
+    });
+    return snapshot;
   }
 
-  function setupDragAndDrop() {
-    const dashboard = document.getElementById('dashboard');
-    if (!dashboard) return;
-    dashboard.addEventListener('dragstart', (event) => {
-      const handle = event.target.closest('[data-widget-drag]');
-      if (!arranging || !handle) {
-        if (handle) event.preventDefault();
-        return;
-      }
-      const card = handle.closest('[data-layout-widget]');
+  function restoreInnerContent(snapshot) {
+    snapshot.forEach(({ el, tabindex }) => {
+      if (tabindex === null || tabindex === undefined) el.removeAttribute('tabindex');
+      else el.setAttribute('tabindex', tabindex);
+    });
+  }
+
+  // ── Drag and drop ───────────────────────────────────────────────────────
+  function setupDragAndDrop(container) {
+    if (!container) return;
+    container.addEventListener('dragstart', (event) => {
+      // In a normal page, never touch bookmark-tile drags (they have their own handler).
+      if (!arranging) return;
+      const card = event.target.closest('[data-layout-widget]');
       if (!card || card.classList.contains('hidden')) {
         event.preventDefault();
         return;
       }
-      draggingId = handle.dataset.widgetDrag;
-      handle.setAttribute('aria-grabbed', 'true');
+      draggingId = card.dataset.layoutWidget;
       card.classList.add('widget-dragging');
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', draggingId);
       try { event.dataTransfer.setDragImage(card, Math.min(card.offsetWidth / 2, 150), 28); } catch {}
     });
 
-    dashboard.addEventListener('dragover', (event) => {
+    container.addEventListener('dragover', (event) => {
       if (!arranging || !draggingId) return;
+      container.querySelectorAll('[data-layout-widget]').forEach((el) => {
+        el.classList.remove('widget-drop-target', 'widget-drop-invalid');
+      });
       const card = event.target.closest('[data-layout-widget]');
       if (!card || card.classList.contains('hidden') || card.dataset.layoutWidget === draggingId) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-      card.classList.add('widget-drop-target');
+      if (canSwap(draggingId, card.dataset.layoutWidget)) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        card.classList.add('widget-drop-target');
+      } else {
+        card.classList.add('widget-drop-invalid');
+      }
     });
 
-    dashboard.addEventListener('dragleave', (event) => {
+    container.addEventListener('dragleave', (event) => {
       const card = event.target.closest('[data-layout-widget]');
       if (!card || card.contains(event.relatedTarget)) return;
-      card.classList.remove('widget-drop-target');
+      card.classList.remove('widget-drop-target', 'widget-drop-invalid');
     });
 
-    dashboard.addEventListener('drop', async (event) => {
+    container.addEventListener('drop', async (event) => {
       if (!arranging || !draggingId) return;
       const targetCard = event.target.closest('[data-layout-widget]');
       const targetId = targetCard?.dataset.layoutWidget;
-      if (!targetId || targetId === draggingId || targetCard.classList.contains('hidden')) return;
+      if (!targetId || !canSwap(draggingId, targetId) || targetCard.classList.contains('hidden')) return;
       event.preventDefault();
-      const order = getOrder();
-      const sourceIndex = order.indexOf(draggingId);
-      const targetIndex = order.indexOf(targetId);
-      if (sourceIndex < 0 || targetIndex < 0) return;
-      [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
-      await Storage.updateSettings({ widgetOrder: order });
+      if (isFeed(draggingId)) {
+        const order = getFeedOrder();
+        const sourceIndex = order.indexOf(draggingId);
+        const targetIndex = order.indexOf(targetId);
+        if (sourceIndex < 0 || targetIndex < 0) return;
+        [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
+        await Storage.updateSettings({ feedOrder: order });
+      } else {
+        const order = getOrder();
+        const sourceIndex = order.indexOf(draggingId);
+        const targetIndex = order.indexOf(targetId);
+        if (sourceIndex < 0 || targetIndex < 0) return;
+        [order[sourceIndex], order[targetIndex]] = [order[targetIndex], order[sourceIndex]];
+        await Storage.updateSettings({ widgetOrder: order });
+      }
       apply();
-      renderSettings();
       targetCard.classList.add('widget-drop-complete');
       setTimeout(() => targetCard.classList.remove('widget-drop-complete'), 450);
     });
 
-    dashboard.addEventListener('dragend', (event) => {
-      const handle = event.target.closest('[data-widget-drag]');
-      if (handle) handle.setAttribute('aria-grabbed', 'false');
+    container.addEventListener('dragend', () => {
       draggingId = null;
-      dashboard.querySelectorAll('.widget-dragging, .widget-drop-target').forEach((el) => {
-        el.classList.remove('widget-dragging', 'widget-drop-target');
+      document.querySelectorAll('.widget-dragging, .widget-drop-target, .widget-drop-invalid').forEach((el) => {
+        el.classList.remove('widget-dragging', 'widget-drop-target', 'widget-drop-invalid');
       });
     });
   }
 
-  function clearSettingsDragState(target = listEl()) {
-    draggingSettingsId = null;
-    target?.querySelectorAll('.widget-layout-row-dragging, .widget-layout-row-drop-target').forEach((row) => {
-      row.classList.remove('widget-layout-row-dragging', 'widget-layout-row-drop-target');
-    });
-    target?.querySelectorAll('[data-widget-row-drag]').forEach((handle) => handle.setAttribute('aria-grabbed', 'false'));
-  }
-
-  function setupSettingsListDragAndDrop(target) {
-    target.addEventListener('dragstart', (event) => {
-      const handle = event.target.closest('[data-widget-row-drag]');
-      if (!handle) return;
-      draggingSettingsId = handle.dataset.widgetRowDrag;
-      const row = handle.closest('.widget-layout-row');
-      row?.classList.add('widget-layout-row-dragging');
-      handle.setAttribute('aria-grabbed', 'true');
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', `tabyar-widget:${draggingSettingsId}`);
-      try { if (row) event.dataTransfer.setDragImage(row, Math.min(row.offsetWidth / 2, 180), row.offsetHeight / 2); } catch {}
-    });
-
-    target.addEventListener('dragover', (event) => {
-      if (!draggingSettingsId) return;
-      const row = event.target.closest('.widget-layout-row[data-widget]');
-      if (!row || row.dataset.widget === draggingSettingsId) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-      row.classList.add('widget-layout-row-drop-target');
-    });
-
-    target.addEventListener('dragleave', (event) => {
-      const row = event.target.closest('.widget-layout-row[data-widget]');
-      if (!row || row.contains(event.relatedTarget)) return;
-      row.classList.remove('widget-layout-row-drop-target');
-    });
-
-    target.addEventListener('drop', async (event) => {
-      if (!draggingSettingsId) return;
-      const row = event.target.closest('.widget-layout-row[data-widget]');
-      const targetId = row?.dataset.widget;
-      if (!targetId || targetId === draggingSettingsId) return;
-      event.preventDefault();
-      const order = getOrder();
-      const sourceIndex = order.indexOf(draggingSettingsId);
-      if (sourceIndex < 0) return;
-      const [moved] = order.splice(sourceIndex, 1);
-      if (!moved) return;
-      const targetIndex = order.indexOf(targetId);
-      if (targetIndex < 0) return;
-      const rowRect = row.getBoundingClientRect();
-      const before = event.clientY < rowRect.top + rowRect.height / 2;
-      order.splice(targetIndex + (before ? 0 : 1), 0, moved);
-      clearSettingsDragState(target);
-      await Storage.updateSettings({ widgetOrder: order });
-      apply();
-      renderSettings();
-    });
-
-    target.addEventListener('dragend', () => clearSettingsDragState(target));
-  }
-
   function startArrange() {
+    if (arranging) return;
     arranging = true;
     document.body.classList.add('widget-layout-editing');
-    document.getElementById('modal-settings')?.classList.add('hidden');
+    TabyarUI.closeModal('modal-settings');
     document.getElementById('widget-layout-edit-bar')?.classList.remove('hidden');
     apply();
-    document.querySelector('.widget-layout-editing [data-layout-widget]:not(.hidden) .widget-drag-handle')?.focus();
+    savedCardState = [];
+    visibleCards().forEach((card) => {
+      savedCardState.push({
+        card,
+        tabindex: card.getAttribute('tabindex'),
+        draggable: card.getAttribute('draggable'),
+        inner: snapshotInnerContent(card)
+      });
+      card.setAttribute('draggable', 'true');
+      card.setAttribute('tabindex', '0');
+    });
+    savedCardState[0]?.card.focus();
   }
 
   function finishArrange() {
+    if (!arranging) return;
     arranging = false;
     draggingId = null;
     document.body.classList.remove('widget-layout-editing');
     document.getElementById('widget-layout-edit-bar')?.classList.add('hidden');
-    document.querySelectorAll('.widget-dragging, .widget-drop-target').forEach((el) => {
-      el.classList.remove('widget-dragging', 'widget-drop-target');
+    savedCardState.forEach(({ card, tabindex, draggable, inner }) => {
+      if (draggable === null || draggable === undefined) card.removeAttribute('draggable');
+      else card.setAttribute('draggable', draggable);
+      if (tabindex === null || tabindex === undefined) card.removeAttribute('tabindex');
+      else card.setAttribute('tabindex', tabindex);
+      restoreInnerContent(inner);
     });
-  }
-
-  async function moveWidget(row, direction) {
-    const order = getOrder();
-    const index = order.indexOf(row.dataset.widget);
-    const next = index + direction;
-    if (index < 0 || next < 0 || next >= order.length) return;
-    [order[index], order[next]] = [order[next], order[index]];
-    await Storage.updateSettings({ widgetOrder: order });
-    apply();
-    renderSettings();
+    savedCardState = [];
+    document.querySelectorAll('.widget-dragging, .widget-drop-target, .widget-drop-invalid').forEach((el) => {
+      el.classList.remove('widget-dragging', 'widget-drop-target', 'widget-drop-invalid');
+    });
   }
 
   function init() {
+    ensureDragHandles();
     apply();
-    setupDragAndDrop();
-    const target = listEl();
-    if (!target) return;
-    setupSettingsListDragAndDrop(target);
-    target.addEventListener('change', async (event) => {
-      const input = event.target.closest('[data-widget-visible]');
-      if (!input) return;
-      const id = input.dataset.widgetVisible;
-      const hidden = new Set(Storage.getSettings().hiddenWidgets || []);
-      if (input.checked) hidden.delete(id); else hidden.add(id);
-      await Storage.updateSettings({ hiddenWidgets: [...hidden] });
-      apply();
-    });
-    target.addEventListener('click', async (event) => {
-      const button = event.target.closest('[data-widget-move]');
-      const row = button?.closest('[data-widget]');
-      if (!button || !row || button.disabled) return;
-      await moveWidget(row, button.dataset.widgetMove === 'up' ? -1 : 1);
-    });
+    setupDragAndDrop(document.getElementById('dashboard'));
+    setupDragAndDrop(document.getElementById('feed-sections'));
     document.getElementById('btn-widget-layout-edit')?.addEventListener('click', startArrange);
     document.getElementById('btn-widget-layout-done')?.addEventListener('click', finishArrange);
     document.addEventListener('keydown', (event) => {
@@ -282,12 +311,12 @@ const DashboardLayoutUI = (() => {
     document.getElementById('btn-widget-layout-reset')?.addEventListener('click', async () => {
       await Storage.updateSettings({
         widgetOrder: WIDGETS.map((widget) => widget.id),
+        feedOrder: [...FEED_DEFAULT_ORDER],
         hiddenWidgets: []
       });
       apply();
-      renderSettings();
     });
   }
 
-  return { init, apply, renderSettings, getOrder, startArrange, finishArrange };
+  return { init, apply, getOrder, startArrange, finishArrange };
 })();

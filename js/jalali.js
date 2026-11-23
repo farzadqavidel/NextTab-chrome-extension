@@ -126,20 +126,15 @@ const Jalali = (() => {
     return days;
   }
 
-  function toPersianDigits(num) {
-    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-    return String(num).replace(/\d/g, (d) => persianDigits[parseInt(d, 10)]);
-  }
-
   function formatDate(jy, jm, jd) {
-    return `${toPersianDigits(jd)} ${PERSIAN_MONTHS[jm - 1]} ${toPersianDigits(jy)}`;
+    return `${jd} ${PERSIAN_MONTHS[jm - 1]} ${jy}`;
   }
 
   function formatTime(date) {
     const h = date.getHours().toString().padStart(2, '0');
     const m = date.getMinutes().toString().padStart(2, '0');
     const s = date.getSeconds().toString().padStart(2, '0');
-    return toPersianDigits(`${h}:${m}:${s}`);
+    return `${h}:${m}:${s}`;
   }
 
   function gregorianToday() {
@@ -175,7 +170,6 @@ const Jalali = (() => {
     today,
     getWeekday,
     getMonthDays,
-    toPersianDigits,
     formatDate,
     formatTime,
     gregorianToday,

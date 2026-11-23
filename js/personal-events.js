@@ -121,11 +121,11 @@ const PersonalEventsUI = (() => {
 
   function open() {
     prepareForm();
-    els.modal.classList.remove('hidden');
+    TabyarUI.openModal('modal-personal-events');
   }
 
   function close() {
-    els.modal.classList.add('hidden');
+    TabyarUI.closeModal('modal-personal-events');
   }
 
   async function saveFromForm(event) {
@@ -196,7 +196,7 @@ const PersonalEventsUI = (() => {
       <li class="personal-event-row" data-id="${escapeAttr(event.id)}">
         <span class="personal-event-mark" aria-hidden="true">✦</span>
         <span class="personal-event-copy"><b>${escapeHtml(event.title)}</b><small>${escapeHtml(formatDate(event))} · ${escapeHtml(upcoming.past ? I18n.t('personalEventPast') : I18n.t(upcoming.days === 0 ? 'personalEventToday' : 'personalEventInDays', { n: I18n.formatDigits(upcoming.days) }))}</small></span>
-        <span class="personal-event-row-actions"><button type="button" data-event-action="edit" aria-label="${I18n.t('edit')}">✎</button><button type="button" data-event-action="delete" aria-label="${I18n.t('delete')}">×</button></span>
+        <span class="personal-event-row-actions"><button type="button" data-event-action="edit" aria-label="${I18n.t('edit')}">✎</button><button type="button" data-event-action="delete" aria-label="${I18n.t('delete')}"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></span>
       </li>`).join('');
   }
 

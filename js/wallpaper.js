@@ -77,7 +77,6 @@ const WallpaperLoader = (() => {
   async function fetchRemote(url) {
     try {
       const response = await fetch(url, {
-        referrer: 'https://4kwallpapers.com/',
         credentials: 'omit',
         cache: 'default'
       });
@@ -99,6 +98,11 @@ const WallpaperLoader = (() => {
 
   async function resolve(url) {
     if (!url || url.startsWith('data:') || url.startsWith('blob:')) {
+      return url;
+    }
+
+    // Local extension assets (e.g. bundled wallpapers): no network, no cache.
+    if (!/^https?:\/\//i.test(url)) {
       return url;
     }
 

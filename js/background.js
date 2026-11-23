@@ -169,7 +169,7 @@ function scheduleChromeBookmarkSync() {
   chromeSyncTimer = setTimeout(() => {
     chromeSyncTimer = null;
     syncChromeBookmarks().catch((error) => {
-      console.error('Tabyar: Chrome bookmark sync failed', error);
+      console.error('NextTab: Chrome bookmark sync failed', error);
     });
   }, 120);
 }
@@ -182,6 +182,15 @@ if (chrome.bookmarks?.onChildrenReordered) chrome.bookmarks.onChildrenReordered.
 if (chrome.bookmarks?.onImportEnded) chrome.bookmarks.onImportEnded.addListener(scheduleChromeBookmarkSync);
 
 // ── Floating bookmark button and extension messages ────────────────────────
+async function listChildNodes(parentId) {
+  try {
+    const nodes = await chromeBookmarksCall('getChildren', String(parentId));
+    return Array.isArray(nodes) ? nodes : [];
+  } catch {
+    return [];
+  }
+}
+
 async function saveCurrentPageBookmark(message, sender) {
   let pageUrl;
   try { pageUrl = new URL(sender.url || ''); } catch { pageUrl = null; }
@@ -207,6 +216,15 @@ async function saveCurrentPageBookmark(message, sender) {
     data.folders = Array.isArray(data.folders) ? data.folders : [];
   }
 
+  // Resolve the requested save destination ('default' = outside all folders).
+  const requestedFolderId = message?.folderId == null || message?.folderId === '' ? 'default' : String(message.folderId);
+  const customFolder = requestedFolderId === 'default'
+    ? null
+    : data.folders.find((folder) => String(folder.id) === requestedFolderId && !folder.isDefault);
+  if (requestedFolderId !== 'default' && !customFolder) {
+    return { ok: false, reason: 'folder-not-found' };
+  }
+
   const matches = data.bookmarks.filter((item) => normalizeTabyarUrl(item.url) === normalizedUrl);
   let action;
   let title;
@@ -216,6 +234,14 @@ async function saveCurrentPageBookmark(message, sender) {
 
   if (matches.length) {
     title = matches[0].title;
+    const removedMatch = matches[0];
+    const removedFolderId = String(removedMatch?.folderId || 'default');
+    const removedFolder = data.folders.find(
+      (folder) => String(folder.id) === removedFolderId || (removedFolderId === 'default' && folder.isDefault)
+    );
+    folderId = null;
+    folderName = removedFolder?.name || '';
+    folderIsDefault = removedFolderId === 'default' || Boolean(removedFolder?.isDefault);
     if (followsChrome) {
       const chromeIds = [...new Set(matches.map((item) => item.chromeId).filter((id) => id != null).map(String))];
       if (!chromeIds.length) return { ok: false, reason: 'sync-state' };
@@ -236,39 +262,58 @@ async function saveCurrentPageBookmark(message, sender) {
       const rootChildren = Array.isArray(tree?.[0]?.children) ? tree[0].children : [];
       const bookmarksBar = rootChildren.find((node) => String(node.id) === '1') || rootChildren[0];
       if (!bookmarksBar) return { ok: false, reason: 'chrome-folder' };
-      const children = Array.isArray(bookmarksBar.children) ? bookmarksBar.children : [];
+
+      // Resolve the destination Chrome folder: root (Bookmarks bar) or a custom folder's chromeId.
+      let destinationChromeParentId = String(bookmarksBar.id);
+      let destinationName = String(bookmarksBar.title || 'Bookmarks bar');
+      let destinationIsDefault = true;
+      if (customFolder) {
+        const folderChromeId = customFolder.chromeId == null ? null : String(customFolder.chromeId);
+        if (!folderChromeId) return { ok: false, reason: 'chrome-folder' };
+        destinationChromeParentId = folderChromeId;
+        destinationName = customFolder.name || String(bookmarksBar.title || 'Folder');
+        destinationIsDefault = false;
+      }
+
+      const parentChildren = await listChildNodes(destinationChromeParentId);
       const created = await chromeBookmarksCall('create', {
-        parentId: String(bookmarksBar.id),
-        index: children.length,
+        parentId: destinationChromeParentId,
+        index: parentChildren.length,
         title,
         url
       });
-      folderId = `chrome-${bookmarksBar.id}`;
-      const destination = data.folders.find((folder) => String(folder.chromeId) === String(bookmarksBar.id));
-      folderName = destination?.name || String(bookmarksBar.title || 'Bookmarks bar');
+      folderId = `chrome-${destinationChromeParentId}`;
+      folderName = destinationName;
+      folderIsDefault = destinationIsDefault;
       await syncChromeBookmarks();
       // The created id is stable even if a concurrent Chrome event syncs first.
       if (!data.bookmarks.some((item) => String(item.chromeId) === String(created.id))) {
         data = await getPersonalStartPage();
       }
     } else {
-      const rootBookmarks = data.bookmarks.filter((item) => (item.folderId || 'default') === 'default');
-      const nextOrder = rootBookmarks.reduce((max, item) => Math.max(max, Number(item.order) || 0), -1) + 1;
+      const targetFolderId = customFolder ? String(customFolder.id) : 'default';
+      const targetBookmarks = data.bookmarks.filter((item) => (item.folderId || 'default') === targetFolderId);
+      const nextOrder = targetBookmarks.reduce((max, item) => Math.max(max, Number(item.order) || 0), -1) + 1;
       const newBookmark = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 9),
         title,
         url,
-        folderId: 'default',
+        folderId: targetFolderId,
         order: nextOrder,
         createdAt: Date.now()
       };
       data.bookmarks.push(newBookmark);
       await savePersonalStartPage(data);
       broadcastBookmarksChanged('added');
-      folderId = 'default';
-      const defaultFolder = data.folders.find((folder) => folder.id === 'default' || folder.isDefault);
-      folderName = defaultFolder?.name || '';
-      folderIsDefault = true;
+      folderId = targetFolderId;
+      if (targetFolderId === 'default') {
+        const defaultFolder = data.folders.find((folder) => folder.id === 'default' || folder.isDefault);
+        folderName = defaultFolder?.name || '';
+        folderIsDefault = true;
+      } else {
+        folderName = customFolder?.name || '';
+        folderIsDefault = false;
+      }
     }
     action = 'added';
   }
@@ -279,17 +324,19 @@ async function saveCurrentPageBookmark(message, sender) {
     saved: action === 'added',
     title,
     folderId: action === 'added' ? folderId : null,
-    folderName: action === 'added' ? folderName : '',
-    folderIsDefault: action === 'added' ? folderIsDefault : false
+    folderName: action === 'added' ? folderName : folderName,
+    folderIsDefault: action === 'added' ? folderIsDefault : folderIsDefault,
+    folderChromeMode: followsChrome
   };
 }
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message) return;
 
   if (message.type === 'FETCH_WALLPAPER') {
     fetch(message.url, {
-      referrer: 'https://4kwallpapers.com/',
+      referrer: '',
       credentials: 'omit',
       cache: 'default'
     })
@@ -332,7 +379,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     saveCurrentPageBookmark(message, sender)
       .then(sendResponse)
       .catch((error) => {
-        console.error('Tabyar: floating bookmark action failed', error);
+        console.error('NextTab: floating bookmark action failed', error);
         sendResponse({ ok: false, reason: 'storage', error: error.message });
       });
     return true;

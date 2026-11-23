@@ -19,7 +19,7 @@ const PersianEvents = (() => {
     '03-01': [{ title: 'روز بهزیستی و تأمین اجتماعی', type: 'occasion' }],
     '03-03': [{ title: 'فتح خرمشهر', type: 'occasion' }],
     '03-14': [{ title: 'رحلت امام خمینی (ره)', type: 'holiday' }],
-    '03-15': [{ title: 'قیام ۱۵ خرداد', type: 'holiday' }],
+    '03-15': [{ title: 'قیام 15 خرداد', type: 'holiday' }],
     '03-25': [{ title: 'روز گل و گیاه', type: 'occasion' }],
     '03-31': [{ title: 'شهادت امام جعفر صادق (ع) — تعطیل رسمی', type: 'holiday' }],
     '04-01': [{ title: 'روز اصناف', type: 'occasion' }],
@@ -51,7 +51,7 @@ const PersianEvents = (() => {
     '10-20': [{ title: 'روز کوهنورد', type: 'occasion' }],
     '10-22': [{ title: 'پیروزی انقلاب اسلامی', type: 'holiday' }],
     '10-29': [{ title: 'روز ملی هوای پاک', type: 'occasion' }],
-    '11-01': [{ title: 'روز ۲۲ بهمن', type: 'occasion' }],
+    '11-01': [{ title: 'روز 22 بهمن', type: 'occasion' }],
     '11-22': [{ title: 'پیروزی عملیات فتح‌المبین', type: 'occasion' }],
     '12-05': [{ title: 'روز درختکاری', type: 'occasion' }],
     '12-09': [{ title: 'روز ملی حمایت از حقوق مصرف‌کنندگان', type: 'occasion' }],
@@ -201,8 +201,8 @@ const PersianEvents = (() => {
 
   function formatGregorianFromGregorian(gy, gm, gd) {
     const month = GREGORIAN_MONTHS[gm - 1];
-    const d = Jalali.toPersianDigits(gd);
-    const y = Jalali.toPersianDigits(gy);
+    const d = String(gd);
+    const y = String(gy);
     return `\u2066${d}\u2069 ${month} \u2066${y}\u2069`;
   }
 

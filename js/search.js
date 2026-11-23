@@ -71,7 +71,7 @@ const SearchUI = (() => {
     els.list.innerHTML = items.map((query) => `
       <li class="search-history-item">
         <button type="button" class="search-history-query">${escapeHtml(query)}</button>
-        <button type="button" class="search-history-remove" aria-label="${escapeAttr(I18n.t('delete'))}">&times;</button>
+        <button type="button" class="search-history-remove" aria-label="${escapeAttr(I18n.t('delete'))}"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </li>
     `).join('');
 

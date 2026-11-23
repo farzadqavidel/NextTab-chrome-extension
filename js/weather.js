@@ -95,13 +95,13 @@ const WeatherUI = (() => {
     activeSlot = slot;
     if (!state[slot]?.forecastData || !els.modal) return;
     isOpen = true;
-    els.modal.classList.remove('hidden');
+    TabyarUI.openModal('modal-weather');
     renderForecastModal();
   }
 
   function closeModal() {
     isOpen = false;
-    els.modal?.classList.add('hidden');
+    TabyarUI.closeModal('modal-weather');
   }
 
   async function loadAllWeather() {
@@ -118,27 +118,34 @@ const WeatherUI = (() => {
     await loadAllWeather();
   }
 
+  function renderUnavailable(slot) {
+    const slotEls = getSlotEls(slot);
+    state[slot].forecastData = null;
+    state[slot].cityLabel = '';
+    if (slotEls.widget) slotEls.widget.classList.add('is-unavailable');
+    if (slotEls.icon) slotEls.icon.textContent = '';
+    if (slotEls.temp) slotEls.temp.textContent = '';
+    if (slotEls.desc) slotEls.desc.textContent = I18n.t('weatherUnavailable');
+    if (slotEls.widget) slotEls.widget.title = I18n.t('weatherUnavailable');
+  }
+
   async function loadWeatherSlot(slot) {
     const slotEls = getSlotEls(slot);
     if (!slotEls.desc) return;
 
+    if (slotEls.widget) slotEls.widget.classList.remove('is-unavailable');
     slotEls.desc.textContent = I18n.t('weatherLoading');
     try {
       const coords = await resolveCoords(slot);
       state[slot].cityLabel = coords.city || '';
       await fetchWeather(slot, coords.lat, coords.lon);
     } catch {
-      slotEls.desc.textContent = I18n.t('weatherUnavailable');
+      renderUnavailable(slot);
     }
   }
 
   function clearSlot(slot) {
-    const slotEls = getSlotEls(slot);
-    state[slot].forecastData = null;
-    state[slot].cityLabel = '';
-    if (slotEls.icon) slotEls.icon.textContent = '🌡️';
-    if (slotEls.temp) slotEls.temp.textContent = '—°';
-    if (slotEls.desc) slotEls.desc.textContent = '...';
+    renderUnavailable(slot);
   }
 
   async function resolveCoords(slot) {
@@ -345,6 +352,7 @@ const WeatherUI = (() => {
 
     const cur = forecastData.current;
     const w = I18n.getWmo(cur.weather_code);
+    if (slotEls.widget) slotEls.widget.classList.remove('is-unavailable');
     if (slotEls.icon) slotEls.icon.textContent = w.icon;
     if (slotEls.temp) slotEls.temp.textContent = `${Math.round(cur.temperature_2m)}°`;
     if (slotEls.desc) slotEls.desc.textContent = w.label;

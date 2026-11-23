@@ -1,4 +1,7 @@
-# Tabyar
+# NextTab
+
+![NextTab](icons/icon128.png)
+
 
 **Your personal New Tab — calendar, bookmarks, weather, notes, Google services, and themes in one beautiful page.**
 
@@ -11,13 +14,13 @@
 ---
 
 <p align="center">
-  <img src="Picture/Tabyar.webp" alt="Tabyar dashboard with two locations and Chrome Bookmarks bar contents" width="820"/>
+  <img src="Picture/Tabyar.webp" alt="NextTab dashboard with two locations and Chrome Bookmarks bar contents" width="820"/>
 </p>
 
-<p align="center"><em>Demo dashboard (Tehran + Berlin) — synced Bookmarks bar contents open in Tabyar.</em></p>
+<p align="center"><em>Demo dashboard (Tehran + Berlin) — synced Bookmarks bar contents open in NextTab.</em></p>
 
 <p align="center">
-  <img src="Picture/Tabyar-single.webp" alt="Tabyar dashboard with one location" width="820"/>
+  <img src="Picture/Tabyar-single.webp" alt="NextTab dashboard with one location" width="820"/>
 </p>
 
 <p align="center"><em>The same demo dashboard in the balanced single-location layout.</em></p>
@@ -26,7 +29,7 @@
 
 ## Overview
 
-**Tabyar** replaces Chrome’s default New Tab with a customizable dashboard designed for daily use.  
+**NextTab** replaces Chrome’s default New Tab with a customizable dashboard designed for daily use.  
 It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**, **Google search**, **weather**, **notes**, **Google services shortcuts**, and rich **appearance settings**. Data stays local; if **Follow Chrome bookmarks** is enabled, bookmarks sync with Chrome’s own bookmark store.
 
 > **Version:** `1.6.0` — Redesigned bento-grid layout: polished glass cards, a compact Google-services pill beside the search bar, tighter spacing that fits the whole dashboard in view without scrolling, plus full responsiveness from small laptops to 4K displays.
@@ -64,7 +67,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Right-click to edit, delete, or open in a new tab
 - Drag bookmarks to reorder them, drop a root bookmark into a folder, or drag a bookmark back to Home from inside a folder
 - **Import from Chrome** — transfer bookmarks while preserving nested folders
-- **Follow Chrome bookmarks** — continuous two-way sync for additions, deletions, moves, ordering, and nested folders; enabling it warns before replacing Tabyar's bookmark tree. In this mode, Tabyar opens directly inside **Bookmarks bar**; other Chrome root folders are preserved in Chrome but hidden from Tabyar’s view
+- **Follow Chrome bookmarks** — continuous two-way sync for additions, deletions, moves, ordering, and nested folders; enabling it warns before replacing NextTab's bookmark tree. In this mode, NextTab opens directly inside **Bookmarks bar**; other Chrome root folders are preserved in Chrome but hidden from NextTab’s view
 - **Half-circle floating bookmark button** on regular websites; drag it vertically or snap it to either edge, hover to see whether the page is saved and in which folder, and click to add/remove it; it can be disabled in Settings
 
 ### Search
@@ -92,6 +95,11 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Long timers persist as full-precision remaining times and end timestamps
 - Create a task or note directly from the command palette
 
+### Popular Iranian sites & news
+- Dedicated "Popular Iranian sites" section with category pills: Video & fun (Aparat, Filimo, Namava), Taxi & transport (Snapp, Tap30, Carpino), Shopping (Digikala, Basalam) and Popular (Google, YouTube, Wikipedia, Divar, Torob, Neshan)
+- Add and remove your own sites, with a one-tap reset to defaults — the list persists in settings
+- Live news (Zoomit, Digiato, Varzesh3, Tejarat News, BBC Persian, Digikala Mag) and a live market & prices card (tgju.org) render below the dashboard, each toggleable in the General settings tab
+
 ### Command palette & privacy
 - `Ctrl+K` opens a keyboard-first launcher for bookmarks, enabled services, tasks, notes, and quick actions
 - `Ctrl+Shift+H` blurs bookmarks, notes, tasks, and personal dates
@@ -105,6 +113,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 ### Appearance & Settings
 - **Color themes:** Midnight, Ocean, Forest, Lavender, Glass *(default)*
 - **Backgrounds:** gradients, solid colors, image URL, upload, or curated 4K wallpapers
+  - Bundled local themes: Gaming (dark car / esports), Tech (server-room), Neon (light trails / abstract) — offline, no network needed
 - Blur & overlay controls for background images
 - **Performance mode:** Auto / Lite / Full — disables heavy effects on weaker systems
 - **Languages:** Persian (FA) & English (EN)
@@ -114,7 +123,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - Reset to defaults
 
 <p align="center">
-  <img src="Picture/setting.webp" alt="Tabyar settings panel" width="620"/>
+  <img src="Picture/setting.webp" alt="NextTab settings panel" width="620"/>
 </p>
 
 <p align="center"><em>Settings → General — language, primary/secondary locations, and Google services.</em></p>
@@ -124,7 +133,7 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 - **Welcome message** — tips about keeping the extension folder in a stable location and backing up data
 
 <p align="center">
-  <img src="Picture/backup.webp" alt="Tabyar backup panel" width="620"/>
+  <img src="Picture/backup.webp" alt="NextTab backup panel" width="620"/>
 </p>
 
 <p align="center"><em>Backup & restore — continuous Chrome bookmark sync is enabled.</em></p>
@@ -171,7 +180,7 @@ cd tabyar-chrome-extension
 
 4. Select the extension folder (the one containing `manifest.json`)
 
-5. Open a **new tab** — complete the onboarding wizard and enjoy Tabyar!
+5. Open a **new tab** — complete the onboarding wizard and enjoy NextTab!
 
 ---
 
@@ -268,7 +277,7 @@ Bookmarks, tasks, personal dates, notes, and settings are stored locally. If **F
 
 1. Edit files in the project folder
 2. Go to `chrome://extensions/`
-3. Click the **reload** icon on the Tabyar card
+3. Click the **reload** icon on the NextTab card
 4. Open a new tab to see changes
 
 
@@ -282,5 +291,5 @@ Bookmarks, tasks, personal dates, notes, and settings are stored locally. If **F
 
 ## Author
 
-If you find Tabyar useful, consider starring the repository on GitHub.
+If you find NextTab useful, consider starring the repository on GitHub.
 

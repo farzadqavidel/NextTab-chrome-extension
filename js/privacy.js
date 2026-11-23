@@ -31,11 +31,12 @@ const PrivacyUI = (() => {
   }
 
   function updateButton() {
-    if (!button) return;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
-    button.title = I18n.t(active ? 'privacyDisable' : 'privacyEnable');
-    button.setAttribute('aria-label', button.title);
+    if (button) {
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+      button.title = I18n.t(active ? 'privacyDisable' : 'privacyEnable');
+      button.setAttribute('aria-label', button.title);
+    }
     const eventsButton = document.getElementById('btn-manage-personal-events');
     if (eventsButton) eventsButton.disabled = active;
   }

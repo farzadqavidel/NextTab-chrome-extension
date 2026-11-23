@@ -3,41 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tabyar</title>
-  <link rel="icon" type="image/png" href="icons/icon48.png">
+  <title>NextTab</title>
+  <link rel="icon" type="image/webp" href="icons/icon48.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/critical.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="dark-mode glass-theme">
+<body class="dark-mode">
   <div id="background-layer"></div>
 
-  <div class="top-fab-group" id="quick-actions-root">
-    <button type="button" id="btn-quick-actions" class="settings-fab quick-actions-trigger"
-            aria-controls="quick-actions-menu" aria-haspopup="menu" aria-expanded="false"
-            data-i18n-title="quickActions" data-i18n-aria="quickActions" title="ابزارهای سریع" aria-label="ابزارهای سریع">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+  <div class="top-fab-group">
+    <button type="button" id="btn-settings" class="settings-fab" aria-haspopup="dialog" aria-label="تنظیمات" title="تنظیمات"
+            data-i18n-title="settings" data-i18n-aria="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
-    <div id="quick-actions-menu" class="quick-actions-menu hidden" role="menu" data-i18n-aria="quickActions" aria-label="ابزارهای سریع">
-      <button type="button" id="btn-settings" class="settings-fab quick-action-menu-item" role="menuitem" data-quick-action data-i18n-title="settings" data-i18n-aria="settings" title="تنظیمات" aria-label="تنظیمات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span data-i18n="settings">تنظیمات</span>
-      </button>
-      <button type="button" id="btn-command-palette" class="settings-fab utility-fab quick-action-menu-item" role="menuitem" data-quick-action data-i18n-title="commandTitle" data-i18n-aria="commandTitle" title="میان‌برهای تب‌یار" aria-label="میان‌برهای تب‌یار">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M8 11h6"/></svg>
-        <span data-i18n="commandTitle">میان‌برهای تب‌یار</span>
-      </button>
-      <button type="button" id="btn-privacy-mode" class="settings-fab utility-fab quick-action-menu-item" role="menuitem" data-quick-action data-i18n-title="privacyEnable" data-i18n-aria="privacyEnable" title="فعال‌کردن حالت حریم خصوصی" aria-label="فعال‌کردن حالت حریم خصوصی" aria-pressed="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span data-i18n="commandPrivacy">حالت حریم خصوصی</span>
-      </button>
-    </div>
   </div>
 
   <div id="widget-layout-edit-bar" class="widget-layout-edit-bar hidden" role="status">
-    <span data-i18n="widgetLayoutEditModeHint">دستهٔ یک کارت را بکشید و روی کارت مقصد رها کنید؛ جایگاه‌ها عوض می‌شوند و شبکه ثابت می‌ماند.</span>
+    <span data-i18n="widgetLayoutEditModeHint">دستهٔ یک بخش را روی بخش هدف رها کنید؛ هر بخش فقط جایگاه مجاز خود را می‌گیرد — بوکمارک در جایگاه مرکزی می‌ماند و سایت‌ها، قیمت‌ها و اخبار فقط در بخش پایین جابجا می‌شوند.</span>
     <button type="button" id="btn-widget-layout-done" class="widget-layout-done-btn" data-i18n="finishWidgetLayout">پایان چیدمان</button>
   </div>
 
@@ -95,7 +80,7 @@
       </section>
       </div>
 
-      <!-- Bento: Day info (clock, weather, events) -->
+      <!-- Bento: Day info (clock, weather) -->
       <div class="card day-info-card" id="day-info-card">
         <div class="day-info-header">
           <span class="day-info-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span>
@@ -134,13 +119,6 @@
             </div>
           </div>
         </div>
-        <div class="day-events">
-          <div class="day-events-heading">
-            <h3 class="section-label" data-i18n="occasions">مناسبت‌ها</h3>
-            <button type="button" id="btn-manage-personal-events" class="mini-action-btn" data-i18n-title="managePersonalEvents" data-i18n-aria="managePersonalEvents" title="مدیریت مناسبت‌های شخصی" aria-label="مدیریت مناسبت‌های شخصی">＋</button>
-          </div>
-          <ul id="day-events-list" class="day-events-list"></ul>
-        </div>
       </div>
 
       <!-- Bento: Calendar -->
@@ -159,11 +137,20 @@
         <div class="cal-days" id="cal-days"></div>
         <div class="cal-other-dates" id="cal-other-dates"></div>
         <button id="cal-go-today" class="cal-today-btn" data-i18n="calGoToday">برو به امروز</button>
+
+        <div class="day-events">
+          <div class="day-events-heading">
+            <h3 class="section-label" data-i18n="occasions">مناسبت‌ها</h3>
+            <button type="button" id="btn-manage-personal-events" class="mini-action-btn" data-i18n-title="managePersonalEvents" data-i18n-aria="managePersonalEvents" title="مدیریت مناسبت‌های شخصی" aria-label="مدیریت مناسبت‌های شخصی">＋</button>
+          </div>
+          <ul id="day-events-list" class="day-events-list"></ul>
+        </div>
       </div>
 
       <!-- Bento: Bookmarks -->
       <section class="card bookmarks-card" id="bookmarks-card">
         <div class="bookmarks-header">
+          <h3 class="bookmarks-title" id="bm-title" data-i18n="bookmarksTitle">بوکمارک‌ها</h3>
           <button id="btn-bm-back" class="bm-back-btn hidden" type="button" data-i18n-aria="back" aria-label="بازگشت">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
@@ -232,7 +219,7 @@
             </span>
             <div class="tasks-heading-text">
               <span class="tasks-eyebrow" data-i18n="taskDailyEyebrow">برنامهٔ روزانه</span>
-              <h3 class="tasks-title" data-i18n="taskTitle">برنامهٔ امروز</h3>
+              <h3 class="tasks-title" id="tasks-plan-title">برنامهٔ امروز</h3>
             </div>
           </div>
           <div class="tasks-header-meta">
@@ -284,6 +271,74 @@
       <!-- Below-fold: market prices + news -->
       <div class="feed-sections" id="feed-sections">
 
+        <!-- Iranian popular sites -->
+        <section class="card sites-card" id="sites-section" aria-labelledby="sites-title">
+          <div class="sites-head">
+            <span class="feed-title-icon sites-title-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </span>
+            <div class="sites-head-core">
+              <h3 class="feed-title" id="sites-title" data-i18n="sitesTitle">سایت‌های محبوب ایران</h3>
+              <span class="sites-subtitle" data-i18n="sitesSubtitle">دسترسی سریع به سایت‌های پرکاربرد ایرانی</span>
+            </div>
+            <span class="sites-count" id="sites-count"></span>
+            <div class="feed-tools">
+              <button type="button" id="btn-sites-add" class="mini-action-btn sites-add-btn" aria-expanded="false"
+                      data-i18n-title="sitesAddTitle" data-i18n-aria="sitesAddTitle" title="افزودن سایت" aria-label="افزودن سایت">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              </button>
+              <button type="button" id="btn-sites-reset" class="mini-action-btn sites-reset-btn"
+                      data-i18n-title="sitesReset" data-i18n-aria="sitesReset" title="بازیابی پیش‌فرض‌ها" aria-label="بازیابی پیش‌فرض‌ها">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="sites-cats" id="sites-cats" role="tablist" aria-label="دسته‌بندی سایت‌ها"></div>
+          <div class="sites-grid" id="sites-grid"></div>
+          <div id="sites-empty" class="feed-empty hidden" data-i18n="sitesEmpty">سایتی در این دسته نیست</div>
+        </section>
+
+
+  <!-- Modal: Add Iranian site -->
+  <div class="modal-overlay hidden" id="modal-sites-add">
+    <div class="modal modal-sites-add" role="dialog" aria-modal="true" aria-labelledby="modal-sites-add-title">
+      <div class="modal-header">
+        <div class="modal-sites-head">
+          <span class="settings-head-icon sites-modal-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/><path d="M16.1 8.1a5.2 5.2 0 0 1 0 7.8"/><path d="M12 10.2v3.6"/><path d="M10.2 12h3.6"/></svg>
+          </span>
+          <div class="modal-sites-head-text">
+            <h2 id="modal-sites-add-title" data-i18n="sitesAddTitle">افزودن سایت</h2>
+            <span class="modal-sites-sub" data-i18n="sitesAddModalSubtitle">سایت موردنظر خود را به صفحه اضافه کنید</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close" id="btn-sites-add-close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <form id="sites-add-form" autocomplete="off">
+        <span class="sites-add-preview" id="sites-add-preview" aria-hidden="true">
+          <img id="sites-add-preview-img" alt="">
+          <span class="sites-add-preview-letter" id="sites-add-preview-letter">+</span>
+        </span>
+        <label class="sites-modal-field">
+          <span class="sites-modal-label" data-i18n="sitesNameLabel">نام سایت</span>
+          <input type="text" id="sites-add-name" class="field-input" data-i18n-placeholder="sitesNamePlaceholder" placeholder="مثلاً: دیوار" aria-label="نام سایت">
+        </label>
+        <label class="sites-modal-field">
+          <span class="sites-modal-label" data-i18n="sitesUrlLabel">آدرس سایت</span>
+          <input type="text" id="sites-add-url" class="field-input" data-i18n-placeholder="sitesUrlPlaceholder" placeholder="example.com" inputmode="url" enterkeyhint="done" aria-label="آدرس سایت">
+        </label>
+        <label class="sites-modal-field">
+          <span class="sites-modal-label" data-i18n="sitesCategoryLabel">دسته‌بندی</span>
+          <select id="sites-add-cat" class="field-input" aria-label="دسته‌بندی"></select>
+        </label>
+        <div class="sites-modal-actions">
+          <button type="submit" id="btn-sites-add-confirm" class="btn-primary" data-i18n="sitesAdd">افزودن</button>
+          <button type="button" id="btn-sites-add-cancel" class="btn-soft" data-i18n="cancel">انصراف</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
         <!-- Market & prices -->
         <section class="card prices-card" id="prices-section" aria-labelledby="prices-title">
           <div class="prices-head">
@@ -293,6 +348,7 @@
             <h3 class="feed-title" id="prices-title" data-i18n="pricesTitle">ارز و قیمت‌ها</h3>
             <span class="feed-source" data-i18n="pricesSource">منبع: tgju.org</span>
             <div class="feed-tools">
+              <span class="feed-live" aria-label="زنده"><span class="feed-live-dot" aria-hidden="true"></span><span data-i18n="pricesLive">زنده</span></span>
               <span id="prices-updated" class="feed-updated"></span>
               <button type="button" id="btn-prices-refresh" class="mini-action-btn feed-refresh-btn" data-i18n-title="pricesRefresh" data-i18n-aria="pricesRefresh" title="به‌روزرسانی قیمت‌ها" aria-label="به‌روزرسانی قیمت‌ها">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
@@ -368,7 +424,7 @@
   <div class="modal-overlay hidden" id="modal-welcome">
     <div class="modal">
       <div class="modal-header">
-        <h2 data-i18n="welcomeTitle">به تبیار خوش آمدید</h2>
+        <h2 data-i18n="welcomeTitle">به NextTab خوش آمدید</h2>
       </div>
       <div class="welcome-body">
         <p data-i18n="welcomeInstalled">این افزونه روی سیستم شما نصب شده است.</p>
@@ -390,7 +446,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 id="modal-bookmark-title" data-i18n="addBookmark">افزودن بوکمارک</h2>
-        <button class="modal-close" data-close="modal-bookmark" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" data-close="modal-bookmark" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <form id="form-bookmark">
         <input type="hidden" id="bookmark-id">
@@ -421,7 +477,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 id="modal-folder-title" data-i18n="newGroup">گروه جدید</h2>
-        <button class="modal-close" data-close="modal-folder" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" data-close="modal-folder" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <form id="form-folder">
         <input type="hidden" id="folder-id">
@@ -451,244 +507,443 @@
 
   <!-- Modal: Settings -->
   <div class="modal-overlay hidden" id="modal-settings">
-    <div class="modal modal-lg">
-      <div class="modal-header">
-        <h2 data-i18n="settings">تنظیمات</h2>
-        <button class="modal-close" data-close="modal-settings" data-i18n-aria="close" aria-label="بستن">&times;</button>
-      </div>
-      <div class="settings-tabs">
-        <button class="settings-tab active" data-tab="general" data-i18n="tabGeneral">عمومی</button>
-        <button class="settings-tab" data-tab="appearance" data-i18n="tabAppearance">ظاهر</button>
-        <button class="settings-tab" data-tab="background" data-i18n="tabBackground">پس‌زمینه</button>
-        <button class="settings-tab" data-tab="backup" data-i18n="tabBackup">ذخیره</button>
-        <button class="settings-tab" data-tab="about" data-i18n="tabAbout">درباره ما</button>
-      </div>
-      <div class="settings-content">
-        <div class="settings-panel active" id="panel-general">
-          <h3 data-i18n="language">زبان</h3>
-          <div class="lang-toggle mode-toggle">
-            <button type="button" class="lang-btn" data-lang="fa">فارسی</button>
-            <button type="button" class="lang-btn" data-lang="en">English</button>
+    <div class="modal modal-lg modal-settings">
+      <div class="modal-header settings-header">
+        <div class="settings-head-title">
+          <span class="settings-head-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+          </span>
+          <div class="settings-head-text">
+            <h2 data-i18n="settings">تنظیمات</h2>
+            <p data-i18n="settingsSubtitle">شخصی‌سازی و تنظیم صفحه تب جدید</p>
           </div>
-          <h3 data-i18n="yourLocation">محل زندگی</h3>
-          <p class="settings-desc" data-i18n="locationDesc">برای نمایش آب‌وهوا و مناسبت‌های محلی، کشور و شهر خود را وارد کنید.</p>
-          <div class="form-group location-picker-wrap">
-            <label for="setting-location-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
-            <input type="text" id="setting-location-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
-            <ul id="setting-location-suggestions" class="location-suggestions hidden"></ul>
-            <input type="hidden" id="setting-location-data">
-          </div>
-          <p class="settings-hint" id="setting-calendar-type-hint"></p>
-          <button type="button" id="btn-save-location" class="btn-primary" data-i18n="saveLocation">ذخیره محل</button>
-          <hr class="settings-divider">
-          <h3 data-i18n="secondLocation">کشور دوم</h3>
-          <p class="settings-desc" data-i18n="secondLocationDesc">نمایش آب‌وهوا و ساعت یک شهر دیگر کنار محل اصلی (اختیاری).</p>
-          <div class="form-group location-picker-wrap">
-            <label for="setting-location2-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
-            <input type="text" id="setting-location2-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
-            <ul id="setting-location2-suggestions" class="location-suggestions hidden"></ul>
-            <input type="hidden" id="setting-location2-data">
-          </div>
-          <div class="backup-actions">
-            <button type="button" id="btn-save-location2" class="btn-primary" data-i18n="saveSecondLocation">ذخیره کشور دوم</button>
-            <button type="button" id="btn-clear-location2" class="btn-soft" data-i18n="clearSecondLocation">حذف کشور دوم</button>
-          </div>
-          <hr class="settings-divider">
-          <h3 data-i18n="googleServices">سرویس‌های گوگل</h3>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-google-services-visible">
-            <span data-i18n="showGoogleServices">نمایش سرویس‌های گوگل</span>
-          </label>
-          <p class="settings-desc" data-i18n="googleServicesSettings">سرویس‌هایی که می‌خواهید در صفحه نمایش داده شوند را انتخاب کنید.</p>
-          <div id="google-services-settings" class="service-toggle-list"></div>
-          <hr class="settings-divider">
-          <h3 data-i18n="topSites">پربازدیدها</h3>
-          <p class="settings-desc" data-i18n="topSitesDesc">پربازدیدترین سایت‌های شما کنار نوار جستجو نمایش داده می‌شود.</p>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-top-sites-visible">
-            <span data-i18n="showTopSites">نمایش سایت‌های پربازدید</span>
-          </label>
-          <div class="backup-actions">
-            <button type="button" id="btn-restore-top-sites" class="btn-soft" data-i18n="restoreTopSites">بازگرداندن سایت‌های حذف‌شده</button>
-          </div>
-          <p class="settings-hint" data-i18n="restoreTopSitesHint">با راست‌کلیک روی هر آیکون می‌توانید آن را از لیست حذف کنید.</p>
-          <hr class="settings-divider">
-          <h3 data-i18n="feedSectionsTitle">اخبار و بازار</h3>
-          <p class="settings-desc" data-i18n="feedSectionsDesc">بخش اخبار و کارت زندهٔ ارز و قیمت‌ها پایین داشبورد نمایش داده می‌شوند.</p>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-news-visible">
-            <span data-i18n="showNews">نمایش بخش اخبار</span>
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-prices-visible">
-            <span data-i18n="showPrices">نمایش کارت ارز و قیمت‌ها</span>
-          </label>
-          <hr class="settings-divider">
-          <h3 data-i18n="floatingBookmarkTitle">دکمهٔ افزودن بوکمارک در سایت‌ها</h3>
-          <p class="settings-desc" data-i18n="floatingBookmarkDesc">یک دکمهٔ نیم‌دایره‌ای کنار صفحه نشان می‌دهد؛ می‌توانی آن را بالا/پایین یا به چپ/راست بکشی. با هاور، وضعیت ذخیره و نام پوشه دیده می‌شود؛ کلیک برای افزودن یا حذف.</p>
-          <label class="toggle-row">
-            <input type="checkbox" id="toggle-floating-bookmark">
-            <span data-i18n="showFloatingBookmark">نمایش دکمهٔ شناور در سایت‌ها</span>
-          </label>
         </div>
-        <div class="settings-panel" id="panel-appearance">
-          <h3 data-i18n="colorTheme">تم رنگی</h3>
-          <div class="theme-grid" id="theme-grid"></div>
-          <hr class="settings-divider">
-          <h3 data-i18n="perfModeTitle">حالت عملکرد</h3>
-          <p class="settings-desc" data-i18n="perfModeDesc">برای سیستم‌های ضعیف‌تر، افکت‌های سنگین غیرفعال می‌شود.</p>
-          <div class="lang-toggle mode-toggle" id="perf-mode-toggle">
-            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="auto" data-i18n="perfModeAuto">خودکار</button>
-            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="lite" data-i18n="perfModeLite">سبک</button>
-            <button type="button" class="lang-btn perf-mode-btn" data-perf-mode="full" data-i18n="perfModeFull">کامل</button>
-          </div>
-          <hr class="settings-divider">
-          <h3 data-i18n="persianDigitsTitle">نمایش ارقام</h3>
-          <p class="settings-desc" data-i18n="persianDigitsDesc">انتخاب کن تاریخ و ساعت با رقم فارسی یا لاتین نمایش داده شوند.</p>
-          <div class="lang-toggle mode-toggle" id="digits-style-toggle">
-            <button type="button" class="lang-btn digits-style-btn" data-digits-style="auto" data-i18n="digitsAuto">خودکار</button>
-            <button type="button" class="lang-btn digits-style-btn" data-digits-style="persian" data-i18n="digitsPersian">فارسی</button>
-            <button type="button" class="lang-btn digits-style-btn" data-digits-style="latin" data-i18n="digitsLatin">لاتین</button>
-          </div>
-          <hr class="settings-divider">
-          <h3 data-i18n="widgetLayoutTitle">چیدمان داشبورد</h3>
-          <p class="settings-desc" data-i18n="widgetLayoutDesc">با دستگیرهٔ فهرست ترتیب را عوض کن، یا حالت چیدمان را باز کن و کارت‌ها را بین جایگاه‌های امن بکش؛ اندازهٔ شبکه ثابت می‌ماند.</p>
-          <button type="button" id="btn-widget-layout-edit" class="btn-primary widget-layout-edit-btn" data-i18n="arrangeWidgets">تنظیم چیدمان با کشیدن</button>
-          <div id="widget-layout-settings" class="widget-layout-settings"></div>
-          <button type="button" id="btn-widget-layout-reset" class="btn-soft widget-layout-reset" data-i18n="resetWidgetLayout">بازگرداندن چیدمان پیش‌فرض</button>
-        </div>
-        <div class="settings-panel" id="panel-background">
-          <h3 data-i18n="bgType">نوع پس‌زمینه</h3>
-          <div class="bg-type-selector">
-            <label class="radio-card">
-              <input type="radio" name="bg-type" value="gradient" checked>
-              <span data-i18n="gradient">گرادیانت</span>
-            </label>
-            <label class="radio-card">
-              <input type="radio" name="bg-type" value="color">
-              <span data-i18n="solidColor">رنگ ساده</span>
-            </label>
-            <label class="radio-card">
-              <input type="radio" name="bg-type" value="image">
-              <span data-i18n="image">تصویر</span>
-            </label>
-          </div>
-          <div id="bg-gradient-options" class="bg-options">
-            <h4 data-i18n="readyGradients">گرادیانت‌های آماده</h4>
-            <div class="gradient-grid" id="gradient-grid"></div>
-          </div>
-          <div id="bg-color-options" class="bg-options hidden">
-            <h4 data-i18n="bgColor">رنگ پس‌زمینه</h4>
-            <div class="color-picker-pro">
-              <label class="color-picker-card" for="bg-color-picker">
-                <span class="color-picker-swatch" id="bg-color-preview" style="background:#000000" aria-hidden="true"></span>
-                <span class="color-picker-details">
-                  <span class="color-picker-hex" id="bg-color-hex">#000000</span>
-                  <span class="color-picker-hint" data-i18n="clickToPick">برای تغییر رنگ کلیک کنید</span>
+        <button class="modal-close settings-close" data-close="modal-settings" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div class="settings-layout">
+        <nav class="settings-nav" aria-label="دسته‌بندی‌های تنظیمات">
+          <button type="button" class="settings-tab active" data-tab="general">
+            <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
+            <span data-i18n="tabGeneral">عمومی</span>
+          </button>
+          <button type="button" class="settings-tab" data-tab="appearance">
+            <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><circle cx="12" cy="12" r="4"/><path d="m19.4 15 1.5 2.5-2.5 1.5-.6-2.7"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m19.1 19.1 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.9 19.1 1.4-1.4"/><path d="m19.1 4.9 1.4-1.4"/></svg></span>
+            <span data-i18n="tabAppearance">ظاهر</span>
+          </button>
+          <button type="button" class="settings-tab" data-tab="background">
+            <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.35-4.35a1.5 1.5 0 0 0-2.12 0L6 18"/></svg></span>
+            <span data-i18n="tabBackground">پس‌زمینه</span>
+          </button>
+          <button type="button" class="settings-tab" data-tab="backup">
+            <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M11.4 2.5a2 2 0 0 1 1.2 0L18 5.5"/><path d="M12 12h8"/><circle cx="12" cy="12" r="0.5"/></svg></span>
+            <span data-i18n="tabBackup">ذخیره</span>
+          </button>
+          <button type="button" class="settings-tab" data-tab="about">
+            <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+            <span data-i18n="tabAbout">درباره ما</span>
+          </button>
+        </nav>
+        <div class="settings-content" id="settings-content">
+          <div class="settings-panel active" id="panel-general">
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 </span>
-                <span class="color-picker-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="language">زبان</h3>
+                </div>
+              </div>
+              <div class="lang-toggle mode-toggle">
+                <button type="button" class="lang-btn" data-lang="fa">فارسی</button>
+                <button type="button" class="lang-btn" data-lang="en">English</button>
+              </div>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </span>
-                <input type="color" id="bg-color-picker" value="#000000" class="color-picker-native" data-i18n-aria="bgColor">
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="yourLocation">محل زندگی</h3>
+                  <p class="settings-card-desc" data-i18n="locationDesc">برای نمایش آب‌وهوا و مناسبت‌های محلی، کشور و شهر خود را وارد کنید.</p>
+                </div>
+              </div>
+              <div class="settings-field">
+                <label for="setting-location-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
+                <input type="text" id="setting-location-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
+                <ul id="setting-location-suggestions" class="location-suggestions hidden"></ul>
+                <input type="hidden" id="setting-location-data">
+              </div>
+              <p class="settings-hint" id="setting-calendar-type-hint"></p>
+              <div class="btn-row">
+                <button type="button" id="btn-save-location" class="btn-primary" data-i18n="saveLocation">ذخیره محل</button>
+              </div>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="secondLocation">کشور دوم</h3>
+                  <p class="settings-card-desc" data-i18n="secondLocationDesc">نمایش آب‌وهوا و ساعت یک شهر دیگر کنار محل اصلی (اختیاری).</p>
+                </div>
+              </div>
+              <div class="settings-field">
+                <label for="setting-location2-search" data-i18n="searchLocation">جستجوی شهر یا کشور</label>
+                <input type="text" id="setting-location2-search" class="field-input" autocomplete="off" data-i18n-placeholder="searchLocationPlaceholder" placeholder="نام شهر یا کشور را بنویسید...">
+                <ul id="setting-location2-suggestions" class="location-suggestions hidden"></ul>
+                <input type="hidden" id="setting-location2-data">
+              </div>
+              <div class="btn-row">
+                <button type="button" id="btn-save-location2" class="btn-primary" data-i18n="saveSecondLocation">ذخیره کشور دوم</button>
+                <button type="button" id="btn-clear-location2" class="btn-soft" data-i18n="clearSecondLocation">حذف کشور دوم</button>
+              </div>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="googleServices">سرویس‌های گوگل</h3>
+                  <p class="settings-card-desc" data-i18n="googleServicesSettings">سرویس‌هایی که می‌خواهید در صفحه نمایش داده شوند را انتخاب کنید.</p>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-google-services-visible">
+                <span data-i18n="showGoogleServices">نمایش سرویس‌های گوگل</span>
               </label>
-              <div class="color-presets" id="bg-color-presets" role="group" aria-label="رنگ‌های آماده">
-                <button type="button" class="color-preset" data-color="#000000" title="#000000" style="--preset-color:#000000"></button>
-                <button type="button" class="color-preset" data-color="#1a1a2e" title="#1A1A2E" style="--preset-color:#1a1a2e"></button>
-                <button type="button" class="color-preset" data-color="#0f172a" title="#0F172A" style="--preset-color:#0f172a"></button>
-                <button type="button" class="color-preset" data-color="#1e3a5f" title="#1E3A5F" style="--preset-color:#1e3a5f"></button>
-                <button type="button" class="color-preset" data-color="#134e4a" title="#134E4A" style="--preset-color:#134e4a"></button>
+              <div id="google-services-settings" class="service-toggle-list"></div>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="topSites">پربازدیدها</h3>
+                  <p class="settings-card-desc" data-i18n="topSitesDesc">پربازدیدترین سایت‌های شما کنار نوار جستجو نمایش داده می‌شود.</p>
+                </div>
               </div>
-            </div>
-          </div>
-          <div id="bg-image-options" class="bg-options hidden">
-            <h4 data-i18n="readyWallpapers">والپیپرهای آماده</h4>
-            <div id="wallpaper-gallery" class="wallpaper-gallery"></div>
-            <h4 data-i18n="bgImage">تصویر پس‌زمینه</h4>
-            <div class="form-group">
-              <label for="bg-image-url" data-i18n="imageUrl">آدرس تصویر (URL)</label>
-              <div class="input-row">
-                <input type="url" id="bg-image-url" class="field-input" placeholder="https://example.com/image.jpg">
-                <button type="button" id="btn-bg-url-apply" class="btn-primary btn-compact" data-i18n="apply">ثبت</button>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-top-sites-visible">
+                <span data-i18n="showTopSites">نمایش سایت‌های پربازدید</span>
+              </label>
+              <div class="btn-row">
+                <button type="button" id="btn-restore-top-sites" class="btn-soft" data-i18n="restoreTopSites">بازگرداندن سایت‌های حذف‌شده</button>
               </div>
-            </div>
-            <div class="form-group">
-              <label data-i18n="orUpload">یا آپلود تصویر</label>
-              <div class="file-upload-wrap">
-                <label class="file-upload-btn" for="bg-image-upload">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  <span data-i18n="chooseFile">انتخاب فایل</span>
+              <p class="settings-hint" data-i18n="restoreTopSitesHint">با راست‌کلیک روی هر آیکون می‌توانید آن را از لیست حذف کنید.</p>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0V9"/><path d="M18 14h-8"/><path d="M15 18h-3"/><path d="M10 6h8v4h-8V6Z"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="feedSectionsTitle">اخبار و بازار</h3>
+                  <p class="settings-card-desc" data-i18n="feedSectionsDesc">بخش اخبار و کارت زندهٔ ارز و قیمت‌ها پایین داشبورد نمایش داده می‌شوند.</p>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-news-visible">
+                <span data-i18n="showNews">نمایش بخش اخبار</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-prices-visible">
+                <span data-i18n="showPrices">نمایش کارت ارز و قیمت‌ها</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-iranian-sites-visible">
+                <span data-i18n="showSites">نمایش بخش سایت‌های محبوب</span>
+              </label>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="floatingBookmarkTitle">دکمهٔ افزودن بوکمارک در سایت‌ها</h3>
+                  <p class="settings-card-desc" data-i18n="floatingBookmarkDesc">یک دکمهٔ نیم‌دایره‌ای کنار صفحه نشان می‌دهد؛ می‌توانی آن را بالا/پایین یا به چپ/راست بکشی. با هاور، وضعیت ذخیره و نام پوشه دیده می‌شود؛ کلیک برای افزودن یا حذف.</p>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" id="toggle-floating-bookmark">
+                <span data-i18n="showFloatingBookmark">نمایش دکمهٔ شناور در سایت‌ها</span>
+              </label>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="importBookmarksTitle">ایمپورت بوکمارک</h3>
+                  <p class="settings-card-desc" data-i18n="importBookmarksDesc">بوکمارک‌های مرورگر کروم را با ساختار پوشه‌ها به این صفحه منتقل کنید.</p>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" id="btn-import-chrome-bookmarks" class="btn-soft" data-i18n="importChromeBookmarks">ایمپورت از کروم</button>
+                <label class="toggle-row chrome-bookmark-sync-toggle">
+                  <input type="checkbox" id="toggle-follow-chrome-bookmarks">
+                  <span data-i18n="followChromeBookmarks">پیروی از بوکمارک کروم</span>
                 </label>
-                <input type="file" id="bg-image-upload" accept="image/*" class="file-upload-input">
-                <span class="file-upload-name" id="bg-file-name" data-i18n="noFile">فایلی انتخاب نشده</span>
+              </div>
+              <p class="settings-card-desc" data-i18n="followChromeDesc">همگام‌سازی پیوسته و دوطرفه؛ افزودن، حذف، جابه‌جایی و ترتیب پوشه‌های تودرتو میان کروم و NextTab هماهنگ می‌شود.</p>
+              <p id="chrome-bookmark-sync-status" class="settings-hint" role="status" aria-live="polite"></p>
+            </section>
+          </div>
+          <div class="settings-panel" id="panel-appearance">
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11Z"/><path d="M9.5 13.5 12 16l2.5-2.5"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="displayMode">حالت نمایش</h3>
+                  <p class="settings-card-desc" data-i18n="displayModeDesc">حالت سراسری افزونه — روشن، تاریک یا شیشه‌ای</p>
+                </div>
+              </div>
+              <div class="mode-selector" id="mode-selector" role="radiogroup" data-i18n-aria="displayMode" aria-label="حالت نمایش">
+                <button type="button" class="mode-option" data-mode="light" role="radio" aria-checked="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                  <span data-i18n="lightMode">روشن</span>
+                </button>
+                <button type="button" class="mode-option" data-mode="dark" role="radio" aria-checked="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+                  <span data-i18n="darkMode">تاریک</span>
+                </button>
+                <button type="button" class="mode-option" data-mode="glass" role="radio" aria-checked="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M3.5 8.5h17"/><path d="M8.5 20.5 15 5.5"/></svg>
+                  <span data-i18n="glassMode">شیشه‌ای</span>
+                </button>
+              </div>
+              <div class="theme-section-row">
+                <span class="theme-section-label" data-i18n="colorTheme">تم رنگی</span>
+                <span class="theme-section-hint" data-i18n="colorThemeDesc">رنگ‌بندی‌ها فقط برای تاکید روی اجزا هستند</span>
+              </div>
+              <div class="theme-grid" id="theme-grid"></div>
+            </section>
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2"/><path d="M12 5v14"/><path d="M9 19.5h6"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="fontTitle">فونت</h3>
+                  <p class="settings-card-desc" data-i18n="fontDesc">انتخاب فونت موردنظر برای کل رابط کاربری</p>
+                </div>
+              </div>
+              <div class="font-grid" id="font-grid" role="radiogroup" aria-label="فونت"></div>
+            </section>
+            
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/><rect x="15" y="14" width="6" height="7" rx="2"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="widgetLayoutTitle">چیدمان داشبورد</h3>
+                  <p class="settings-card-desc" data-i18n="widgetLayoutDesc">حالت چیدمان را باز کن و بخش‌ها را بین جایگاه‌های مجاز بکش؛ اندازهٔ شبکه ثابت می‌ماند.</p>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" id="btn-widget-layout-edit" class="btn-primary widget-layout-edit-btn" data-i18n="arrangeWidgets">تنظیم چیدمان با کشیدن</button>
+                <button type="button" id="btn-widget-layout-reset" class="btn-soft widget-layout-reset" data-i18n="resetWidgetLayout">بازگرداندن چیدمان پیش‌فرض</button>
+              </div>
+            </section>
+          </div>
+          <div class="settings-panel" id="panel-background">
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="bgType">نوع پس‌زمینه</h3>
+                </div>
+              </div>
+              <div class="bg-type-selector">
+                <label class="radio-card">
+                  <input type="radio" name="bg-type" value="gradient" checked>
+                  <span data-i18n="gradient">گرادیانت</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="bg-type" value="color">
+                  <span data-i18n="solidColor">رنگ ساده</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="bg-type" value="image">
+                  <span data-i18n="image">تصویر</span>
+                </label>
+              </div>
+              <div id="bg-gradient-options" class="bg-options">
+                <h4 data-i18n="readyGradients">گرادیانت‌های آماده</h4>
+                <div class="gradient-grid" id="gradient-grid"></div>
+              </div>
+              <div id="bg-color-options" class="bg-options hidden">
+                <h4 data-i18n="bgColor">رنگ پس‌زمینه</h4>
+                <div class="color-picker-pro">
+                  <label class="color-picker-card" for="bg-color-picker">
+                    <span class="color-picker-swatch" id="bg-color-preview" style="background:#000000" aria-hidden="true"></span>
+                    <span class="color-picker-details">
+                      <span class="color-picker-hex" id="bg-color-hex">#000000</span>
+                      <span class="color-picker-hint" data-i18n="clickToPick">برای تغییر رنگ کلیک کنید</span>
+                    </span>
+                    <span class="color-picker-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </span>
+                    <input type="color" id="bg-color-picker" value="#000000" class="color-picker-native" data-i18n-aria="bgColor">
+                  </label>
+                  <div class="color-presets" id="bg-color-presets" role="group" aria-label="رنگ‌های آماده">
+                    <button type="button" class="color-preset" data-color="#000000" title="#000000" style="--preset-color:#000000"></button>
+                    <button type="button" class="color-preset" data-color="#1a1a2e" title="#1A1A2E" style="--preset-color:#1a1a2e"></button>
+                    <button type="button" class="color-preset" data-color="#0f172a" title="#0F172A" style="--preset-color:#0f172a"></button>
+                    <button type="button" class="color-preset" data-color="#1e3a5f" title="#1E3A5F" style="--preset-color:#1e3a5f"></button>
+                    <button type="button" class="color-preset" data-color="#134e4a" title="#134E4A" style="--preset-color:#134e4a"></button>
+                  </div>
+                </div>
+              </div>
+              <div id="bg-image-options" class="bg-options hidden">
+                <h4 data-i18n="readyWallpapers">والپیپرهای آماده</h4>
+                <div id="wallpaper-gallery" class="wallpaper-gallery"></div>
+                <h4 data-i18n="bgImage">تصویر پس‌زمینه</h4>
+                <div class="settings-field">
+                  <label for="bg-image-url" data-i18n="imageUrl">آدرس تصویر (URL)</label>
+                  <div class="input-row">
+                    <input type="url" id="bg-image-url" class="field-input" placeholder="https://example.com/image.jpg">
+                    <button type="button" id="btn-bg-url-apply" class="btn-primary btn-compact" data-i18n="apply">ثبت</button>
+                  </div>
+                </div>
+                <div class="settings-field">
+                  <label data-i18n="orUpload">یا آپلود تصویر</label>
+                  <div class="file-upload-wrap">
+                    <label class="file-upload-btn" for="bg-image-upload">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span data-i18n="chooseFile">انتخاب فایل</span>
+                    </label>
+                    <input type="file" id="bg-image-upload" accept="image/*" class="file-upload-input">
+                    <span class="file-upload-name" id="bg-file-name" data-i18n="noFile">فایلی انتخاب نشده</span>
+                  </div>
+                </div>
+                <div class="settings-field">
+                  <label for="bg-blur" data-i18n="blurAmount">میزان بلور</label>
+                  <input type="range" id="bg-blur" min="0" max="20" value="0">
+                  <span id="bg-blur-value">0px</span>
+                </div>
+                <div class="settings-field">
+                  <label for="bg-overlay" data-i18n="imageOverlay">تیرگی روی تصویر</label>
+                  <input type="range" id="bg-overlay" min="0" max="80" value="20">
+                  <span id="bg-overlay-value">20%</span>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="settings-panel" id="panel-backup">
+            <section class="settings-card">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="backupTitle">پشتیبان‌گیری و بازیابی</h3>
+                  <p class="settings-card-desc" data-i18n="backupDesc">تم، یادداشت‌ها، بوکمارک‌ها، پوشه‌ها و همه تنظیمات صفحه ذخیره می‌شود.</p>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" id="btn-export-data" class="btn-primary" data-i18n="exportFile">ذخیره در فایل</button>
+                <button type="button" id="btn-import-data" class="btn-soft" data-i18n="importFile">بارگذاری از فایل</button>
+                <input type="file" id="import-data-file" accept=".json" class="file-upload-input">
+              </div>
+              <p class="settings-hint" data-i18n="backupHint">با «ذخیره در فایل» محل ذخیره را خودتان انتخاب می‌کنید.</p>
+            </section>
+            
+            <section class="settings-card settings-card-danger">
+              <div class="settings-card-head">
+                <span class="settings-card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </span>
+                <div class="settings-card-head-text">
+                  <h3 class="settings-card-title" data-i18n="resetAll">بازنشانی همه داده‌ها</h3>
+                  <p class="settings-card-desc" data-i18n="resetAllDesc">این کار، تم، بوکمارک‌ها، یادداشت‌ها و همهٔ تنظیمات صفحه را از نو آغاز می‌کند.</p>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" id="btn-reset-data" class="btn-danger" data-i18n="resetAll">بازنشانی همه داده‌ها</button>
+              </div>
+            </section>
+          </div>
+          <div class="settings-panel" id="panel-about">
+            <section class="settings-card about-hero-card">
+              <span class="about-hero-glow" aria-hidden="true"></span>
+              <img src="icons/icon128.webp" alt="NextTab" class="about-hero-logo">
+              <div class="about-hero-identity">
+                <div class="about-hero-name-row">
+                  <b class="about-hero-name">NextTab</b>
+                  <span class="about-hero-version" dir="ltr">v<b id="about-version-number">—</b></span>
+                </div>
+                <p class="about-hero-subtitle" data-i18n="updateDesc">با چک‌آپ کلیک بررسی کنید؛ اگر نسخه‌ی جدیدی باشد، دانلود آماده می‌شود.</p>
+                <div class="update-result" id="update-result" hidden>
+                  <span class="update-status-pill update-status-checking" id="update-status" role="status" aria-live="polite">در حال بررسی…</span>
+                  <a class="update-download-btn" id="btn-update-download" href="https://github.com/farzadqavidel/tabyar-chrome-extension/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>
+                    <span data-i18n="updateDownloadBtn">دانلود آخرین نسخه</span>
+                  </a>
+                  <p class="update-hint" id="update-after-install" data-i18n="updateAfterInstall" hidden>پس از دانلود، افزونه را روی سیستم نصب کنید و در chrome://extensions بارگذاری مجدد کنید.</p>
+                </div>
+              </div>
+              <button type="button" class="about-update-btn" id="btn-update-extension">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                <span data-i18n="aboutCheckUpdate">بررسی اپدیت</span>
+              </button>
+            </section>
+
+            <div class="about-middle">
+              <a class="about-repo-card" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer">
+                <span class="about-repo-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </span>
+                <span class="about-repo-text">
+                  <b>farzadqavidel/tabyar-chrome-extension</b>
+                  <small data-i18n="aboutOpenRepo">مشاهده در گیت‌هاب</small>
+                </span>
+                <span class="about-repo-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </span>
+              </a>
+
+              <div class="about-dev-card">
+                <span class="about-dev-avatar" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </span>
+                <div class="about-dev-info">
+                  <span class="about-dev-label" data-i18n="aboutDeveloper">توسعه‌دهنده</span>
+                  <a class="about-dev-link" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer">@farzadqavidel</a>
+                </div>
               </div>
             </div>
-            <div class="form-group">
-              <label for="bg-blur" data-i18n="blurAmount">میزان بلور</label>
-              <input type="range" id="bg-blur" min="0" max="20" value="0">
-              <span id="bg-blur-value">0px</span>
-            </div>
-            <div class="form-group">
-              <label for="bg-overlay" data-i18n="imageOverlay">تیرگی روی تصویر</label>
-              <input type="range" id="bg-overlay" min="0" max="80" value="20">
-              <span id="bg-overlay-value">20%</span>
-            </div>
+
+            <section class="settings-card about-star-card">
+              <div class="about-star-head">
+                <span class="about-star-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26 6.85.72-5.11 4.6 1.44 6.72L12 16.9l-6.08 3.4 1.44-6.72L2.25 8.98l6.85-.72L12 2z"/></svg>
+                </span>
+                <p data-i18n="aboutStar">اگر این افزونه برایتان مفید بود، لطفًا به مخزن ما در گیت‌هاب ستاره بدهید. حمایت شما انگیزه‌ی ادامه‌ی توسعه است!</p>
+              </div>
+              <div class="about-actions">
+                <a class="about-btn about-btn-star" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26 6.85.72-5.11 4.6 1.44 6.72L12 16.9l-6.08 3.4 1.44-6.72L2.25 8.98l6.85-.72L12 2z"/></svg>
+                  <span data-i18n="aboutStarBtn">ستاره دادن به پروژه</span>
+                </a>
+                <a class="about-btn about-btn-issue" href="https://github.com/farzadqavidel/tabyar-chrome-extension/issues" target="_blank" rel="noopener noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  <span data-i18n="aboutIssue">گزارش مشکل یا پیشنهاد</span>
+                </a>
+              </div>
+            </section>
           </div>
-        </div>
-        <div class="settings-panel" id="panel-backup">
-          <h3 data-i18n="backupTitle">پشتیبان‌گیری و بازیابی</h3>
-          <p class="settings-desc" data-i18n="backupDesc">تم، یادداشت‌ها، بوکمارک‌ها، پوشه‌ها و همه تنظیمات صفحه ذخیره می‌شود.</p>
-          <div class="backup-actions">
-            <button type="button" id="btn-export-data" class="btn-primary" data-i18n="exportFile">ذخیره در فایل</button>
-            <button type="button" id="btn-import-data" class="btn-soft" data-i18n="importFile">بارگذاری از فایل</button>
-            <input type="file" id="import-data-file" accept=".json" class="file-upload-input">
-          </div>
-          <p class="settings-hint" data-i18n="backupHint">با «ذخیره در فایل» محل ذخیره را خودتان انتخاب می‌کنید.</p>
-          <hr class="settings-divider">
-          <h3 data-i18n="importBookmarksTitle">ایمپورت بوکمارک</h3>
-          <p class="settings-desc" data-i18n="importBookmarksDesc">بوکمارک‌های مرورگر کروم را با ساختار پوشه‌ها به این صفحه منتقل کنید.</p>
-          <div class="backup-actions chrome-bookmark-controls">
-            <button type="button" id="btn-import-chrome-bookmarks" class="btn-soft" data-i18n="importChromeBookmarks">ایمپورت از کروم</button>
-            <label class="toggle-row chrome-bookmark-sync-toggle">
-              <input type="checkbox" id="toggle-follow-chrome-bookmarks">
-              <span data-i18n="followChromeBookmarks">پیروی از بوکمارک کروم</span>
-            </label>
-          </div>
-          <p class="settings-desc" data-i18n="followChromeDesc">همگام‌سازی پیوسته و دوطرفه؛ افزودن، حذف، جابه‌جایی و ترتیب پوشه‌های تودرتو میان کروم و تبیار هماهنگ می‌شود.</p>
-          <p id="chrome-bookmark-sync-status" class="settings-hint" role="status" aria-live="polite"></p>
-          <hr class="settings-divider">
-          <button type="button" id="btn-reset-data" class="btn-danger" data-i18n="resetAll">بازنشانی همه داده‌ها</button>
-        </div>
-        <div class="settings-panel" id="panel-about">
-          <div class="about-hero">
-            <img src="icons/icon128.png" alt="Tabyar" class="about-logo">
-            <div class="about-hero-text">
-              <h3 data-i18n="aboutTitle">درباره تبیار</h3>
-              <span class="about-version"><span data-i18n="aboutVersion">نسخه</span> <b id="about-version-number">1.0.0</b></span>
-            </div>
-          </div>
-          <p class="settings-desc" data-i18n="aboutDesc">تبیار یک صفحه تب جدید فارسی، سریع و متن‌باز برای مرورگر کروم است؛ با تقویم شمسی، آب‌وهوا، بوکمارک، یادداشت و کلی امکانات دیگر.</p>
-          <hr class="settings-divider">
-          <h3 data-i18n="aboutRepoTitle">مخزن گیت‌هاب</h3>
-          <div class="about-star-card">
-            <span class="about-star-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26 6.85.72-5.11 4.6 1.44 6.72L12 16.9l-6.08 3.4 1.44-6.72L2.25 8.98l6.85-.72L12 2z"/></svg>
-            </span>
-            <p data-i18n="aboutStar">اگر این افزونه برایتان مفید بود، لطفاً به مخزن ما در گیت‌هاب ستاره ⭐ بدهید. حمایت شما انگیزه‌ی ادامه‌ی توسعه است!</p>
-          </div>
-          <a class="about-repo-link" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            <span class="about-repo-text">
-              <b>farzadqavidel/tabyar-chrome-extension</b>
-              <small data-i18n="aboutOpenRepo">مشاهده در گیت‌هاب</small>
-            </span>
-          </a>
-          <div class="backup-actions about-actions">
-            <a class="btn-primary about-btn" href="https://github.com/farzadqavidel/tabyar-chrome-extension" target="_blank" rel="noopener noreferrer" data-i18n="aboutStarBtn">ستاره دادن به پروژه</a>
-            <a class="btn-soft about-btn" href="https://github.com/farzadqavidel/tabyar-chrome-extension/issues" target="_blank" rel="noopener noreferrer" data-i18n="aboutIssue">گزارش مشکل یا پیشنهاد</a>
-          </div>
-          <hr class="settings-divider">
-          <h3 data-i18n="aboutDeveloper">توسعه‌دهنده</h3>
-          <a class="about-dev-link" href="https://github.com/farzadqavidel" target="_blank" rel="noopener noreferrer">@farzadqavidel</a>
         </div>
       </div>
     </div>
@@ -699,7 +954,7 @@
     <div class="modal modal-weather">
       <div class="modal-header">
         <h2 data-i18n="weatherForecast">پیش‌بینی آب‌وهوا</h2>
-        <button class="modal-close" data-close="modal-weather" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" data-close="modal-weather" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div id="weather-modal-body" class="weather-modal-body"></div>
     </div>
@@ -710,7 +965,7 @@
     <div class="modal modal-notes">
       <div class="modal-header">
         <h2 data-i18n="allNotes">همه یادداشت‌ها</h2>
-        <button class="modal-close" data-close="modal-notes" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" data-close="modal-notes" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div id="notes-modal-body" class="notes-modal-body"></div>
     </div>
@@ -721,7 +976,7 @@
     <div class="modal modal-sm">
       <div class="modal-header">
         <h2 data-i18n="editNote">ویرایش یادداشت</h2>
-        <button class="modal-close" data-close="modal-note-edit" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" data-close="modal-note-edit" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <form id="form-note-edit">
         <input type="hidden" id="note-edit-id">
@@ -783,7 +1038,7 @@
           <span class="task-date-modal-eyebrow" data-i18n="taskDateCalendarType">تقویم شمسی</span>
           <h2 id="task-date-dialog-title" data-i18n="taskDatePickerTitle">انتخاب موعد کار</h2>
         </div>
-        <button type="button" class="modal-close" data-close="modal-task-date" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button type="button" class="modal-close" data-close="modal-task-date" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <p class="task-date-modal-hint" data-i18n="taskDatePickerHelp">تاریخ‌ها در اینجا بر پایهٔ تقویم شمسی هستند.</p>
       <div class="task-date-picker">
@@ -824,7 +1079,7 @@
             <h2 id="focus-config-title" data-i18n="focusTimerSettings">تنظیم مدت تایمر</h2>
           </div>
         </div>
-        <button type="button" class="modal-close" data-close="modal-focus-config" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button type="button" class="modal-close" data-close="modal-focus-config" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <p id="focus-config-help" class="focus-config-help" data-i18n="focusTimerSettingsHelp">مدت جلسهٔ تمرکز را با روز، ساعت و دقیقه تنظیم کنید؛ مدت استراحت در این پنجره تغییر نمی‌کند.</p>
       <form id="focus-config-form" class="focus-config-form" novalidate>
@@ -851,7 +1106,7 @@
     <div class="modal modal-lg personal-events-modal" role="dialog" aria-modal="true" aria-labelledby="personal-event-form-title">
       <div class="modal-header">
         <h2 data-i18n="personalEvents">مناسبت‌های شخصی</h2>
-        <button class="modal-close" type="button" data-close="modal-personal-events" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <button class="modal-close" type="button" data-close="modal-personal-events" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="personal-event-form-wrap">
         <h3 id="personal-event-form-title" class="personal-event-form-title" data-i18n="personalEventAdd">افزودن مناسبت</h3>
@@ -901,8 +1156,8 @@
   <div class="modal-overlay hidden command-overlay" id="modal-command-palette">
     <section class="modal modal-command" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
       <div class="command-palette-heading">
-        <h2 id="command-palette-title" data-i18n="commandTitle">میان‌برهای تب‌یار</h2>
-        <button class="modal-close" type="button" data-close="modal-command-palette" data-i18n-aria="close" aria-label="بستن">&times;</button>
+        <h2 id="command-palette-title" data-i18n="commandTitle">میان‌برهای NextTab</h2>
+        <button class="modal-close" type="button" data-close="modal-command-palette" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="command-input-wrap">
         <span aria-hidden="true">⌕</span>
@@ -926,6 +1181,7 @@
   <script src="js/region.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/cities-data.js"></script>
   <script src="js/location-picker.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/weather.js"></script>
@@ -941,10 +1197,12 @@
   <script src="js/wallpaper.js"></script>
   <script src="js/feeds.js"></script>
   <script src="js/prices.js"></script>
+  <script src="js/iranian-sites.js"></script>
   <script src="js/news.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/updates.js"></script>
   <script src="js/command-palette.js"></script>
-  <script src="js/quick-actions.js"></script>
+  <script src="js/fonts.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

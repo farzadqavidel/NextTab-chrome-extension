@@ -61,12 +61,12 @@ const PricesUI = (() => {
         <div class="price-tile-top">
           <span class="price-tile-icon" aria-hidden="true">${tile.icon}</span>
           <span class="price-tile-label">${I18n.t(tile.labelKey)}</span>
+          <span class="price-tile-badge">${badge}</span>
         </div>
         <div class="price-value-row">
           <span class="price-value" dir="ltr">${value}</span>
           <span class="price-unit">${I18n.t(tile.unitKey)}</span>
         </div>
-        ${badge}
       </div>`;
   }
 
