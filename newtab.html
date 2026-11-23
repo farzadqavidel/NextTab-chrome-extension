@@ -12,7 +12,7 @@
   <div id="background-layer"></div>
 
   <div class="top-fab-group">
-    <button type="button" id="btn-settings" class="settings-fab" aria-haspopup="dialog" aria-label="تنظیمات" title="تنظیمات"
+    <button type="button" id="btn-settings" class="settings-fab" aria-haspopup="dialog" aria-label="Settings" title="Settings"
             data-i18n-title="settings" data-i18n-aria="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
@@ -95,7 +95,7 @@
                 </button>
               </div>
               <div class="day-info-meta">
-                <span id="day-clock" class="day-clock">۰۰:۰۰</span>
+                <span id="day-clock" class="day-clock">00:00</span>
                 <span id="day-date" class="day-date"></span>
                 <span id="day-weekday" class="day-weekday"></span>
                 <span id="day-location-name" class="day-location-name"></span>
@@ -110,7 +110,7 @@
                 </button>
               </div>
               <div class="day-info-meta">
-                <span id="day-clock-2" class="day-clock day-clock-secondary">۰۰:۰۰</span>
+                <span id="day-clock-2" class="day-clock day-clock-secondary">00:00</span>
                 <span id="day-location-name-2" class="day-location-name"></span>
               </div>
             </div>
@@ -129,7 +129,7 @@
           <button id="cal-next" class="cal-nav" data-i18n-aria="calNext" aria-label="ماه بعد">›</button>
         </div>
         <div class="cal-weekdays">
-          <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span>
+          <span>Sa</span><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span>
         </div>
         <div class="cal-days" id="cal-days"></div>
         <div class="cal-other-dates" id="cal-other-dates"></div>
@@ -167,7 +167,7 @@
       <!-- Bento: Notes (tall side panel) -->
       <div class="card notes-card" id="notes-card">
         <div class="notes-header">
-          <h3 class="notes-title" id="notes-title">یادداشت</h3>
+          <h3 class="notes-title" id="notes-title">Note</h3>
           <div class="notes-toolbar">
             <button id="btn-notes-trash" class="toolbar-btn" data-i18n-title="notesTrash" title="سطل زباله" data-i18n-aria="notesTrash" aria-label="سطل زباله">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -216,12 +216,12 @@
             </span>
             <div class="tasks-heading-text">
               <span class="tasks-eyebrow" data-i18n="taskDailyEyebrow">برنامهٔ روزانه</span>
-              <h3 class="tasks-title" id="tasks-plan-title">برنامهٔ امروز</h3>
+              <h3 class="tasks-title" id="tasks-plan-title">Today&#39;s plan</h3>
             </div>
           </div>
           <div class="tasks-header-meta">
-            <span id="tasks-today-date" class="tasks-today-date" aria-label="تاریخ امروز به شمسی"></span>
-            <span id="tasks-summary" class="tasks-summary">۰ از ۰ انجام‌شده</span>
+            <span id="tasks-today-date" class="tasks-today-date" aria-label="Today"></span>
+            <span id="tasks-summary" class="tasks-summary">0 of 0 completed</span>
           </div>
         </div>
         <div class="task-progress-wrap">
@@ -246,20 +246,20 @@
           <div class="focus-panel-heading">
             <span class="focus-label"><span class="focus-label-icon" aria-hidden="true">◷</span> <span data-i18n="focusTitle">تمرکز</span></span>
             <div class="focus-heading-tools">
-              <span id="focus-phase" class="focus-phase">جلسهٔ تمرکز</span>
+              <span id="focus-phase" class="focus-phase">Focus session</span>
               <button type="button" id="btn-focus-config" class="focus-config-btn" aria-haspopup="dialog" aria-controls="modal-focus-config" data-i18n-title="focusTimerSettings" data-i18n-aria="focusTimerSettings" title="تنظیم مدت تایمر" aria-label="تنظیم مدت تایمر">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
               </button>
             </div>
           </div>
           <div class="focus-controls">
-            <strong id="focus-timer" class="focus-timer" dir="auto">۲۵:۰۰</strong>
+            <strong id="focus-timer" class="focus-timer" dir="auto">25:00</strong>
             <div class="focus-buttons">
               <button type="button" id="btn-focus-toggle" class="focus-start-btn" data-i18n="focusStart">شروع</button>
               <button type="button" id="btn-focus-reset" class="focus-reset-btn" data-i18n-title="focusReset" data-i18n-aria="focusReset" title="بازنشانی" aria-label="بازنشانی">↺</button>
             </div>
           </div>
-          <small id="focus-sessions" class="focus-sessions">۰ جلسه امروز</small>
+          <small id="focus-sessions" class="focus-sessions">0 sessions today</small>
         </div>
       </section>
 
@@ -290,7 +290,7 @@
               </button>
             </div>
           </div>
-          <div class="sites-cats" id="sites-cats" role="tablist" aria-label="دسته‌بندی سایت‌ها"></div>
+          <div class="sites-cats" id="sites-cats" role="tablist" data-i18n-aria="sitesCatsAria" aria-label="Site categories"></div>
           <div class="sites-grid" id="sites-grid"></div>
           <div id="sites-empty" class="feed-empty hidden" data-i18n="sitesEmpty">سایتی در این دسته نیست</div>
         </section>
@@ -309,7 +309,7 @@
             <span class="modal-sites-sub" data-i18n="sitesAddModalSubtitle">سایت موردنظر خود را به صفحه اضافه کنید</span>
           </div>
         </div>
-        <button type="button" class="modal-close" id="btn-sites-add-close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        <button type="button" class="modal-close" id="btn-sites-add-close" data-i18n-aria="close" aria-label="Close"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <form id="sites-add-form" autocomplete="off">
         <span class="sites-add-preview" id="sites-add-preview" aria-hidden="true">
@@ -326,7 +326,7 @@
         </label>
         <label class="sites-modal-field">
           <span class="sites-modal-label" data-i18n="sitesCategoryLabel">دسته‌بندی</span>
-          <select id="sites-add-cat" class="field-input" aria-label="دسته‌بندی"></select>
+          <select id="sites-add-cat" class="field-input" data-i18n-aria="sitesCategoryLabel" aria-label="Category"></select>
         </label>
         <div class="sites-modal-actions">
           <button type="submit" id="btn-sites-add-confirm" class="btn-primary" data-i18n="sitesAdd">افزودن</button>
@@ -373,7 +373,7 @@
               </button>
             </div>
           </div>
-          <div class="news-cats" id="news-cats" role="tablist" aria-label="دسته‌بندی اخبار"></div>
+          <div class="news-cats" id="news-cats" role="tablist" data-i18n-aria="newsCatsAria" aria-label="News categories"></div>
           <div class="news-grid" id="news-grid"></div>
           <div id="news-empty" class="feed-empty hidden" data-i18n="newsEmpty">خبری در این دسته پیدا نشد</div>
           <div id="news-error" class="feed-error hidden">
@@ -518,7 +518,7 @@
         <button class="modal-close settings-close" data-close="modal-settings" data-i18n-aria="close" aria-label="بستن"><svg class="modal-close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
       <div class="settings-layout">
-        <nav class="settings-nav" aria-label="دسته‌بندی‌های تنظیمات">
+        <nav class="settings-nav" data-i18n-aria="settingsNavAria" aria-label="Settings categories">
           <button type="button" class="settings-tab active" data-tab="general">
             <span class="settings-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="settings-tab-icon"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
             <span data-i18n="tabGeneral">عمومی</span>
@@ -733,7 +733,7 @@
                   <p class="settings-card-desc" data-i18n="fontDesc">انتخاب فونت موردنظر برای کل رابط کاربری</p>
                 </div>
               </div>
-              <div class="font-grid" id="font-grid" role="radiogroup" aria-label="فونت"></div>
+              <div class="font-grid" id="font-grid" role="radiogroup" data-i18n-aria="fontGridAria" aria-label="Font"></div>
             </section>
             
             <section class="settings-card">
@@ -794,7 +794,7 @@
                     </span>
                     <input type="color" id="bg-color-picker" value="#000000" class="color-picker-native" data-i18n-aria="bgColor">
                   </label>
-                  <div class="color-presets" id="bg-color-presets" role="group" aria-label="رنگ‌های آماده">
+                  <div class="color-presets" id="bg-color-presets" role="group" data-i18n-aria="bgColorPresetsAria" aria-label="Preset colors">
                     <button type="button" class="color-preset" data-color="#000000" title="#000000" style="--preset-color:#000000"></button>
                     <button type="button" class="color-preset" data-color="#1a1a2e" title="#1A1A2E" style="--preset-color:#1a1a2e"></button>
                     <button type="button" class="color-preset" data-color="#0f172a" title="#0F172A" style="--preset-color:#0f172a"></button>
@@ -883,7 +883,7 @@
                 </div>
                 <p class="about-hero-subtitle" data-i18n="updateDesc">با چک‌آپ کلیک بررسی کنید؛ اگر نسخه‌ی جدیدی باشد، دانلود آماده می‌شود.</p>
                 <div class="update-result" id="update-result" hidden>
-                  <span class="update-status-pill update-status-checking" id="update-status" role="status" aria-live="polite">در حال بررسی…</span>
+                  <span class="update-status-pill update-status-checking" id="update-status" role="status" aria-live="polite">Checking&#8230;</span>
                   <a class="update-download-btn" id="btn-update-download" href="https://github.com/farzadqavidel/NextTab-chrome-extension/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" hidden>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>
                     <span data-i18n="updateDownloadBtn">دانلود آخرین نسخه</span>
@@ -1018,11 +1018,11 @@
           <line x1="12" y1="8" x2="12.01" y2="8"/>
         </svg>
       </div>
-      <h2 class="confirm-title" id="confirm-title">تأیید</h2>
+      <h2 class="confirm-title" id="confirm-title">Confirm</h2>
       <div class="confirm-message" id="confirm-message"></div>
       <div class="confirm-actions">
-        <button type="button" class="btn-cancel" id="confirm-cancel">انصراف</button>
-        <button type="button" class="btn-primary" id="confirm-ok">تأیید</button>
+        <button type="button" class="btn-cancel" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn-primary" id="confirm-ok">Confirm</button>
       </div>
     </div>
   </div>
@@ -1051,7 +1051,7 @@
         <div class="task-date-days" id="task-date-days" role="group" data-i18n-aria="taskDateSelectDay" aria-label="انتخاب روز"></div>
         <div class="task-date-selection">
           <span data-i18n="taskDateSelectedLabel">تاریخ انتخاب‌شده</span>
-          <strong id="task-date-selected">بدون موعد</strong>
+          <strong id="task-date-selected">No due date</strong>
         </div>
         <div class="task-date-actions">
           <button type="button" id="btn-task-date-clear" class="btn-cancel" data-i18n="taskDateClear">پاک‌کردن موعد</button>
@@ -1125,7 +1125,7 @@
             </div>
             <div class="form-group">
               <label for="personal-event-date" data-i18n="personalEventDate">تاریخ</label>
-              <input type="text" id="personal-event-date" class="field-input" required inputmode="numeric" dir="ltr" placeholder="سال-ماه-روز" aria-describedby="personal-event-date-hint">
+              <input type="text" id="personal-event-date" class="field-input" required inputmode="numeric" dir="ltr" placeholder="YYYY-MM-DD" aria-describedby="personal-event-date-hint">
               <small id="personal-event-date-hint" class="personal-event-date-hint"></small>
             </div>
           </div>
