@@ -33,9 +33,17 @@ const Feeds = (() => {
   }
 
   function stripHtml(html) {
-    const div = document.createElement('div');
-    div.innerHTML = String(html == null ? '' : html);
-    return (div.textContent || '').replace(/\s+/g, ' ').trim();
+    // DOMParser keeps the markup out of the live document tree — no detached-img
+    // network fetches, no scripts — so feed HTML can be parsed safely.
+    const text = String(html == null ? '' : html);
+    try {
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      return (doc.body ? doc.body.textContent : '').replace(/\s+/g, ' ').trim();
+    } catch {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.textContent.replace(/\s+/g, ' ').trim();
+    }
   }
 
   async function fetchWithTimeout(url, ms = 12000) {

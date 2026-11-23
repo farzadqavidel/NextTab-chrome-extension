@@ -222,28 +222,37 @@ const NewsUI = (() => {
       </div>`;
   }
 
+  function safeCat(cat) {
+    return CATS.includes(cat) ? cat : 'all';
+  }
+
   function itemHtml(item) {
     const src = SOURCES[item.source] || { domain: '' };
-    const favicon = `https://www.google.com/s2/favicons?domain=${src.domain}&sz=64`;
-    const thumb = item.image
-      ? `<img src="${Feeds.escapeHtml(item.image)}" alt="" loading="lazy">`
+    const favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(src.domain)}&sz=64`;
+    // Untrusted feed URLs — only http(s) survives, anything else is dropped.
+    const safeLink = typeof TabyarUI !== 'undefined' ? TabyarUI.safeUrl(item.link) : null;
+    const safeImage = typeof TabyarUI !== 'undefined' ? TabyarUI.safeUrl(item.image) : null;
+    const thumb = safeImage
+      ? `<img src="${Feeds.escapeHtml(safeImage)}" alt="" loading="lazy">`
       : '';
-    return `
-      <a class="news-item" href="${Feeds.escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">
-        <div class="news-thumb" data-cat="${item.cat}">
-          ${thumb}
-          <span class="news-cat">${catLabel(item.cat)}</span>
-        </div>
-        <div class="news-copy">
-          <h4 class="news-item-title">${Feeds.escapeHtml(item.title)}</h4>
-          ${item.desc ? `<p class="news-item-desc">${Feeds.escapeHtml(item.desc)}</p>` : ''}
-        </div>
-        <div class="news-meta">
-          <img class="news-src-fav" src="${favicon}" alt="" loading="lazy">
-          <span class="news-source">${Feeds.escapeHtml(sourceName(item.source))}</span>
-          <span class="news-time">${Feeds.timeAgo(new Date(item.date))}</span>
-        </div>
-      </a>`;
+    const inner = `
+      <div class="news-thumb" data-cat="${safeCat(item.cat)}">
+        ${thumb}
+        <span class="news-cat">${catLabel(safeCat(item.cat))}</span>
+      </div>
+      <div class="news-copy">
+        <h4 class="news-item-title">${Feeds.escapeHtml(item.title)}</h4>
+        ${item.desc ? `<p class="news-item-desc">${Feeds.escapeHtml(item.desc)}</p>` : ''}
+      </div>
+      <div class="news-meta">
+        <img class="news-src-fav" src="${favicon}" alt="" loading="lazy">
+        <span class="news-source">${Feeds.escapeHtml(sourceName(item.source))}</span>
+        <span class="news-time">${Feeds.timeAgo(new Date(item.date))}</span>
+      </div>`;
+    if (safeLink) {
+      return `<a class="news-item" href="${Feeds.escapeHtml(safeLink)}" target="_blank" rel="noopener noreferrer">${inner}</a>`;
+    }
+    return `<div class="news-item news-item-static" role="article">${inner}</div>`;
   }
 
   function filtered() {

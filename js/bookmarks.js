@@ -159,6 +159,12 @@ const BookmarksUI = (() => {
    */
   function openUrl(url, { newTab = true } = {}) {
     if (!url) return;
+    // Only navigable protocols survive — javascript:/data:/view-source: etc.
+    // must never reach window.open or chrome.tabs.create.
+    const safe = (typeof TabyarUI !== 'undefined')
+      ? TabyarUI.safeUrl(url, { allowFile: true, allowMailto: true })
+      : null;
+    if (!safe) return;
 
     if (isFileUrl(url) && typeof chrome !== 'undefined' && chrome.tabs?.create) {
       chrome.tabs.create({ url }, () => {
@@ -470,14 +476,21 @@ const BookmarksUI = (() => {
   }
 
   function buildBookmarkTileHtml(bm) {
-    return `
-      <a href="${escapeHtml(bm.url)}" class="bm-tile bm-tile-link" data-id="${bm.id}" draggable="true" aria-grabbed="false" title="${escapeHtml(bm.title)}">
-        <div class="bm-tile-icon">
-          ${Favicon.imgHtml(bm.url, bm.title)}
-        </div>
-        <span class="bm-tile-label">${escapeHtml(bm.title)}</span>
-      </a>
-    `;
+    // Only safe urls become clickable links — everything else stays a labelled tile.
+    const safe = typeof TabyarUI !== 'undefined' ? TabyarUI.safeUrl(bm.url, { allowFile: true, allowMailto: true }) : null;
+    const inner = `
+      <div class="bm-tile-icon">
+        ${Favicon.imgHtml(bm.url, bm.title)}
+      </div>
+      <span class="bm-tile-label">${escapeHtml(bm.title)}</span>`;
+    const attrs = `data-id="${escapeHtml(bm.id)}" draggable="true" aria-grabbed="false" title="${escapeHtml(bm.title)}"`;
+    if (safe) {
+      return `<a href="${escapeHtml(safe)}" class="bm-tile bm-tile-link" ${attrs}>${inner}</a>`;
+    }
+    // Keep the same class names so drag/context-menu handling still applies; an
+    // anchor without href would be non-navigating and silently dead, so the
+    // unsafe-URL tile is a span with the same classes.
+    return `<span class="bm-tile bm-tile-link bm-tile-static" ${attrs}>${inner}</span>`;
   }
   function buildFolderTileHtml(folder) {
     const label = I18n.getFolderName(folder);
@@ -485,8 +498,8 @@ const BookmarksUI = (() => {
     const childCount = getChildItems(folder.id).length;
     const badge = childCount > 0 ? `<span class="bm-tile-badge" aria-hidden="true">${childCount}</span>` : '';
     return `
-      <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${folder.id}" draggable="true" aria-grabbed="false"
-              style="--folder-color: ${folder.color}" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
+      <button type="button" class="bm-tile bm-tile-folder" data-folder-id="${escapeHtml(folder.id)}" draggable="true" aria-grabbed="false"
+              style="--folder-color: ${/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(folder.color || '') ? folder.color : '#94a3b8'}" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
         ${badge}
         <span class="bm-tile-folder-icon">${FOLDER_SVG}</span>
         <span class="bm-tile-label">${escapeHtml(label)}</span>

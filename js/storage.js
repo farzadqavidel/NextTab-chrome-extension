@@ -115,89 +115,329 @@ const Storage = (() => {
     });
   }
 
+  /**
+   * Strict shape validation for imported / stored data. Anything coming from a
+   * backup file, a corrupted chrome.storage entry, or an older build passes
+   * through here before it can reach the DOM or be re-saved: ids are constrained
+   * to safe characters, texts are length-capped, URLs are size-capped, enum/
+   * numeric fields are range-checked, and collections are length-capped.
+   * User content (bookmark urls, note texts, search history) is preserved — the
+   * render layer is responsible for deciding which protocols may become href.
+   */
+  function sanitizeImportData(input) {
+    const src = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
+
+    const str = (value, max = 500) => (typeof value === 'string' ? value.slice(0, max) : '');
+    const id = (value) => {
+      if (typeof value !== 'string') return '';
+      const trimmed = value.trim().slice(0, 64);
+      return /^[A-Za-z0-9_:.-]{1,64}$/.test(trimmed) ? trimmed : '';
+    };
+    const num = (value, fallback = 0) => { const n = Number(value); return Number.isFinite(n) ? n : fallback; };
+    const hexColor = (value, fallback) => (typeof value === 'string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim()) ? value.trim() : fallback);
+    const clampNum = (value, min, max, fallback) => { const n = Number(value); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback; };
+    const strList = (value, maxItems, maxLen) => (Array.isArray(value) ? [...new Set(value.filter((item) => typeof item === 'string').map((item) => item.slice(0, maxLen)).filter(Boolean))].slice(0, maxItems) : []);
+
+    const bookmarks = Array.isArray(src.bookmarks) ? src.bookmarks.slice(0, 500).map((b) => {
+      if (!b || typeof b !== 'object') return null;
+      const url = str(b.url, 2048).trim();
+      if (!url) return null;
+      const bookmark = {
+        id: id(b.id) || generateId(),
+        title: str(b.title, 180) || url,
+        url,
+        folderId: id(b.folderId) || 'default',
+        order: num(b.order, 0),
+        createdAt: num(b.createdAt, Date.now())
+      };
+      if (b.chromeId != null) bookmark.chromeId = String(b.chromeId).slice(0, 64);
+      if (b.isOutline) bookmark.isOutline = true;
+      return bookmark;
+    }).filter(Boolean) : [];
+
+    let folders = Array.isArray(src.folders) ? src.folders.slice(0, 200).map((f) => {
+      if (!f || typeof f !== 'object') return null;
+      const folderId = id(f.id);
+      if (!folderId) return null;
+      const folder = {
+        id: folderId,
+        name: str(f.name, 80) || 'Folder',
+        color: hexColor(f.color, '#94a3b8'),
+        order: num(f.order, 0),
+        parentId: id(f.parentId) ? id(f.parentId) : 'default',
+        isDefault: Boolean(f.isDefault),
+        isChromeRoot: Boolean(f.isChromeRoot),
+        createdAt: num(f.createdAt, Date.now())
+      };
+      if (f.chromeId != null) folder.chromeId = String(f.chromeId).slice(0, 64);
+      return folder;
+    }).filter(Boolean) : [];
+    if (!folders.some((f) => f.isDefault || f.id === 'default')) {
+      folders.unshift({ id: 'default', name: 'صفحه اصلی', color: '#94a3b8', order: 0, isDefault: true });
+    }
+
+    const cleanNote = (n) => {
+      if (!n || typeof n !== 'object') return null;
+      const text = str(n.text, 2000);
+      const note = {
+        id: id(n.id) || generateId(),
+        text,
+        done: Boolean(n.done),
+        createdAt: num(n.createdAt, Date.now())
+      };
+      if (n.deletedAt != null && Number.isFinite(Number(n.deletedAt))) note.deletedAt = Number(n.deletedAt);
+      return note;
+    };
+    const notes = Array.isArray(src.notes) ? src.notes.slice(0, 500).map(cleanNote).filter(Boolean) : [];
+    const trashedNotes = Array.isArray(src.trashedNotes) ? src.trashedNotes.slice(0, 500).map(cleanNote).filter(Boolean) : [];
+
+    const tasks = Array.isArray(src.tasks) ? src.tasks.slice(0, 500).map((t) => {
+      if (!t || typeof t !== 'object') return null;
+      const task = {
+        id: id(t.id) || generateId(),
+        title: str(t.title || t.text, 180).trim(),
+        dueDate: /^\d{4}-\d{2}-\d{2}$/.test(t.dueDate || '') ? t.dueDate : '',
+        done: Boolean(t.done),
+        createdAt: num(t.createdAt, Date.now())
+      };
+      if (!task.title) return null;
+      return task;
+    }).filter(Boolean) : [];
+
+    const personalEvents = Array.isArray(src.personalEvents) ? src.personalEvents.slice(0, 200).map((e) => {
+      if (!e || typeof e !== 'object') return null;
+      const title = str(e.title, 120).trim();
+      if (!title) return null;
+      return {
+        id: id(e.id) || generateId(),
+        title,
+        calendarType: ['jalali', 'gregorian', 'hijri'].includes(e.calendarType) ? e.calendarType : 'jalali',
+        year: Math.max(1, Math.min(9999, Math.round(num(e.year, 1)))),
+        month: Math.max(1, Math.min(12, Math.round(num(e.month, 1)))),
+        day: Math.max(1, Math.min(31, Math.round(num(e.day, 1)))),
+        annually: Boolean(e.annually),
+        createdAt: num(e.createdAt, Date.now())
+      };
+    }).filter(Boolean) : [];
+
+    const focusSessions = Array.isArray(src.focusSessions)
+      ? [...new Set(src.focusSessions.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0))].slice(-1000)
+      : [];
+
+    const searchHistory = strList(src.searchHistory, 20, 200);
+
+    let selectedDay = null;
+    if (src.selectedDay && typeof src.selectedDay === 'object') {
+      // Current shape stores GREGORIAN values in gy/gm/gd; very old data
+      // stored JALALI values in year/month/day. Keep whichever exists as-is.
+      const gy = Math.round(num(src.selectedDay.gy, 0));
+      const gm = Math.round(num(src.selectedDay.gm, 0));
+      const gd = Math.round(num(src.selectedDay.gd, 0));
+      const legacyYear = Math.round(num(src.selectedDay.year, 0));
+      const legacyMonth = Math.round(num(src.selectedDay.month, 0));
+      const legacyDay = Math.round(num(src.selectedDay.day, 0));
+      const so = typeof src.selectedDay.selectedOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(src.selectedDay.selectedOn) ? src.selectedDay.selectedOn : null;
+      if (gy >= 1 && gm >= 1 && gm <= 12 && gd >= 1 && gd <= 31) {
+        selectedDay = so ? { gy, gm, gd, selectedOn: so } : { gy, gm, gd };
+      } else if (legacyYear >= 1 && legacyMonth >= 1 && legacyMonth <= 12 && legacyDay >= 1 && legacyDay <= 31) {
+        selectedDay = so ? { year: legacyYear, month: legacyMonth, day: legacyDay, selectedOn: so } : { year: legacyYear, month: legacyMonth, day: legacyDay };
+      }
+    }
+
+    const activeFolderId = (() => {
+      const raw = id(src.activeFolderId);
+      if (raw && folders.some((f) => f.id === raw)) return raw;
+      return 'default';
+    })();
+
+    // ── Settings ────────────────────────────────────────────────────────
+    const s = src.settings && typeof src.settings === 'object' ? src.settings : {};
+    const settings = structuredClone(DEFAULT_DATA.settings);
+
+    const strSettings = (key, max) => { if (typeof s[key] === 'string') settings[key] = s[key].slice(0, max); };
+    const boolSettings = (key) => { if (typeof s[key] === 'boolean') settings[key] = s[key]; };
+    const enumSettings = (key, list) => { if (list.includes(s[key])) settings[key] = s[key]; };
+    const rawNumSettings = (key, transform) => {
+      const n = Number(s[key]);
+      if (Number.isFinite(n)) settings[key] = transform(n);
+    };
+
+    // Legacy glassMode flag is kept so the legacy migration in mergeDefaults works.
+    if (typeof s.glassMode === 'boolean') settings.glassMode = s.glassMode;
+    strSettings('theme', 40);
+    enumSettings('colorMode', ['light', 'dark', 'glass']);
+    enumSettings('bgType', ['gradient', 'color', 'image']);
+    strSettings('bgGradient', 40);
+    rawNumSettings('bgBlur', (n) => clampNum(n, 0, 30, 0));
+    rawNumSettings('bgOverlay', (n) => clampNum(n, 0, 100, 20));
+    strSettings('bgColor', 40);
+    if (!hexColor(settings.bgColor, '')) settings.bgColor = '#000000';
+    boolSettings('showClock'); boolSettings('compactBookmarks'); boolSettings('notesBlurred');
+    boolSettings('privacyMode'); boolSettings('floatingBookmarkButton');
+    enumSettings('bookmarkSize', ['small', 'medium', 'large']);
+    boolSettings('googleServicesVisible'); boolSettings('topSitesVisible');
+    boolSettings('sitesVisible'); boolSettings('pricesVisible'); boolSettings('newsVisible');
+    boolSettings('followChromeBookmarks'); boolSettings('chromeBookmarkSyncInitialized');
+    boolSettings('welcomeShown'); boolSettings('onboardingComplete');
+    enumSettings('font', ['system', 'vazir', 'lalezar', 'estedad', 'noto', 'naskh', 'amiri', 'scheherazade', 'markazi']);
+    enumSettings('language', ['fa', 'en']);
+    enumSettings('calendarType', ['jalali', 'gregorian', 'hijri']);
+    strSettings('country', 100); strSettings('city', 120); strSettings('countryCode', 8);
+    strSettings('timezone', 40);
+    strSettings('secondCity', 120); strSettings('secondCountry', 100);
+    strSettings('secondCountryCode', 8); strSettings('secondTimezone', 40);
+    rawNumSettings('googleServicesVersion', (n) => Math.max(0, Math.round(n)));
+    rawNumSettings('sitesVersion', (n) => Math.max(0, Math.round(n)));
+
+    const latBound = (v) => {
+      // Explicit absence is a real state — keep it null; only real numbers are validated.
+      if (v == null || v === '') return null;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= -90 && n <= 90 ? n : null;
+    };
+    const lonBound = (v) => {
+      if (v == null || v === '') return null;
+      const n = Number(v);
+      return Number.isFinite(n) && n >= -180 && n <= 180 ? n : null;
+    };
+    settings.locationLat = latBound(s.locationLat);
+    settings.locationLon = lonBound(s.locationLon);
+    settings.secondLocationLat = latBound(s.secondLocationLat);
+    settings.secondLocationLon = lonBound(s.secondLocationLon);
+
+    // bgImage: http(s) url, data:image/..., or a bundled local wallpaper asset.
+    const rawBgImage = typeof s.bgImage === 'string' ? s.bgImage.trim().slice(0, 200000) : '';
+    let bgImage = '';
+    if (rawBgImage) {
+      if (rawBgImage.startsWith('data:') && /^data:image\//i.test(rawBgImage)) {
+        // Keep only sane-sized data URLs — anything bigger is dropped outright.
+        if (rawBgImage.length <= 1500000) bgImage = rawBgImage;
+      } else if (/^https?:\/\//i.test(rawBgImage)) {
+        try { const u = new URL(rawBgImage); if (u.protocol === 'https:' || u.protocol === 'http:') bgImage = u.href; } catch { /* drop */ }
+      } else if (/^assets\/wallpapers\/[A-Za-z0-9_.-]+$/i.test(rawBgImage)) {
+        bgImage = rawBgImage;
+      }
+    }
+    settings.bgImage = bgImage;
+    if (settings.bgType === 'image' && !settings.bgImage) settings.bgType = 'gradient';
+
+    // hiddenWidgets: only known widget/feed ids.
+    const KNOWN_WIDGET_IDS = ['day-info-card', 'calendar-card', 'bookmarks-card', 'notes-card', 'tasks-card', 'sites-section', 'prices-section', 'news-section'];
+    settings.hiddenWidgets = Array.isArray(s.hiddenWidgets) ? [...new Set(s.hiddenWidgets.filter((w) => KNOWN_WIDGET_IDS.includes(w)))] : [];
+
+    const widgetOrder = Array.isArray(s.widgetOrder) ? [...new Set(s.widgetOrder.filter((w) => KNOWN_WIDGET_IDS.includes(w) && w !== 'sites-section' && w !== 'prices-section' && w !== 'news-section'))] : [];
+    settings.widgetOrder = widgetOrder.length ? [...new Set([...widgetOrder, 'day-info-card', 'calendar-card', 'bookmarks-card', 'notes-card', 'tasks-card'])] : [...DEFAULT_DATA.settings.widgetOrder];
+    const feedOrder = Array.isArray(s.feedOrder) ? [...new Set(s.feedOrder.filter((w) => ['sites-section', 'prices-section', 'news-section'].includes(w)))] : [];
+    settings.feedOrder = feedOrder.length ? [...new Set([...feedOrder, 'sites-section', 'prices-section', 'news-section'])] : [...DEFAULT_DATA.settings.feedOrder];
+
+    // Top-sites block list: keep only plausible domain/host keys, drop junk.
+    settings.hiddenTopSites = Array.isArray(s.hiddenTopSites)
+      ? [...new Set(s.hiddenTopSites
+        .filter((item) => typeof item === 'string')
+        .map((item) => item.trim().toLowerCase())
+        .filter((item) => /^[a-z0-9][a-z0-9.-]{0,99}$/i.test(item) && item.includes('.')))].slice(0, 100)
+      : [];
+    settings.enabledGoogleServices = Array.isArray(s.enabledGoogleServices)
+      ? [...new Set(s.enabledGoogleServices.filter((id) => ['gmail', 'drive', 'meet', 'maps', 'youtube', 'translate', 'calendar', 'photos'].includes(id)))]
+      : [...DEFAULT_DATA.settings.enabledGoogleServices];
+
+    // Iranian sites: keep only entries that would survive iranian-sites' own
+    // normalization (http(s) url, known cat, capped name).
+    const SITE_CATS = ['video', 'taxi', 'shop', 'news', 'directions', 'famous'];
+    if (Array.isArray(s.iranianSites)) {
+      settings.iranianSites = s.iranianSites.slice(0, 100).map((site) => {
+        if (!site || typeof site !== 'object') return null;
+        const cat = SITE_CATS.includes(site.cat) ? site.cat : null;
+        if (!cat) return null;
+        const url = str(site.url, 2048).trim();
+        let valid = false;
+        try { const u = new URL(url); valid = (u.protocol === 'https:' || u.protocol === 'http:') && u.hostname.includes('.'); } catch { /* drop */ }
+        if (!valid) return null;
+        return {
+          id: id(site.id) || 'site-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          name: str(site.name, 80).trim() || 'Site',
+          url,
+          cat
+        };
+      }).filter(Boolean);
+    }
+
+    settings.focusState = (s.focusState && typeof s.focusState === 'object') ? s.focusState : structuredClone(DEFAULT_DATA.settings.focusState);
+    settings.focusDurations = (s.focusDurations && typeof s.focusDurations === 'object') ? s.focusDurations : structuredClone(DEFAULT_DATA.settings.focusDurations);
+
+    return {
+      bookmarks, folders, notes, trashedNotes, tasks, personalEvents, focusSessions,
+      activeFolderId, selectedDay, searchHistory, settings
+    };
+  }
+
   function mergeDefaults(data) {
-    const merged = structuredClone(DEFAULT_DATA);
-    if (data.bookmarks) merged.bookmarks = data.bookmarks;
-    if (data.folders) {
-      merged.folders = data.folders;
-      const def = merged.folders.find((f) => f.isDefault);
-      if (def && (def.name === 'همه' || def.name === 'بدون دسته‌بندی')) def.name = 'صفحه اصلی';
-    }
-    if (data.notes) merged.notes = data.notes;
-    if (data.trashedNotes) merged.trashedNotes = data.trashedNotes;
-    if (Array.isArray(data.tasks)) merged.tasks = data.tasks;
-    if (Array.isArray(data.personalEvents)) merged.personalEvents = data.personalEvents;
-    if (Array.isArray(data.focusSessions)) merged.focusSessions = data.focusSessions;
-    if (data.activeFolderId) merged.activeFolderId = data.activeFolderId;
-    if (data.selectedDay) merged.selectedDay = data.selectedDay;
-    if (Array.isArray(data.searchHistory)) merged.searchHistory = data.searchHistory;
-    if (data.settings) {
-      merged.settings = { ...merged.settings, ...data.settings };
-      // Glass is now an independent app-wide mode on top of a chosen accent
-      // theme. Migrate legacy settings: glass-as-theme becomes the legacy
-      // boolean glassMode, then both legacy forms fold into colorMode.
-      if (merged.settings.theme === 'glass') {
-        merged.settings.theme = 'midnight';
-        merged.settings.glassMode = true;
-      }
-      if (merged.settings.glassMode === true) {
-        merged.settings.colorMode = 'glass';
-      }
-      if (!['light', 'dark', 'glass'].includes(merged.settings.colorMode)) {
-        merged.settings.colorMode = 'dark';
-      }
-      delete merged.settings.glassMode;
-      if (!Array.isArray(merged.settings.hiddenWidgets)) merged.settings.hiddenWidgets = [];
-      if (!Array.isArray(merged.settings.widgetOrder)) merged.settings.widgetOrder = [...DEFAULT_DATA.settings.widgetOrder];
-      if (!Array.isArray(merged.settings.feedOrder)) merged.settings.feedOrder = [...DEFAULT_DATA.settings.feedOrder];
-      if (!['system', 'vazir', 'lalezar', 'estedad', 'noto', 'naskh', 'amiri', 'scheherazade', 'markazi'].includes(merged.settings.font)) merged.settings.font = 'vazir';
-      if (!['focus', 'break'].includes(merged.settings.focusState?.phase)) {
-        merged.settings.focusState = structuredClone(DEFAULT_DATA.settings.focusState);
-      } else {
-        merged.settings.focusState = { ...DEFAULT_DATA.settings.focusState, ...(merged.settings.focusState || {}) };
-      }
-      const savedFocusDurations = merged.settings.focusDurations || {};
-      const normalizeFocusDuration = (value, fallback) => {
-        const duration = Number(value);
-        return Number.isSafeInteger(duration) && duration >= 60000 && duration <= MAX_FOCUS_DURATION_MS && duration % 60000 === 0
-          ? duration
-          : fallback;
-      };
-      merged.settings.focusDurations = {
-        focusMs: normalizeFocusDuration(savedFocusDurations.focusMs, DEFAULT_DATA.settings.focusDurations.focusMs),
-        breakMs: normalizeFocusDuration(savedFocusDurations.breakMs, DEFAULT_DATA.settings.focusDurations.breakMs)
-      };
+    const src = data && typeof data === 'object' ? data : {};
+    const clean = sanitizeImportData(src);
 
-      // Add newly introduced Google services to existing profiles exactly once.
-      // This keeps an explicit user choice (including disabling Meet later)
-      // intact on all subsequent loads.
-      const savedGoogleServices = data.settings.enabledGoogleServices;
-      const savedGoogleServicesVersion = Number(data.settings.googleServicesVersion || 0);
-      if (Array.isArray(savedGoogleServices) && savedGoogleServicesVersion < 2) {
-        merged.settings.enabledGoogleServices = [...new Set([...savedGoogleServices, 'meet'])];
-        merged.settings.googleServicesVersion = 2;
-      }
+    const def = clean.folders.find((f) => f.isDefault);
+    if (def && (def.name === 'همه' || def.name === 'بدون دسته‌بندی')) def.name = 'صفحه اصلی';
 
-      if (merged.settings.theme === 'light' || !validThemes().has(merged.settings.theme)) {
-        merged.settings.theme = DEFAULT_DATA.settings.theme;
-      }
-      if (!validGradients().has(merged.settings.bgGradient)) {
-        merged.settings.bgGradient = DEFAULT_DATA.settings.bgGradient || 'midnight';
-      }
-      if (merged.settings.bgImage && /4kwallpapers\.com/i.test(merged.settings.bgImage)) {
-        merged.settings.bgImage = '';
-        if (merged.settings.bgType === 'image') {
-          merged.settings.bgType = 'gradient';
-          merged.settings.bgGradient = merged.settings.bgGradient || 'midnight';
-        }
-      }
-      // The AI Assistant was removed: drop its settings from the stored profile
-      // so the stale secret never re-appears in an export or on import.
-      delete merged.settings.assistantBaseUrl;
-      delete merged.settings.assistantToken;
-      delete merged.settings.assistantModel;
+    if (clean.settings.theme === 'glass') {
+      clean.settings.theme = 'midnight';
+      clean.settings.glassMode = true;
     }
-    return merged;
+    if (clean.settings.glassMode === true) {
+      clean.settings.colorMode = 'glass';
+    }
+    if (!['light', 'dark', 'glass'].includes(clean.settings.colorMode)) {
+      clean.settings.colorMode = 'dark';
+    }
+    delete clean.settings.glassMode;
+    if (!['system', 'vazir', 'lalezar', 'estedad', 'noto', 'naskh', 'amiri', 'scheherazade', 'markazi'].includes(clean.settings.font)) clean.settings.font = 'vazir';
+
+    if (!['focus', 'break'].includes(clean.settings.focusState?.phase)) {
+      clean.settings.focusState = structuredClone(DEFAULT_DATA.settings.focusState);
+    } else {
+      clean.settings.focusState = { ...DEFAULT_DATA.settings.focusState, ...(clean.settings.focusState || {}) };
+    }
+    const savedFocusDurations = clean.settings.focusDurations || {};
+    const normalizeFocusDuration = (value, fallback) => {
+      const duration = Number(value);
+      return Number.isSafeInteger(duration) && duration >= 60000 && duration <= MAX_FOCUS_DURATION_MS && duration % 60000 === 0
+        ? duration
+        : fallback;
+    };
+    clean.settings.focusDurations = {
+      focusMs: normalizeFocusDuration(savedFocusDurations.focusMs, DEFAULT_DATA.settings.focusDurations.focusMs),
+      breakMs: normalizeFocusDuration(savedFocusDurations.breakMs, DEFAULT_DATA.settings.focusDurations.breakMs)
+    };
+
+    // Add newly introduced Google services to existing profiles exactly once.
+    // This keeps an explicit user choice (including disabling Meet later)
+    // intact on all subsequent loads.
+    const savedGoogleServices = src.settings && typeof src.settings === 'object' ? src.settings.enabledGoogleServices : undefined;
+    const savedGoogleServicesVersion = src.settings && typeof src.settings === 'object' ? Number(src.settings.googleServicesVersion || 0) : 0;
+    if (Array.isArray(savedGoogleServices) && savedGoogleServicesVersion < 2) {
+      clean.settings.enabledGoogleServices = [...new Set([...savedGoogleServices.filter((id) => ['gmail', 'drive', 'meet', 'maps', 'youtube', 'translate', 'calendar', 'photos'].includes(id)), 'meet'])];
+      clean.settings.googleServicesVersion = 2;
+    }
+
+    if (clean.settings.theme === 'light' || !validThemes().has(clean.settings.theme)) {
+      clean.settings.theme = DEFAULT_DATA.settings.theme;
+    }
+    if (!validGradients().has(clean.settings.bgGradient)) {
+      clean.settings.bgGradient = DEFAULT_DATA.settings.bgGradient || 'midnight';
+    }
+    if (clean.settings.bgImage && /4kwallpapers\.com/i.test(clean.settings.bgImage)) {
+      clean.settings.bgImage = '';
+      if (clean.settings.bgType === 'image') {
+        clean.settings.bgType = 'gradient';
+        clean.settings.bgGradient = clean.settings.bgGradient || 'midnight';
+      }
+    }
+    // The AI Assistant was removed: drop its settings from the stored profile
+    // so the stale secret never re-appears in an export or on import.
+    delete clean.settings.assistantBaseUrl;
+    delete clean.settings.assistantToken;
+    delete clean.settings.assistantModel;
+
+    return clean;
   }
 
   async function save() {

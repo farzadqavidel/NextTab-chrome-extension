@@ -1,11 +1,11 @@
 # NextTab
 
-![NextTab](icons/icon128.png)
+![NextTab](icons/icon128.webp)
 
 
 **Your personal New Tab — calendar, bookmarks, weather, notes, Google services, and themes in one beautiful page.**
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue?style=flat-square)](https://github.com/farzadqavidel/NextTab-chrome-extension)
 [![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](#)
 
@@ -32,7 +32,7 @@
 **NextTab** replaces Chrome’s default New Tab with a customizable dashboard designed for daily use.  
 It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**, **Google search**, **weather**, **notes**, **Google services shortcuts**, and rich **appearance settings**. Data stays local; if **Follow Chrome bookmarks** is enabled, bookmarks sync with Chrome’s own bookmark store.
 
-> **Version:** `1.6.0` — Redesigned bento-grid layout: polished glass cards, a compact Google-services pill beside the search bar, tighter spacing that fits the whole dashboard in view without scrolling, plus full responsiveness from small laptops to 4K displays.
+> **Version:** `1.7.0` — Security, stability and polish: hardened import validation, XSS escaping and URL/identifier guards; fixed dual-location weather labels and Jalali/Hijri clocks; webp screenshots and wallpapers throughout.
 
 
 
@@ -146,20 +146,20 @@ It combines a **regional calendar** (Jalali, Hijri, or Gregorian), **bookmarks**
 **Option A — Clone with Git**
 
 ```bash
-git clone https://github.com/farzadqavidel/tabyar-chrome-extension.git
-cd tabyar-chrome-extension
+git clone https://github.com/farzadqavidel/NextTab-chrome-extension.git
+cd NextTab-chrome-extension
 ```
 
 **Option B — Download ZIP**
 
-1. Open [Chrome-Extention](https://github.com/farzadqavidel/tabyar-chrome-extension.git)
+1. Open [NextTab-chrome-extension](https://github.com/farzadqavidel/NextTab-chrome-extension.git)
 2. Click **Code → Download ZIP**
 3. Extract the archive to a permanent folder
 
 > **Important:** Choose a stable location **before** loading the extension — for example:
 >
 > ```
-> C:\Extensions\Chrome-Extention
+> C:\Extensions\NextTab-chrome-extension
 > ```
 >
 > If you move or delete the folder later, Chrome will disable the extension and you will need to load it again.
@@ -210,7 +210,7 @@ All preferences are saved automatically and persist across browser restarts.
 ## Project Structure
 
 ```
-Chrome-Extention/
+NextTab-chrome-extension/
 ├── manifest.json          # Extension manifest (MV3)
 ├── newtab.html            # New Tab page
 ├── css/

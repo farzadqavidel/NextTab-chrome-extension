@@ -3,14 +3,14 @@ const GoogleServicesUI = (() => {
   // generic s2 favicon for every service. That endpoint often returns the
   // Google "G" for Gmail/Drive and makes the pill wait on a network request.
   const SERVICES = [
-    { id: 'gmail', url: 'https://mail.google.com', iconPath: 'icons/services/gmail.svg', nameKey: 'googleGmail' },
-    { id: 'drive', url: 'https://drive.google.com', iconPath: 'icons/services/drive.svg', nameKey: 'googleDrive' },
-    { id: 'meet', url: 'https://meet.google.com', iconPath: 'icons/services/meet.svg', nameKey: 'googleMeet' },
+    { id: 'gmail', url: 'https://mail.google.com', iconPath: 'icons/services/gmail.webp', nameKey: 'googleGmail' },
+    { id: 'drive', url: 'https://drive.google.com', iconPath: 'icons/services/drive.webp', nameKey: 'googleDrive' },
+    { id: 'meet', url: 'https://meet.google.com', iconPath: 'icons/services/meet.webp', nameKey: 'googleMeet' },
     { id: 'maps', url: 'https://maps.google.com', iconPath: 'icons/services/maps.webp', nameKey: 'googleMaps' },
-    { id: 'youtube', url: 'https://www.youtube.com', iconPath: 'icons/services/youtube.svg', nameKey: 'googleYoutube' },
-    { id: 'translate', url: 'https://translate.google.com', iconPath: 'icons/services/translate.svg', nameKey: 'googleTranslate' },
-    { id: 'calendar', url: 'https://calendar.google.com', iconPath: 'icons/services/calendar.svg', nameKey: 'googleCalendar' },
-    { id: 'photos', url: 'https://photos.google.com', iconPath: 'icons/services/photos.svg', nameKey: 'googlePhotos' }
+    { id: 'youtube', url: 'https://www.youtube.com', iconPath: 'icons/services/youtube.webp', nameKey: 'googleYoutube' },
+    { id: 'translate', url: 'https://translate.google.com', iconPath: 'icons/services/translate.webp', nameKey: 'googleTranslate' },
+    { id: 'calendar', url: 'https://calendar.google.com', iconPath: 'icons/services/calendar.webp', nameKey: 'googleCalendar' },
+    { id: 'photos', url: 'https://photos.google.com', iconPath: 'icons/services/photos.webp', nameKey: 'googlePhotos' }
   ];
 
   function getEnabledServices() {

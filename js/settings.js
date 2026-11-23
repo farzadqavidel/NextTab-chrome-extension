@@ -528,17 +528,17 @@ const SettingsUI = (() => {
       { id: 'sea-alley', url: picsum('1065', 1920, 1080), thumb: picsum('1065', 480, 270) }
     ],
     gaming: [
-      { id: 'gaming-car-1', url: localWallpaper('gaming-car-1.jpg'), thumb: localWallpaper('gaming-car-1-thumb.webp') },
-      { id: 'gaming-car-2', url: localWallpaper('gaming-car-2.jpg'), thumb: localWallpaper('gaming-car-2-thumb.webp') },
-      { id: 'gaming-arena', url: localWallpaper('gaming-arena.jpg'), thumb: localWallpaper('gaming-arena-thumb.webp') }
+      { id: 'gaming-car-1', url: localWallpaper('gaming-car-1.webp'), thumb: localWallpaper('gaming-car-1-thumb.webp') },
+      { id: 'gaming-car-2', url: localWallpaper('gaming-car-2.webp'), thumb: localWallpaper('gaming-car-2-thumb.webp') },
+      { id: 'gaming-arena', url: localWallpaper('gaming-arena.webp'), thumb: localWallpaper('gaming-arena-thumb.webp') }
     ],
     tech: [
-      { id: 'tech-circuit', url: localWallpaper('tech-circuit.jpg'), thumb: localWallpaper('tech-circuit-thumb.webp') },
-      { id: 'tech-server', url: localWallpaper('tech-server.jpg'), thumb: localWallpaper('tech-server-thumb.webp') }
+      { id: 'tech-circuit', url: localWallpaper('tech-circuit.webp'), thumb: localWallpaper('tech-circuit-thumb.webp') },
+      { id: 'tech-server', url: localWallpaper('tech-server.webp'), thumb: localWallpaper('tech-server-thumb.webp') }
     ],
     neon: [
-      { id: 'neon-trails', url: localWallpaper('neon-trails.jpg'), thumb: localWallpaper('neon-trails-thumb.webp') },
-      { id: 'neon-nebula', url: localWallpaper('neon-nebula.jpg'), thumb: localWallpaper('neon-nebula-thumb.webp') }
+      { id: 'neon-trails', url: localWallpaper('neon-trails.webp'), thumb: localWallpaper('neon-trails-thumb.webp') },
+      { id: 'neon-nebula', url: localWallpaper('neon-nebula.webp'), thumb: localWallpaper('neon-nebula-thumb.webp') }
     ]
   };
 
@@ -1093,14 +1093,38 @@ const SettingsUI = (() => {
         if (nameEl) nameEl.textContent = I18n.t('noFile');
         return;
       }
+      const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB — chrome.storage is only 10 MB total
+      const imageMime = /^image\/(png|jpe?g|webp|gif|bmp|avif|svg)$/i.test(String(file.type || ''));
+      if (!imageMime) {
+        if (nameEl) nameEl.textContent = I18n.t('noFile');
+        TabyarUI.alert(I18n.t('invalidImageUrl'), { type: 'error' });
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        if (nameEl) nameEl.textContent = I18n.t('noFile');
+        TabyarUI.alert(I18n.t('imageTooLarge'), { type: 'error' });
+        e.target.value = '';
+        return;
+      }
       if (nameEl) nameEl.textContent = file.name;
       const reader = new FileReader();
       reader.onload = async (ev) => {
-        await Storage.updateSettings({ bgImage: ev.target.result, bgType: 'image' });
-        document.querySelector('input[name="bg-type"][value="image"]').checked = true;
-        showBgOptions('image');
-        updateWallpaperSelection('');
-        await applyBackground();
+        if (typeof ev.target.result !== 'string' || !/^data:image\//i.test(ev.target.result)) {
+          TabyarUI.alert(I18n.t('invalidImageUrl'), { type: 'error' });
+          e.target.value = '';
+          return;
+        }
+        try {
+          await Storage.updateSettings({ bgImage: ev.target.result, bgType: 'image' });
+          document.querySelector('input[name="bg-type"][value="image"]').checked = true;
+          showBgOptions('image');
+          updateWallpaperSelection('');
+          await applyBackground();
+        } catch (err) {
+          console.warn('NextTab: wallpaper upload failed', err);
+          TabyarUI.alert(I18n.t('imageUploadFailed'), { type: 'error' });
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1122,14 +1146,23 @@ const SettingsUI = (() => {
 
   async function applyBgFromUrl() {
     const url = document.getElementById('bg-image-url').value.trim();
-    if (!url) {
+    // http(s) only, https preferred — the browser fetch path and the background
+    // fallback both require it; anything else is rejected outright.
+    let valid = null;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:' && !parsed.username && !parsed.password && parsed.hostname.includes('.')) {
+        valid = parsed.href;
+      }
+    } catch { /* invalid */ }
+    if (!valid) {
       TabyarUI.alert(I18n.t('invalidImageUrl'), { type: 'error' });
       return;
     }
-    await Storage.updateSettings({ bgImage: url, bgType: 'image' });
+    await Storage.updateSettings({ bgImage: valid, bgType: 'image' });
     document.querySelector('input[name="bg-type"][value="image"]').checked = true;
     showBgOptions('image');
-    updateWallpaperSelection(url);
+    updateWallpaperSelection(valid);
     await applyBackground();
   }
 
@@ -1153,10 +1186,19 @@ const SettingsUI = (() => {
     document.getElementById('import-data-file').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      // Guard the file before reading: cap size and reject anything not clearly
+      // a JSON backup produced by this app.
+      if (file.size > 5 * 1024 * 1024) {
+        TabyarUI.alert(I18n.t('invalidFile'), { type: 'error' });
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = async (ev) => {
         try {
+          if (typeof ev.target.result !== 'string') throw new Error('non-text import');
           const data = JSON.parse(ev.target.result);
+          if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('bad backup shape');
           await Storage.importAllData(data);
           await applyAll();
           I18n.applyDom();

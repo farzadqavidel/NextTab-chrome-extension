@@ -35,6 +35,13 @@ const WeatherUI = (() => {
   };
 
   const els = {};
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   const state = {
     primary: { forecastData: null, cityLabel: '' },
     secondary: { forecastData: null, cityLabel: '' }
@@ -399,7 +406,7 @@ const WeatherUI = (() => {
           <div class="weather-modal-current-info">
             <span class="weather-modal-big-temp">${Math.round(cur.temperature_2m)}°</span>
             <span class="weather-modal-current-label">${w.label}</span>
-            ${cityLabel ? `<span class="weather-modal-city">${cityLabel}</span>` : ''}
+            ${cityLabel ? `<span class="weather-modal-city">${escapeHtml(cityLabel)}</span>` : ''}
           </div>
         </div>
         <div class="weather-modal-stats">

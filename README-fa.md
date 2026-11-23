@@ -1,11 +1,11 @@
 # NextTab
 
-![NextTab](icons/icon128.png)
+![NextTab](icons/icon128.webp)
 
 
 **صفحه New Tab شخصی شما — تقویم، بوکمارک، آب‌وهوا، یادداشت، سرویس‌های گوگل و تم، همه در یک صفحه زیبا.**
 
-[![نسخه](https://img.shields.io/badge/نسخه-1.6.0-blue?style=flat-square)](https://github.com/farzadqavidel/Chrome-Extention)
+[![نسخه](https://img.shields.io/badge/نسخه-1.7.0-blue?style=flat-square)](https://github.com/farzadqavidel/NextTab-chrome-extension)
 [![Chrome](https://img.shields.io/badge/افزونه_کروم-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
 
 [English README](./README.md)
@@ -145,20 +145,20 @@
 **روش اول — Clone با Git**
 
 ```bash
-git clone https://github.com/farzadqavidel/tabyar-chrome-extension.git
-cd tabyar-chrome-extension
+git clone https://github.com/farzadqavidel/NextTab-chrome-extension.git
+cd NextTab-chrome-extension
 ```
 
 **روش دوم — دانلود ZIP**
 
-1. به [Chrome-Extention](https://github.com/farzadqavidel/tabyar-chrome-extension.git) بروید
+1. به [NextTab-chrome-extension](https://github.com/farzadqavidel/NextTab-chrome-extension.git) بروید
 2. **Code → Download ZIP** را بزنید
 3. فایل را Extract کنید
 
 > **نکته مهم:** قبل از نصب، پوشه را در **محل ثابت و مناسب** قرار دهید — مثلاً:
 >
 > ```
-> C:\Extensions\Chrome-Extention
+> C:\Extensions\NextTab-chrome-extension
 > ```
 >
 > اگر بعداً پوشه را جابه‌جا یا حذف کنید، کروم افزونه را غیرفعال می‌کند و باید دوباره Load unpacked انجام دهید.
@@ -215,7 +215,7 @@ cd tabyar-chrome-extension
 ## ساختار پروژه
 
 ```
-Chrome-Extention/
+NextTab-chrome-extension/
 ├── manifest.json
 ├── newtab.html
 ├── css/

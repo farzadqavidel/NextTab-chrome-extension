@@ -198,5 +198,20 @@ const TabyarUI = (() => {
     }, 250);
   }
 
-  return { init, confirm, toast, alert, openModal, closeModal };
+  /* URL safety guard for anything user- or feed-provided that gets painted
+     into href/src attributes. Only http(s) (or an explicit opt-in) survives. */
+  function safeUrl(url, { allowFile = false, allowMailto = false } = {}) {
+    try {
+      const parsed = new URL(String(url || '').trim());
+      if (parsed.username || parsed.password) return null; // no userinfo in URLs
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
+      if (allowFile && parsed.protocol === 'file:') return parsed.href;
+      if (allowMailto && parsed.protocol === 'mailto:') return parsed.href;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  return { init, confirm, toast, alert, openModal, closeModal, safeUrl };
 })();

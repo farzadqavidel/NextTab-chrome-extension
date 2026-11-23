@@ -10,7 +10,7 @@
 //      never goes missing.
 const UpdatesUI = (() => {
   const REPO_OWNER = 'farzadqavidel';
-  const REPO_NAME = 'tabyar-chrome-extension';
+  const REPO_NAME = 'NextTab-chrome-extension';
   const REPO_WEB = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
   const REPO_ZIP_URL = `${REPO_WEB}/archive/refs/heads/main.zip`;
 

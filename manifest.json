@@ -19,7 +19,6 @@
   "host_permissions": [
     "https://api.open-meteo.com/*",
     "https://geocoding-api.open-meteo.com/*",
-    "https://4kwallpapers.com/*",
     "https://api.priceto.day/*",
     "https://api.tgju.org/*",
     "https://call1.tgju.org/*",

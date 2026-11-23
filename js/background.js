@@ -331,28 +331,82 @@ async function saveCurrentPageBookmark(message, sender) {
 }
 
 
+
+// ── Wallpaper fetch guard ──────────────────────────────────────────────────
+const WALLPAPER_MAX_BYTES = 8 * 1024 * 1024; // 8 MB — enough for a 1920x1080+ photo
+const WALLPAPER_TIMEOUT_MS = 12000;
+
+/**
+ * Only http(s) URLs to public hosts may be fetched through the service worker.
+ * Private/loopback/link-local addresses are refused outright (SSRF guard), and
+ * the download is bounded by a size cap and a hard timeout.
+ */
+function isAllowedWallpaperUrl(rawUrl) {
+  let url;
+  try {
+    url = new URL(String(rawUrl || '').trim());
+  } catch {
+    return null;
+  }
+  // Strictly public https — no http (plaintext), no local addresses, no userinfo.
+  if (url.protocol !== 'https:') return null;
+  if (url.username || url.password) return null;
+  if (!url.hostname) return null;
+  const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '::1') return null;
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.|fe80:|fc|fd|::1$)/i.test(hostname)) return null;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    const parts = hostname.split('.').map((p) => Number(p));
+    if (parts.every((p) => Number.isInteger(p) && p >= 0 && p <= 255)) {
+      const [a, b] = parts;
+      if (a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a === 0) return null;
+    }
+  }
+  return url;
+}
+
+async function fetchWallpaper(rawUrl) {
+  const url = isAllowedWallpaperUrl(rawUrl);
+  if (!url) throw new Error('URL not allowed');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), WALLPAPER_TIMEOUT_MS);
+  try {
+    const response = await fetch(url.href, {
+      referrer: '',
+      credentials: 'omit',
+      cache: 'default',
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const contentType = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (!contentType.startsWith('image/')) throw new Error('Not an image');
+
+    const declaredLength = Number(response.headers.get('content-length') || 0);
+    if (declaredLength > WALLPAPER_MAX_BYTES) throw new Error('Image too large');
+
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength < 512) throw new Error('Empty image');
+    if (buffer.byteLength > WALLPAPER_MAX_BYTES) throw new Error('Image too large');
+
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 8192) {
+      binary += String.fromCharCode.apply(null, bytes.slice(i, i + 8192));
+    }
+    return { ok: true, base64: btoa(binary), mime: contentType };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message) return;
 
   if (message.type === 'FETCH_WALLPAPER') {
-    fetch(message.url, {
-      referrer: '',
-      credentials: 'omit',
-      cache: 'default'
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const buffer = await response.arrayBuffer();
-        if (buffer.byteLength < 512) throw new Error('Empty image');
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
-        sendResponse({
-          ok: true,
-          base64: btoa(binary),
-          mime: response.headers.get('content-type') || 'image/jpeg'
-        });
-      })
+    fetchWallpaper(message.url)
+      .then((response) => sendResponse(response))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }

@@ -69,7 +69,11 @@ const IranianSitesUI = (() => {
 
   function normalize(list) {
     const seen = new Set();
-    return list.filter((item) => item && SITE_CATS.includes(item.cat) && item.url).map((item) => {
+    return list.filter((item) => {
+      if (!item || !SITE_CATS.includes(item.cat) || !item.url) return false;
+      // Only http(s) survives — ftp:/file:/javascript:/and other schemes drop out.
+      return isValidUrl(String(item.url).trim());
+    }).map((item) => {
       let id = typeof item.id === 'string' && item.id ? item.id : '';
       if (!id || seen.has(id)) id = 'site-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       seen.add(id);
@@ -125,7 +129,9 @@ const IranianSitesUI = (() => {
   function normalizeUrl(raw) {
     let u = String(raw || '').trim();
     if (!u) return '';
-    if (/^(https?:|ftp:|file:)\//i.test(u)) return u;
+    // Only http(s) survives — ftp:/file:/javascript:/etc. never reach the DOM.
+    if (/^https?:\/\//i.test(u)) return u;
+    if (/^(ftp|file|javascript|data|vbscript):/i.test(u)) return '';
     return 'https://' + u;
   }
 
@@ -174,11 +180,12 @@ const IranianSitesUI = (() => {
   }
 
   function siteTileHtml(item) {
+    const safeUrl = typeof TabyarUI !== 'undefined' ? TabyarUI.safeUrl(item.url) : (isValidUrl(item.url) ? item.url : null);
     const icon = Favicon.siteIconHtml(item.url, item.name, 'class="site-tile-favicon"');
     const domain = Favicon.getDomain(item.url);
     return `
       <div class="site-tile" data-id="${escapeHtml(item.id)}" data-cat="${escapeHtml(item.cat)}">
-        <a class="site-tile-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)}">
+        <a class="site-tile-link" href="${escapeHtml(safeUrl || '')}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)}">
           <span class="site-tile-icon">${icon}</span>
           <span class="site-tile-body">
             <span class="site-tile-name">${escapeHtml(item.name)}</span>

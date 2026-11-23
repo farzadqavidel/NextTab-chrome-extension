@@ -45,8 +45,18 @@ const TopSitesUI = (() => {
     }
 
     // Drop anything the user removed, then take the first few that remain.
+    // Only http(s) top-site entries are worth rendering — anything else is dropped.
     const sites = (await fetchTopSites())
-      .filter((site) => !Storage.isTopSiteHidden(site.url))
+      .filter((site) => {
+        if (!site || !site.url) return false;
+        if (Storage.isTopSiteHidden(site.url)) return false;
+        try {
+          const protocol = new URL(site.url).protocol;
+          return protocol === 'https:' || protocol === 'http:';
+        } catch {
+          return false;
+        }
+      })
       .slice(0, MAX_TILES);
 
     if (!sites.length) {

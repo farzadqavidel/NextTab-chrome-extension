@@ -7,7 +7,7 @@
 # Without an argument, the script updates/clones the repo folder it lives in.
 set -euo pipefail
 
-REPO_URL="https://github.com/farzadqavidel/tabyar-chrome-extension.git"
+REPO_URL="https://github.com/farzadqavidel/NextTab-chrome-extension.git"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TARGET="${1:-$REPO_ROOT}"

@@ -247,10 +247,11 @@ const NotesUI = (() => {
     const done = !!note.done;
     const doneClass = done ? ' done' : '';
     const textClass = expanded ? 'note-text note-text-lg' : 'note-text';
+    const noteId = escapeAttr(note.id);
     const checkHtml = isTrashView() ? '' : `
-        <button type="button" class="note-check${done ? ' checked' : ''}" data-id="${note.id}" aria-label="${done ? I18n.t('markUndone') : I18n.t('markDone')}">${done ? '✓' : ''}</button>`;
+        <button type="button" class="note-check${done ? ' checked' : ''}" data-id="${noteId}" aria-label="${done ? I18n.t('markUndone') : I18n.t('markDone')}">${done ? '✓' : ''}</button>`;
     return `
-      <div class="note-item${doneClass}" data-id="${note.id}">
+      <div class="note-item${doneClass}" data-id="${noteId}">
         ${checkHtml}
         <p class="${textClass}">${escapeHtml(note.text)}</p>
       </div>
@@ -328,6 +329,12 @@ const NotesUI = (() => {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   function clearContext() {

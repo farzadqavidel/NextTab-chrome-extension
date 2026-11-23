@@ -94,7 +94,11 @@ const CommandPaletteUI = (() => {
       subtitle: bookmark.url,
       icon: '☆',
       kind: 'bookmark',
-      action: () => { close(); chrome.tabs.create({ url: bookmark.url }); }
+      action: () => {
+        close();
+        const safe = TabyarUI.safeUrl(bookmark.url, { allowFile: true, allowMailto: true });
+        if (safe) chrome.tabs.create({ url: safe });
+      }
     }));
     const enabled = new Set(GoogleServicesUI.getEnabledServices());
     const services = GoogleServicesUI.getServices().filter((service) => enabled.has(service.id)).map((service) => ({

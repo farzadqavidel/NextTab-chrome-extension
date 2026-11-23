@@ -229,7 +229,7 @@ const CalendarUI = (() => {
       els.eventsList.innerHTML = `<li class="no-events">${I18n.t('noOccasion')}</li>`;
     } else {
       els.eventsList.innerHTML = events.map((e) =>
-        `<li class="event-item ${e.type}">${escapeHtml(e.title)}</li>`
+        `<li class="event-item ${['holiday', 'personal', 'event'].includes(e.type) ? e.type : 'event'}">${escapeHtml(e.title)}</li>`
       ).join('');
     }
   }
